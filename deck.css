@@ -1,0 +1,307 @@
+/* ============================================================================
+   USERLAND — Deck UI layer  (cyberpunk terminal chrome)
+   Scoped under `.dk`. Token-driven so screens stay consistent and re-skinnable.
+   Inspired by gritty cyberpunk HUDs; all content/structure is original userland.
+   ========================================================================== */
+
+.dk {
+  /* ── palette (green phosphor terminal) ── */
+  --dk-bg: #070a08;
+  --dk-bg-2: #0a0f0c;
+  --dk-panel: rgba(10, 16, 12, 0.55);
+  --dk-fg: #b9e7cb; /* primary text / lines */
+  --dk-fg-dim: #6f9a80; /* secondary text */
+  --dk-fg-faint: #3f5d4b; /* hairlines / disabled */
+  --dk-line: rgba(168, 224, 190, 0.42);
+  --dk-line-soft: rgba(168, 224, 190, 0.16);
+  --dk-bright: #cdf6dc; /* active fill */
+  --dk-ink: #05130b; /* text on bright fill */
+  --dk-amber: #f4b91f; /* engineering accent */
+  --dk-glow: rgba(150, 230, 180, 0.45);
+
+  /* ── type ── */
+  --dk-font: "Rajdhani", "Saira Condensed", "Segoe UI", system-ui, sans-serif;
+  --dk-mono: "Share Tech Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  /* ── metrics ── */
+  --dk-chamfer: 9px;
+  --dk-border: 1px;
+
+  position: relative;
+  min-height: 100vh;
+  color: var(--dk-fg);
+  font-family: var(--dk-font);
+  letter-spacing: 0.04em;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(40, 70, 52, 0.18), transparent 60%),
+    radial-gradient(140% 120% at 50% 120%, rgba(0, 0, 0, 0.55), transparent 55%),
+    linear-gradient(180deg, var(--dk-bg-2), var(--dk-bg));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* CRT scanlines + faint flicker, applied as an overlay on .dk screens */
+.dk-scan::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.22) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+}
+.dk-scan::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 51;
+  pointer-events: none;
+  background: radial-gradient(130% 100% at 50% 50%, transparent 62%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+/* ── text helpers ── */
+.dk-glow {
+  text-shadow: 0 0 6px var(--dk-glow);
+}
+.dk-mono {
+  font-family: var(--dk-mono);
+  letter-spacing: 0.02em;
+}
+.dk-label {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+.dk-dim {
+  color: var(--dk-fg-dim);
+}
+
+/* ── frame: a thin-bordered panel (square by default) ── */
+.dk-frame {
+  border: var(--dk-border) solid var(--dk-line);
+  background: var(--dk-panel);
+  box-shadow:
+    inset 0 0 0 1px rgba(168, 224, 190, 0.04),
+    0 0 10px rgba(0, 0, 0, 0.35);
+}
+
+/* chamfered corner variant (top-left + bottom-right cut) */
+.dk-chamfer {
+  --c: var(--dk-chamfer);
+  clip-path: polygon(
+    var(--c) 0,
+    100% 0,
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    0 100%,
+    0 var(--c)
+  );
+}
+/* bordered chamfer: the element is the line colour, ::before is the fill */
+.dk-frame--chamfer {
+  border: 0;
+  background: var(--dk-line);
+  position: relative;
+}
+.dk-frame--chamfer,
+.dk-frame--chamfer::before {
+  --c: var(--dk-chamfer);
+  clip-path: polygon(
+    var(--c) 0,
+    100% 0,
+    100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%,
+    0 100%,
+    0 var(--c)
+  );
+}
+.dk-frame--chamfer::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  --c: calc(var(--dk-chamfer) - 1px);
+  background: var(--dk-bg-2);
+}
+.dk-frame--chamfer > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── top segmented header bar ── */
+.dk-bar {
+  display: flex;
+  gap: 8px;
+}
+.dk-bar__cell {
+  flex: 1;
+  border: var(--dk-border) solid var(--dk-line);
+  padding: 7px 14px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--dk-fg);
+  background: rgba(10, 16, 12, 0.4);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.dk-bar__cell--grow {
+  flex: 2;
+}
+
+/* ── section label: bracketed letter chip + caption ── */
+.dk-seclabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.dk-seclabel__chip {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: var(--dk-border) solid var(--dk-line);
+  font-family: var(--dk-mono);
+  font-size: 13px;
+  color: var(--dk-fg);
+}
+.dk-seclabel__text {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 16px;
+  color: var(--dk-fg-dim);
+}
+
+/* ── tile: square option card with footer code row ── */
+.dk-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: var(--dk-border) solid var(--dk-line);
+  aspect-ratio: 1 / 1;
+  background: rgba(8, 14, 10, 0.4);
+  color: var(--dk-fg);
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.12s ease, box-shadow 0.12s ease;
+}
+.dk-tile:hover {
+  box-shadow: 0 0 0 1px var(--dk-line), 0 0 14px rgba(150, 230, 180, 0.12);
+}
+.dk-tile__title {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px var(--dk-glow);
+}
+.dk-tile__foot {
+  display: flex;
+  border-top: var(--dk-border) solid var(--dk-line);
+  font-family: var(--dk-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.02em;
+  text-align: left;
+  color: var(--dk-fg);
+}
+.dk-tile__foot > :first-child {
+  padding: 4px 6px;
+  border-right: var(--dk-border) solid var(--dk-line);
+  white-space: nowrap;
+}
+.dk-tile__foot > :last-child {
+  padding: 4px 6px;
+  color: var(--dk-fg-dim);
+  line-height: 1.15;
+}
+/* active = inverted bright fill */
+.dk-tile--active {
+  background: var(--dk-bright);
+  color: var(--dk-ink);
+  border-color: var(--dk-bright);
+  box-shadow: 0 0 18px rgba(150, 230, 180, 0.35);
+}
+.dk-tile--active .dk-tile__title {
+  text-shadow: none;
+}
+.dk-tile--active .dk-tile__foot,
+.dk-tile--active .dk-tile__foot > :first-child {
+  border-color: rgba(5, 19, 11, 0.5);
+}
+.dk-tile--active .dk-tile__foot > :last-child {
+  color: rgba(5, 19, 11, 0.65);
+}
+
+/* ── tier buttons (T1..T4) ── */
+.dk-tier {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: var(--dk-border) solid var(--dk-line);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--dk-fg);
+  background: rgba(8, 14, 10, 0.4);
+  text-shadow: 0 0 6px var(--dk-glow);
+  cursor: pointer;
+}
+.dk-tier--active {
+  background: var(--dk-bright);
+  color: var(--dk-ink);
+  border-color: var(--dk-bright);
+  text-shadow: none;
+  box-shadow: 0 0 18px rgba(150, 230, 180, 0.35);
+}
+
+/* ── message / read panel ── */
+.dk-msg {
+  border: var(--dk-border) solid var(--dk-line);
+  background: rgba(8, 14, 10, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+.dk-msg__head {
+  padding: 14px 16px;
+  border-bottom: var(--dk-border) solid var(--dk-line);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 18px;
+  text-shadow: 0 0 6px var(--dk-glow);
+}
+.dk-msg__body {
+  padding: 16px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--dk-fg);
+}
+
+/* ── bottom status bar ── */
+.dk-footbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: var(--dk-border) solid var(--dk-line);
+  padding: 7px 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--dk-fg-dim);
+  background: rgba(10, 16, 12, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-flicker {
+    animation: none !important;
+  }
+}
