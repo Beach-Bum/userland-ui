@@ -13,7 +13,7 @@ button.active{color:#030303;background:var(--fg)}
 #foot{position:fixed;left:0;right:0;bottom:0;height:18px;z-index:5;display:flex;align-items:center;padding:0 4px;box-sizing:border-box;background:#020202;border-top:1px solid #2b2b2b;color:var(--dim);font:9px/1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden}
 </style></head>
 <body>
-<div id="bar"><button id="prev">&lsaquo; PREV</button><button id="next">NEXT &rsaquo;</button><button id="cat">CAT&rsaquo;</button><button id="auto">AUTO</button><span id="readout"></span></div>
+<div id="bar"><button id="prev">&lsaquo; PREV</button><button id="next">NEXT &rsaquo;</button><button id="cat">CAT&rsaquo;</button><button id="auto">AUTO</button><button id="wire">WIRE</button><span id="readout"></span></div>
 <div id="host"></div>
 <div id="foot"><span id="stats"></span></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
@@ -631,7 +631,36 @@ const accentLight = new THREE.PointLight(0x49ee5d, 0.9, 80);
 accentLight.position.set(0, 14, 10);
 scene.add(accentLight);
 
-let group = null, camDist = 50;
+let group = null, camDist = 50, wire = false;
+
+// hidden-line wireframe: every mesh goes matte black (occludes what's behind
+// it) and gets its edge structure overlaid as phosphor lines. Accent/emissive
+// parts keep their color; metal/plastic structure goes terminal green.
+function toWireframe(g) {
+  const blackMat = new THREE.MeshBasicMaterial({
+    color: 0x020302, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+  });
+  const meshes = [];
+  g.traverse((o) => o.isMesh && meshes.push(o));
+  for (const mesh of meshes) {
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    let line = 0x49ee5d;
+    for (const m of mats) {
+      if (m.emissive && (m.emissive.r || m.emissive.g || m.emissive.b)) {
+        line = m.emissive.getHex() || line;
+        break;
+      }
+      if (m.color && m.color.getHex() === 0xc9a227) { line = 0xe8c94c; break; } // gold
+    }
+    const edges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(mesh.geometry, 1),
+      new THREE.LineBasicMaterial({ color: line, transparent: true, opacity: 0.85 })
+    );
+    mesh.material = blackMat;
+    mesh.add(edges);
+  }
+}
+
 function disposeGroup() {
   if (!group) return;
   group.traverse((o) => {
@@ -652,6 +681,7 @@ function setItem(i) {
   const it = ITEMS[idx];
   disposeGroup();
   group = buildGearModule(THREE, it);
+  if (wire) toWireframe(group);
   // center on bounds, fit camera
   const box = new THREE.Box3().setFromObject(group);
   const c = new THREE.Vector3(), s = new THREE.Vector3();
@@ -660,7 +690,7 @@ function setItem(i) {
   camDist = Math.max(s.x, s.y * 1.6, s.z) * 1.45 + 8;
   accentLight.color.set(BENCH_PAL[it.edge] || BENCH_PAL.fg);
   scene.add(group);
-  readout.textContent = `${it.n} · ${it.rarname} · ${it.cat} · ${idx + 1}/${ITEMS.length} · BENCH`;
+  readout.textContent = `${it.n} · ${it.rarname} · ${it.cat} · ${idx + 1}/${ITEMS.length} · ${wire ? "WIRE" : "BENCH"}`;
   statsEl.textContent = it.stats.join(" · ");
   needsRender = true;
 }
@@ -720,6 +750,12 @@ btnAuto.classList.toggle("active", auto);
 btnAuto.onclick = () => {
   auto = !auto;
   btnAuto.classList.toggle("active", auto);
+};
+const btnWire = document.getElementById("wire");
+btnWire.onclick = () => {
+  wire = !wire;
+  btnWire.classList.toggle("active", wire);
+  setItem(idx);
 };
 
 addEventListener("resize", resize);
