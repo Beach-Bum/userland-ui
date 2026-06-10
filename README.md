@@ -88,7 +88,8 @@ Each is a CSS class set in `deck.css` with a matching Phoenix wrapper in
 | # | Screen | Status |
 | --- | --- | --- |
 | 01 | Netwire mail terminal | ✅ [`screens/01-mail.html`](screens/01-mail.html) |
-| 02 | Store + item cards (stats grid, sockets, amber accent bar) | ⏳ |
+| 02 | Store + item cards (stats grid, sockets, amber accent bar) | ✅ [`screens/02-store.html`](screens/02-store.html) (mobile) |
+| 02b | Store Access Terminal — desktop landscape from the owner reference: sidebar catalog, card rail, featured card, holo INSPECT (3D) | ✅ [`screens/02b-store-terminal.html`](screens/02b-store-terminal.html) |
 | 03 | Message-reader (chamfered tabs, list + content) | ⏳ |
 | 04 | Medical tablets (rounded + notched bezels, graphs/readouts) | ⏳ |
 | 05 | Store + global-trade (BLUE variant; ticker + candlestick chart) | ⏳ |
