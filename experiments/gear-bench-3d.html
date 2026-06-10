@@ -76,56 +76,145 @@ function buildGearModule(THREE, item) {
   };
 
   // ---------- canvas texture helpers ----------
-  function canvasTex(w, h, draw) {
+  function canvasTex(w, h, draw, linear) {
     const cv = document.createElement("canvas");
     cv.width = w; cv.height = h;
     draw(cv.getContext("2d"), w, h);
-    return new THREE.CanvasTexture(cv);
+    const tex = new THREE.CanvasTexture(cv);
+    if (!linear && THREE.sRGBEncoding !== undefined) tex.encoding = THREE.sRGBEncoding;
+    return tex;
   }
 
-  function pcbTexture(w, h) {
-    return canvasTex(512, Math.round((512 * h) / w), (c, W, H) => {
-      const base = mil ? "#101314" : "#07140c";
-      const trace = mil ? "#2a3338" : "#11301c";
-      c.fillStyle = base; c.fillRect(0, 0, W, H);
-      c.strokeStyle = trace; c.lineWidth = 3;
-      const n = 26 + tier * 4;
-      for (let i = 0; i < n; i++) { // manhattan traces
-        let x = rng() * W, y = rng() * H;
-        c.beginPath(); c.moveTo(x, y);
-        for (let s = 0; s < 3; s++) {
-          if (rng() < 0.5) x = Math.max(8, Math.min(W - 8, x + (rng() - 0.5) * W * 0.4));
-          else y = Math.max(8, Math.min(H - 8, y + (rng() - 0.5) * H * 0.4));
-          c.lineTo(x, y);
-        }
-        c.stroke();
-        c.fillStyle = "#c9a227"; // via
-        c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill();
+  // subtle shared wear: smudged roughness for the metals
+  const wearMap = canvasTex(128, 128, (c) => {
+    c.fillStyle = "#b9b9b9"; c.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 40; i++) {
+      const x = rng() * 128, y = rng() * 128, r = 6 + rng() * 22;
+      const gr = c.createRadialGradient(x, y, 1, x, y, r);
+      const v = rng() < 0.5 ? "rgba(70,70,70,0.35)" : "rgba(230,230,230,0.3)";
+      gr.addColorStop(0, v); gr.addColorStop(1, "rgba(0,0,0,0)");
+      c.fillStyle = gr; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+    }
+  }, true);
+  M.metal.roughnessMap = wearMap;
+  M.darkMetal.roughnessMap = wearMap;
+
+  // Board faces: layout (traces/vias) is generated once as data, then painted
+  // onto color + bump canvases for BOTH sides, so top and underside agree and
+  // the rng sequence stays deterministic.
+  function makeBoardTextures(w, h) {
+    const W = 640, H = Math.round((640 * h) / w);
+    const base = mil ? "#101314" : "#07140c";
+    const baseBot = mil ? "#0b0e10" : "#051009";
+    const trace = mil ? "#2a3338" : "#11301c";
+    const traceHi = mil ? "#39454c" : "#1a4427";
+
+    const n = 26 + tier * 4;
+    const traces = [], vias = [], joints = [];
+    for (let i = 0; i < n; i++) {
+      let x = rng() * W, y = rng() * H;
+      const pts = [[x, y]];
+      for (let s = 0; s < 3; s++) {
+        if (rng() < 0.5) x = Math.max(10, Math.min(W - 10, x + (rng() - 0.5) * W * 0.4));
+        else y = Math.max(10, Math.min(H - 10, y + (rng() - 0.5) * H * 0.4));
+        pts.push([x, y]);
       }
+      traces.push(pts);
+      vias.push([x, y]);
+    }
+    const jr = 14 + tier * 3; // through-hole solder joints on the underside
+    for (let i = 0; i < jr; i++) joints.push([20 + rng() * (W - 40), 20 + rng() * (H - 50), 5 + rng() * 4]);
+    const scorch = broken ? [0, 1, 2].map(() => [rng() * W, rng() * H, 30 + rng() * 50]) : [];
+    const crack = broken ? [[rng() * W, 0], ...[1, 2, 3, 4, 5].map((s) => [rng() * W, (H * s) / 5])] : [];
+    const serial = "SN " + Math.floor(rng() * 90000 + 10000) + "-" + item.tag;
+
+    const strokePts = (c, pts) => {
+      c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+      c.stroke();
+    };
+    const speckle = (c, alpha) => {
+      for (let i = 0; i < 500; i++) {
+        const v = Math.floor(rng() * 60);
+        c.fillStyle = `rgba(${v},${v + 8},${v},${alpha})`;
+        c.fillRect(rng() * W, rng() * H, 2, 2);
+      }
+    };
+
+    const top = canvasTex(W, H, (c) => {
+      c.fillStyle = base; c.fillRect(0, 0, W, H);
+      speckle(c, 0.25);
+      c.strokeStyle = trace; c.lineWidth = 3;
+      for (const pts of traces) strokePts(c, pts);
+      c.fillStyle = "#c9a227";
+      for (const [x, y] of vias) { c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); }
       c.strokeStyle = trace; c.lineWidth = 2;
-      c.strokeRect(10, 10, W - 20, H - 20); // ground pour border
-      c.fillStyle = "#c9d4c9"; // silkscreen
-      c.font = "700 22px ui-monospace,Menlo,Consolas,monospace";
-      c.fillText(item.tag + "-" + item.id.toUpperCase(), 24, 40);
-      c.font = "700 16px ui-monospace,Menlo,Consolas,monospace";
-      c.fillText(item.corp + " · REV 0." + (tier + 1), 24, 64);
-      c.fillText("⏚ " + item.rarname, 24, H - 24);
-      c.fillStyle = "#c9a227"; // edge connector fingers
+      c.strokeRect(10, 10, W - 20, H - 20);
+      c.fillStyle = "#c9d4c9";
+      c.font = "700 26px ui-monospace,Menlo,Consolas,monospace";
+      c.fillText(item.tag + "-" + item.id.toUpperCase(), 28, 46);
+      c.font = "700 19px ui-monospace,Menlo,Consolas,monospace";
+      c.fillText(item.corp + " · REV 0." + (tier + 1), 28, 74);
+      c.fillText("⏚ " + item.rarname, 28, H - 28);
+      c.fillStyle = "#c9a227";
       const fw = W / 30;
-      for (let i = 0; i < 14; i++) c.fillRect(W * 0.18 + i * fw * 1.4, H - 14, fw, 14);
-      if (broken) { // scorch + crack
-        for (let i = 0; i < 3; i++) {
-          const x = rng() * W, y = rng() * H, r = 30 + rng() * 50;
-          const gr = c.createRadialGradient(x, y, 4, x, y, r);
-          gr.addColorStop(0, "rgba(0,0,0,0.85)"); gr.addColorStop(1, "rgba(0,0,0,0)");
-          c.fillStyle = gr; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
-        }
-        c.strokeStyle = "rgba(220,228,220,0.5)"; c.lineWidth = 2;
-        c.beginPath(); c.moveTo(rng() * W, 0);
-        for (let s = 1; s < 6; s++) c.lineTo(rng() * W, (H * s) / 5);
-        c.stroke();
+      for (let i = 0; i < 14; i++) c.fillRect(W * 0.18 + i * fw * 1.4, H - 16, fw, 16);
+      for (const [x, y, r] of scorch) {
+        const gr = c.createRadialGradient(x, y, 4, x, y, r);
+        gr.addColorStop(0, "rgba(0,0,0,0.85)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+        c.fillStyle = gr; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+      }
+      if (crack.length) { c.strokeStyle = "rgba(220,228,220,0.5)"; c.lineWidth = 2; strokePts(c, crack); }
+    });
+
+    const topBump = canvasTex(W, H, (c) => {
+      c.fillStyle = "#808080"; c.fillRect(0, 0, W, H);
+      c.strokeStyle = "#b4b4b4"; c.lineWidth = 3; // raised traces
+      for (const pts of traces) strokePts(c, pts);
+      c.fillStyle = "#ffffff";
+      for (const [x, y] of vias) { c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); }
+      if (crack.length) { c.strokeStyle = "#303030"; c.lineWidth = 3; strokePts(c, crack); }
+    });
+
+    const bottom = canvasTex(W, H, (c) => {
+      c.fillStyle = baseBot; c.fillRect(0, 0, W, H);
+      speckle(c, 0.3);
+      c.strokeStyle = traceHi; c.lineWidth = 2; // sparser solder-side routing
+      for (let i = 0; i < traces.length; i += 2) strokePts(c, traces[i]);
+      for (const [x, y, r] of joints) { // solder blobs w/ specular dot
+        c.fillStyle = "#9aa4a8";
+        c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+        c.fillStyle = "#d8e0e2";
+        c.beginPath(); c.arc(x - r * 0.3, y - r * 0.3, r * 0.32, 0, 7); c.fill();
+        c.fillStyle = "#3a4144";
+        c.beginPath(); c.arc(x, y, r * 0.18, 0, 7); c.fill(); // clipped lead
+      }
+      c.fillStyle = "#c9a227"; // edge fingers continue on the back
+      const fw = W / 30;
+      for (let i = 0; i < 14; i++) c.fillRect(W * 0.18 + i * fw * 1.4, H - 16, fw, 16);
+      c.fillStyle = "#d8dcd0"; // serial sticker + barcode
+      c.fillRect(W * 0.6, 26, W * 0.3, 54);
+      c.fillStyle = "#15181a";
+      for (let i = 0; i < 26; i++) { if (rng() < 0.6) c.fillRect(W * 0.62 + i * (W * 0.26) / 26, 32, 3, 26); }
+      c.font = "700 16px ui-monospace,Menlo,Consolas,monospace";
+      c.fillText(serial, W * 0.62, 74);
+      c.fillStyle = mil ? "#e3313b" : "#69806d"; // QC stamp
+      c.font = "700 20px ui-monospace,Menlo,Consolas,monospace";
+      c.fillText(broken ? "QC REJECT" : "QC PASS " + (tier + 1) + "/8", 28, H - 30);
+      for (const [x, y, r] of scorch) {
+        const gr = c.createRadialGradient(x, y, 4, x, y, r * 0.8);
+        gr.addColorStop(0, "rgba(0,0,0,0.7)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+        c.fillStyle = gr; c.beginPath(); c.arc(x, y, r * 0.8, 0, 7); c.fill();
       }
     });
+
+    const bottomBump = canvasTex(W, H, (c) => {
+      c.fillStyle = "#808080"; c.fillRect(0, 0, W, H);
+      c.fillStyle = "#ffffff";
+      for (const [x, y, r] of joints) { c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); }
+    });
+
+    return { top, topBump, bottom, bottomBump };
   }
 
   function chipTexture(label) {
@@ -178,16 +267,34 @@ function buildGearModule(THREE, item) {
   };
 
   function board(w, d) {
-    const tex = pcbTexture(w, d);
-    const top = new THREE.MeshStandardMaterial({ map: tex, metalness: 0.15, roughness: 0.7 });
+    const tx = makeBoardTextures(w, d);
+    const top = new THREE.MeshStandardMaterial({
+      map: tx.top, bumpMap: tx.topBump, bumpScale: 0.05, metalness: 0.15, roughness: 0.7,
+    });
+    const bottom = new THREE.MeshStandardMaterial({
+      map: tx.bottom, bumpMap: tx.bottomBump, bumpScale: 0.07, metalness: 0.25, roughness: 0.55,
+    });
     const side = M.darkMetal;
-    const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, d), [side, side, top, side, side, side]);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(w, 0.5, d), [side, side, top, bottom, side, side]);
     b.position.y = -0.25;
     g.add(b);
     for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { // corner screws
       const s = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.18, 12), M.gold);
       s.position.set(sx * (w / 2 - 0.8), 0.06, sz * (d / 2 - 0.8));
       g.add(s);
+    }
+    // solder-side SMD parts so the underside reads as a populated board
+    const nb = 3 + (tier >> 1);
+    for (let i = 0; i < nb; i++) {
+      const cw = 1.2 + rng() * 1.2, cd = 0.9 + rng() * 0.9;
+      const cMesh = new THREE.Mesh(new THREE.BoxGeometry(cw, 0.3, cd), M.epoxy);
+      cMesh.position.set((rng() - 0.5) * (w - 5), -0.65, (rng() - 0.5) * (d - 5));
+      g.add(cMesh);
+    }
+    for (let i = 0; i < 3; i++) {
+      const cMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.4, 10), M.darkMetal);
+      cMesh.position.set((rng() - 0.5) * (w - 5), -0.7, (rng() - 0.5) * (d - 5));
+      g.add(cMesh);
     }
     return b;
   }
@@ -618,10 +725,36 @@ scene.fog = new THREE.Fog(0x030303, 60, 140);
 const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 500);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+if (THREE.sRGBEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
 host.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xa8c0a8, 0.5));
-const key = new THREE.DirectionalLight(0xfff4e0, 1.0);
+// procedural equirect environment — a dark lab with a few glow panels, so
+// metals and solder have something real to reflect
+(function () {
+  const cv = document.createElement("canvas");
+  cv.width = 512; cv.height = 256;
+  const c = cv.getContext("2d");
+  const grad = c.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, "#0a0f0c"); grad.addColorStop(0.55, "#050705"); grad.addColorStop(1, "#020302");
+  c.fillStyle = grad; c.fillRect(0, 0, 512, 256);
+  const panels = [[40, 50, 70, 36, "#bfffd9"], [200, 30, 50, 70, "#fff2cf"], [330, 60, 90, 30, "#9fe8c0"], [460, 40, 40, 50, "#bfe9ff"]];
+  for (const [x, y, w, h, col] of panels) {
+    const gr = c.createRadialGradient(x + w / 2, y + h / 2, 2, x + w / 2, y + h / 2, Math.max(w, h));
+    gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = gr; c.fillRect(x - w, y - h, w * 3, h * 3);
+    c.fillStyle = col; c.fillRect(x, y, w, h);
+  }
+  c.fillStyle = "rgba(120,200,150,0.08)"; c.fillRect(0, 200, 512, 20); // floor glow band
+  const env = new THREE.CanvasTexture(cv);
+  env.mapping = THREE.EquirectangularReflectionMapping;
+  if (THREE.sRGBEncoding !== undefined) env.encoding = THREE.sRGBEncoding;
+  scene.environment = env;
+})();
+
+scene.add(new THREE.AmbientLight(0xa8c0a8, 0.3));
+const key = new THREE.DirectionalLight(0xfff4e0, 0.85);
 key.position.set(18, 30, 22);
 scene.add(key);
 const fill = new THREE.DirectionalLight(0x49ee5d, 0.22);
@@ -703,22 +836,24 @@ function resize() {
   needsRender = true;
 }
 
-let last = 0;
+let last = 0, phase = 0, effPitch = pitch;
 function frame(t) {
   requestAnimationFrame(frame);
   const dt = Math.min(t - last, 100) / 1000;
   last = t;
   if (auto && !dragging) {
     yaw += dt * 0.5;
+    phase += dt * 0.4; // slow nod so the spin shows top AND underside
     needsRender = true;
   }
   if (!needsRender || !group) return;
   needsRender = false;
-  const cp = Math.max(-1.45, Math.min(1.45, pitch));
+  const nod = auto && !dragging ? Math.sin(phase) * 0.6 : 0;
+  effPitch = Math.max(-1.5, Math.min(1.5, pitch + nod));
   camera.position.set(
-    Math.sin(yaw) * Math.cos(cp) * camDist,
-    -Math.sin(cp) * camDist,
-    Math.cos(yaw) * Math.cos(cp) * camDist
+    Math.sin(yaw) * Math.cos(effPitch) * camDist,
+    -Math.sin(effPitch) * camDist,
+    Math.cos(yaw) * Math.cos(effPitch) * camDist
   );
   camera.lookAt(0, 0, 0);
   renderer.render(scene, camera);
@@ -749,7 +884,9 @@ document.getElementById("cat").onclick = () => {
 btnAuto.classList.toggle("active", auto);
 btnAuto.onclick = () => {
   auto = !auto;
+  if (!auto) { pitch = effPitch; phase = 0; } // bake the nod so nothing snaps
   btnAuto.classList.toggle("active", auto);
+  needsRender = true;
 };
 const btnWire = document.getElementById("wire");
 btnWire.onclick = () => {
