@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<title>Userland Gear Bench 3D — Experiment</title>
+<title>Userland Gear Exploded 3D — Experiment</title>
 <style>
 :root{--bg:#030303;--fg:#49ee5d;--dim:#526b55}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);touch-action:none;-webkit-text-size-adjust:100%;text-size-adjust:100%;font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace}
@@ -13,7 +13,7 @@ button.active{color:#030303;background:var(--fg)}
 #foot{position:fixed;left:0;right:0;bottom:0;height:18px;z-index:5;display:flex;align-items:center;padding:0 4px;box-sizing:border-box;background:#020202;border-top:1px solid #2b2b2b;color:var(--dim);font:9px/1 ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden}
 </style></head>
 <body>
-<div id="bar"><button id="prev">&lsaquo; PREV</button><button id="next">NEXT &rsaquo;</button><button id="cat">CAT&rsaquo;</button><button id="auto">AUTO</button><button id="wire">WIRE</button><span id="readout"></span></div>
+<div id="bar"><button id="prev">&lsaquo; PREV</button><button id="next">NEXT &rsaquo;</button><button id="cat">CAT&rsaquo;</button><button id="auto">AUTO</button><button id="explode">EXPLODE</button><span id="readout"></span></div>
 <div id="host"></div>
 <div id="foot"><span id="stats"></span></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
@@ -904,100 +904,53 @@ function buildExplodedModule(THREE, item) {
 }
 
 
-// GEAR BENCH 3D — viewer shell. ITEMS + buildGearModule inlined above.
+// GEAR EXPLODED 3D — white-line technical illustration viewer.
+// ITEMS + bench-lib (buildGearModule/buildExplodedModule) inlined above.
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const readout = document.getElementById("readout");
 const statsEl = document.getElementById("stats");
 const host = document.getElementById("host");
 const btnAuto = document.getElementById("auto");
+const btnExp = document.getElementById("explode");
 
 if (typeof THREE === "undefined") {
   readout.textContent = "THREE.JS FAILED TO LOAD — INTERNET CONNECTION REQUIRED";
   throw new Error("three.js missing");
 }
 
-let idx = Math.max(0, ITEMS.findIndex((i) => i.id === "core_myth"));
-let yaw = REDUCED ? 0.65 : 0.4, pitch = REDUCED ? -0.35 : -0.3;
+const INK = 0x050505, LINE = 0xeef2ee;
+
+let idx = Math.max(0, ITEMS.findIndex((i) => i.id === "port_epic"));
+let yaw = 0.65, pitch = REDUCED ? -0.5 : -0.45;
 let auto = !REDUCED, dragging = false, needsRender = true;
+let explode = REDUCED ? 1 : 0, explodeTarget = explode; // start exploded for reduced motion
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x030303);
-scene.fog = new THREE.Fog(0x030303, 60, 140);
-const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 500);
+scene.background = new THREE.Color(INK);
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 600);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-if (THREE.sRGBEncoding !== undefined) renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
 host.appendChild(renderer.domElement);
 
-// procedural equirect environment — a dark lab with a few glow panels, so
-// metals and solder have something real to reflect
-(function () {
-  const cv = document.createElement("canvas");
-  cv.width = 512; cv.height = 256;
-  const c = cv.getContext("2d");
-  const grad = c.createLinearGradient(0, 0, 0, 256);
-  grad.addColorStop(0, "#0a0f0c"); grad.addColorStop(0.55, "#050705"); grad.addColorStop(1, "#020302");
-  c.fillStyle = grad; c.fillRect(0, 0, 512, 256);
-  const panels = [[40, 50, 70, 36, "#bfffd9"], [200, 30, 50, 70, "#fff2cf"], [330, 60, 90, 30, "#9fe8c0"], [460, 40, 40, 50, "#bfe9ff"]];
-  for (const [x, y, w, h, col] of panels) {
-    const gr = c.createRadialGradient(x + w / 2, y + h / 2, 2, x + w / 2, y + h / 2, Math.max(w, h));
-    gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)");
-    c.fillStyle = gr; c.fillRect(x - w, y - h, w * 3, h * 3);
-    c.fillStyle = col; c.fillRect(x, y, w, h);
-  }
-  c.fillStyle = "rgba(120,200,150,0.08)"; c.fillRect(0, 200, 512, 20); // floor glow band
-  const env = new THREE.CanvasTexture(cv);
-  env.mapping = THREE.EquirectangularReflectionMapping;
-  if (THREE.sRGBEncoding !== undefined) env.encoding = THREE.sRGBEncoding;
-  scene.environment = env;
-})();
-
-scene.add(new THREE.AmbientLight(0xa8c0a8, 0.3));
-const key = new THREE.DirectionalLight(0xfff4e0, 0.85);
-key.position.set(18, 30, 22);
-scene.add(key);
-const fill = new THREE.DirectionalLight(0x49ee5d, 0.22);
-fill.position.set(-24, 10, -10);
-scene.add(fill);
-const accentLight = new THREE.PointLight(0x49ee5d, 0.9, 80);
-accentLight.position.set(0, 14, 10);
-scene.add(accentLight);
-
-let group = null, camDist = 50, wire = false;
-
-// hidden-line wireframe: every mesh goes matte black (occludes what's behind
-// it) and gets its edge structure overlaid as phosphor lines. Accent/emissive
-// parts keep their color; metal/plastic structure goes terminal green.
-function toWireframe(g) {
-  const blackMat = new THREE.MeshBasicMaterial({
-    color: 0x020302, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
+// single-weight white hidden-line conversion
+function monoWireframe(g) {
+  const inkMat = new THREE.MeshBasicMaterial({
+    color: INK, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1,
   });
+  const lineMat = new THREE.LineBasicMaterial({ color: LINE });
   const meshes = [];
   g.traverse((o) => o.isMesh && meshes.push(o));
   for (const mesh of meshes) {
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    let line = 0x49ee5d;
-    for (const m of mats) {
-      if (m.emissive && (m.emissive.r || m.emissive.g || m.emissive.b)) {
-        line = m.emissive.getHex() || line;
-        break;
-      }
-      if (m.color && m.color.getHex() === 0xc9a227) { line = 0xe8c94c; break; } // gold
-    }
-    const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(mesh.geometry, 1),
-      new THREE.LineBasicMaterial({ color: line, transparent: true, opacity: 0.85 })
-    );
-    mesh.material = blackMat;
-    mesh.add(edges);
+    const lines = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 1), lineMat);
+    mesh.material = inkMat;
+    mesh.add(lines);
   }
 }
 
+let asm = null, camDist = 60;
 function disposeGroup() {
-  if (!group) return;
-  group.traverse((o) => {
+  if (!asm) return;
+  asm.group.traverse((o) => {
     if (o.geometry) o.geometry.dispose();
     const mats = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
     for (const m of mats) {
@@ -1006,27 +959,35 @@ function disposeGroup() {
       m.dispose();
     }
   });
-  scene.remove(group);
-  group = null;
+  scene.remove(asm.group);
+  asm = null;
 }
 
 function setItem(i) {
   idx = (i + ITEMS.length) % ITEMS.length;
   const it = ITEMS[idx];
   disposeGroup();
-  group = buildGearModule(THREE, it);
-  if (wire) toWireframe(group);
-  // center on bounds, fit camera
-  const box = new THREE.Box3().setFromObject(group);
+  asm = buildExplodedModule(THREE, it);
+  monoWireframe(asm.group);
+  // recenter on the assembled (collapsed) bounds, fit camera to exploded extent
+  const box = new THREE.Box3().setFromObject(asm.group);
   const c = new THREE.Vector3(), s = new THREE.Vector3();
   box.getCenter(c); box.getSize(s);
-  group.position.sub(c);
-  camDist = Math.max(s.x, s.y * 1.6, s.z) * 1.45 + 8;
-  accentLight.color.set(BENCH_PAL[it.edge] || BENCH_PAL.fg);
-  scene.add(group);
-  readout.textContent = `${it.n} · ${it.rarname} · ${it.cat} · ${idx + 1}/${ITEMS.length} · ${wire ? "WIRE" : "BENCH"}`;
+  asm.group.position.set(-c.x, -c.y, -c.z);
+  const exSpan = asm.lidEx - asm.baseEx + 6;
+  camDist = Math.max(s.x, s.z, exSpan * 0.9) * 1.5 + 10;
+  scene.add(asm.group);
+  applyExplode();
+  readout.textContent = `${it.n} · ${it.rarname} · ${it.cat} · ${idx + 1}/${ITEMS.length} · EXPLODED`;
   statsEl.textContent = it.stats.join(" · ");
   needsRender = true;
+}
+
+function applyExplode() {
+  if (!asm) return;
+  const e = explode * explode * (3 - 2 * explode); // smoothstep
+  asm.lid.position.y = asm.lidRest + (asm.lidEx - asm.lidRest) * e;
+  asm.base.position.y = asm.baseRest + (asm.baseEx - asm.baseRest) * e;
 }
 
 function resize() {
@@ -1043,13 +1004,18 @@ function frame(t) {
   const dt = Math.min(t - last, 100) / 1000;
   last = t;
   if (auto && !dragging) {
-    yaw += dt * 0.5;
-    phase += dt * 0.4; // slow nod so the spin shows top AND underside
+    yaw += dt * 0.4;
+    phase += dt * 0.3;
     needsRender = true;
   }
-  if (!needsRender || !group) return;
+  if (Math.abs(explodeTarget - explode) > 0.001) {
+    explode += Math.max(-dt * 1.6, Math.min(dt * 1.6, explodeTarget - explode));
+    applyExplode();
+    needsRender = true;
+  }
+  if (!needsRender || !asm) return;
   needsRender = false;
-  const nod = auto && !dragging ? Math.sin(phase) * 0.6 : 0;
+  const nod = auto && !dragging ? Math.sin(phase) * 0.35 : 0;
   effPitch = Math.max(-1.5, Math.min(1.5, pitch + nod));
   camera.position.set(
     Math.sin(yaw) * Math.cos(effPitch) * camDist,
@@ -1068,7 +1034,7 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
 renderer.domElement.addEventListener("pointermove", (e) => {
   if (!dragging) return;
   yaw += (e.clientX - px) * 0.008;
-  pitch = Math.max(-1.45, Math.min(1.45, pitch + (e.clientY - py) * 0.008));
+  pitch = Math.max(-1.5, Math.min(1.5, pitch + (e.clientY - py) * 0.008));
   px = e.clientX; py = e.clientY;
   needsRender = true;
 });
@@ -1085,15 +1051,15 @@ document.getElementById("cat").onclick = () => {
 btnAuto.classList.toggle("active", auto);
 btnAuto.onclick = () => {
   auto = !auto;
-  if (!auto) { pitch = effPitch; phase = 0; } // bake the nod so nothing snaps
+  if (!auto) { pitch = effPitch; phase = 0; }
   btnAuto.classList.toggle("active", auto);
   needsRender = true;
 };
-const btnWire = document.getElementById("wire");
-btnWire.onclick = () => {
-  wire = !wire;
-  btnWire.classList.toggle("active", wire);
-  setItem(idx);
+btnExp.classList.toggle("active", explodeTarget > 0.5);
+btnExp.onclick = () => {
+  explodeTarget = explodeTarget > 0.5 ? 0 : 1;
+  btnExp.classList.toggle("active", explodeTarget > 0.5);
+  needsRender = true;
 };
 
 addEventListener("resize", resize);

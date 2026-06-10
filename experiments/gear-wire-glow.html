@@ -381,6 +381,144 @@ function buildGearModule(THREE, item) {
     return sub;
   }
 
+  // ---------- detailed connector builders (technical-illustration grade) ----------
+  const holeMat = new THREE.MeshStandardMaterial({ color: 0x020303, roughness: 0.95 });
+
+  function usbStack(x, z, ry) {
+    const sub = new THREE.Group();
+    const shroud = new THREE.Mesh(new THREE.BoxGeometry(2.6, 2.4, 2.8), M.metal);
+    shroud.position.y = 1.2;
+    sub.add(shroud);
+    for (let i = 0; i < 2; i++) {
+      const op = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.78, 0.18), holeMat);
+      op.position.set(0, 0.68 + i * 1.1, 1.42);
+      sub.add(op);
+      const tongue = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.16, 0.5), M.accent);
+      tongue.position.set(0, 0.88 + i * 1.1, 1.18);
+      sub.add(tongue);
+    }
+    for (const sx of [-1, 1]) { // crimp dimples
+      const d1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), M.darkMetal);
+      d1.position.set(sx * 1.1, 1.9, 1.32);
+      sub.add(d1);
+    }
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
+  function rj45(x, z, ry) {
+    const sub = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(3.0, 2.5, 3.0), M.plastic);
+    body.position.y = 1.25;
+    sub.add(body);
+    const shield = new THREE.Mesh(new THREE.BoxGeometry(3.06, 2.2, 2.7), M.metal);
+    shield.position.y = 1.28;
+    sub.add(shield);
+    const op = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.5, 0.18), holeMat);
+    op.position.set(0, 1.45, 1.52);
+    sub.add(op);
+    const clip = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.45, 0.18), holeMat); // latch notch
+    clip.position.set(0, 0.5, 1.52);
+    sub.add(clip);
+    for (const sx of [-1, 1]) { // link/act LEDs
+      const l = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.18), sx < 0 ? M.accent : M.gold);
+      l.position.set(sx * 1.15, 2.32, 1.52);
+      sub.add(l);
+    }
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
+  function hdmiPort(x, z, ry) {
+    const sub = new THREE.Group();
+    const lower = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 1.7), M.metal);
+    lower.position.y = 0.35;
+    sub.add(lower);
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.45, 1.7), M.metal); // chamfered top step
+    upper.position.y = 0.92;
+    sub.add(upper);
+    const op = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.5, 0.14), holeMat);
+    op.position.set(0, 0.5, 0.88);
+    sub.add(op);
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
+  function microUsb(x, z, ry) {
+    const sub = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 1.2), M.metal);
+    body.position.y = 0.35;
+    sub.add(body);
+    const op = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 0.14), holeMat);
+    op.position.set(0, 0.38, 0.62);
+    sub.add(op);
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
+  function audioJack(x, z, ry) {
+    const sub = new THREE.Group();
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 1.8, 14), M.plastic);
+    barrel.rotation.x = Math.PI / 2;
+    barrel.position.set(0, 0.75, 0);
+    sub.add(barrel);
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.12, 14), M.metal);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(0, 0.75, 0.95);
+    sub.add(ring);
+    const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.1, 12), holeMat);
+    hole.rotation.x = Math.PI / 2;
+    hole.position.set(0, 0.75, 1.02);
+    sub.add(hole);
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
+  function gpioHeader(cols, x, z, ry) {
+    const sub = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.BoxGeometry(cols * 0.5, 0.45, 1.0), M.plastic);
+    base.position.y = 0.22;
+    sub.add(base);
+    for (let i = 0; i < cols; i++) {
+      for (const rz of [-0.25, 0.25]) {
+        const p = new THREE.Mesh(new THREE.BoxGeometry(0.11, 1.1, 0.11), M.gold);
+        p.position.set(-cols * 0.25 + (i + 0.5) * 0.5, 0.85, rz);
+        sub.add(p);
+      }
+    }
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
+  function sdSlot(x, z, ry) {
+    const sub = new THREE.Group();
+    const slot = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.5, 2.2), M.metal);
+    slot.position.y = 0.25;
+    sub.add(slot);
+    const card = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.22, 2.7), M.plastic);
+    card.position.set(0, 0.3, 0.9);
+    sub.add(card);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.06, 0.7), M.accent); // label
+    stripe.position.set(0, 0.44, 1.5);
+    sub.add(stripe);
+    sub.position.set(x, 0, z);
+    if (ry) sub.rotation.y = ry;
+    g.add(sub);
+    return sub;
+  }
+
   function antenna(x, z, h = 4.2) {
     const sub = new THREE.Group();
     const mount = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.4, 0.5, 10), M.gold);
@@ -442,7 +580,9 @@ function buildGearModule(THREE, item) {
       g.add(glowBar);
       for (let i = 0; i < 4 + tier; i++) cap(-6.5 + i * 1.3, 4.2, 1.1 + (i % 2) * 0.25);
       chip(2, 3, 0.4, "VRM-" + tier, 5.8, 3.5);
-      pinHeader(8, -4.5, -5.0);
+      gpioHeader(13, -0.5, -5.0);
+      hdmiPort(5.2, 5.2);
+      sdSlot(-7.0, 2.8, Math.PI / 2);
       led(7, -5, true); led(7, -4.2, tier > 2);
       if (tier >= 6) antenna(-7, -4.5, 3.2);
     },
@@ -478,30 +618,17 @@ function buildGearModule(THREE, item) {
     },
     PORT() {
       board(15, 11);
-      const cage = new THREE.Mesh(new THREE.BoxGeometry(8.5, 2.6, 3.4), M.metal);
-      cage.position.set(-1, 1.3, 3.0);
-      g.add(cage);
-      for (let i = 0; i < 3; i++) { // jack openings
-        const open = i === 1 && broken;
-        const hole = new THREE.Mesh(
-          new THREE.BoxGeometry(1.9, 1.5, 0.4),
-          open ? M.accent : new THREE.MeshStandardMaterial({ color: 0x020303, roughness: 0.95 })
-        );
-        hole.position.set(-3.5 + i * 2.6, 1.2, 4.75);
-        g.add(hole);
-        const tongue = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, 0.3), M.gold);
-        tongue.position.set(-3.5 + i * 2.6, 0.7, 4.7);
-        g.add(tongue);
-      }
-      for (let i = 0; i < 7; i++) { // EMI fingers
-        const f = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.6), M.gold);
-        f.position.set(-4 + i * 1.1, 2.68, 3.0);
-        g.add(f);
-      }
+      // real connector row along the front edge, pi-style
+      rj45(-4.6, 3.6);
+      usbStack(-1.2, 3.5);
+      usbStack(1.8, 3.5);
+      microUsb(-6.8, 4.4);
+      audioJack(4.4, 3.9);
+      hdmiPort(6.0, 4.0, broken ? 0.12 : 0);
       chip(3, 3, 0.5, item.tag + "-PHY", 3.8, -2.2);
-      pinHeader(10, -3, -4.4);
+      gpioHeader(10, -3, -4.5);
       for (let i = 0; i < 2 + (tier >> 1); i++) cap(5.5, -4.2 + i * 1.2, 0.85);
-      led(6.6, 4.2, true); led(5.8, 4.2, tier > 1);
+      led(6.6, 1.8, true); led(5.8, 1.8, tier > 1);
     },
     BUS() {
       board(18, 11);
@@ -705,6 +832,80 @@ function buildGearModule(THREE, item) {
 
   (B[item.cat] || B.CORE)();
   return g;
+}
+
+// Exploded technical-illustration assembly: the populated module sandwiched
+// between an enclosure base (standoffs, segmented rim) and lid (vent slats,
+// clip tabs, port cutouts). Returns the parts + rest/exploded Y offsets so a
+// viewer can animate the explosion.
+function buildExplodedModule(THREE, item) {
+  const inner = buildGearModule(THREE, item);
+  const box = new THREE.Box3().setFromObject(inner);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const cx = (box.max.x + box.min.x) / 2, cz = (box.max.z + box.min.z) / 2;
+  const w = size.x + 1.6, d = size.z + 1.6, t = 0.35;
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0x14181b, metalness: 0.2, roughness: 0.8 });
+
+  function rim(gr, h, y, gapFrac, portSide) {
+    const mk = (sw, sd, x, z) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(sw, h, sd), wallMat);
+      m.position.set(x, y, z);
+      gr.add(m);
+    };
+    for (const sz of [-1, 1]) { // front/back walls, wider opening on the port side
+      const gap = portSide === sz ? Math.min(0.6, gapFrac * 2.2) : gapFrac;
+      const sw = (w * (1 - gap)) / 2;
+      mk(sw, t, -(w / 2) + sw / 2, sz * (d / 2 - t / 2));
+      mk(sw, t, (w / 2) - sw / 2, sz * (d / 2 - t / 2));
+    }
+    for (const sx of [-1, 1]) { // side walls
+      const sd2 = (d * (1 - gapFrac)) / 2;
+      mk(t, sd2, sx * (w / 2 - t / 2), -(d / 2) + sd2 / 2);
+      mk(t, sd2, sx * (w / 2 - t / 2), (d / 2) - sd2 / 2);
+    }
+  }
+
+  const base = new THREE.Group();
+  {
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(w, 0.4, d), wallMat);
+    base.add(plate);
+    rim(base, 1.0, 0.7, 0.24, 1);
+    for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { // standoffs
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.3, 10), wallMat);
+      post.position.set(sx * (w / 2 - 1.7), 0.85, sz * (d / 2 - 1.7));
+      base.add(post);
+    }
+  }
+  const lid = new THREE.Group();
+  {
+    const plate = new THREE.Mesh(new THREE.BoxGeometry(w, 0.4, d), wallMat);
+    lid.add(plate);
+    rim(lid, 2.4, -1.4, 0.3, 1);
+    for (let i = 0; i < 4; i++) { // vent slats
+      const v = new THREE.Mesh(new THREE.BoxGeometry(w * 0.42, 0.14, 0.3), wallMat);
+      v.position.set(-w * 0.18, 0.27, -d / 2 + 1.2 + i * 0.9);
+      lid.add(v);
+    }
+    for (const sx of [-1, 1]) { // clip tabs
+      const c = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.18), wallMat);
+      c.position.set(sx * w * 0.25, -2.75, -(d / 2) + t + 0.09);
+      lid.add(c);
+    }
+  }
+  base.position.set(cx, 0, cz);
+  lid.position.set(cx, 0, cz);
+
+  const baseRest = box.min.y - 1.5; // standoff tops meet the board underside
+  const lidRest = box.max.y + 0.7;
+  const baseEx = baseRest - (4.5 + size.y * 0.35);
+  const lidEx = lidRest + 5.5 + size.y * 0.8;
+  base.position.y = baseRest;
+  lid.position.y = lidRest;
+
+  const group = new THREE.Group();
+  group.add(inner); group.add(base); group.add(lid);
+  return { group, inner, base, lid, baseRest, baseEx, lidRest, lidEx };
 }
 
 
