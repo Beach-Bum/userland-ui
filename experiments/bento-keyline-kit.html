@@ -345,10 +345,27 @@ body{
   letter-spacing:.08em;text-transform:uppercase;flex:none}
 
 /* ================================================================
-   SHEET / MODAL — r28 top, drag handle 44x5
+   SHEET / MODAL — stepped tab + concave fillet · TICKET perforation
+   tab 58%×52 r22 · fillet r16 · body step corner r24 · notch 15 @45°
    ================================================================ */
-.k-sheet{background:var(--paper);border-radius:28px 28px 0 0;padding:14px 20px 20px}
-.k-sheet__handle{width:44px;height:5px;border-radius:var(--r-pill);background:rgba(18,19,16,.25);margin:0 auto 14px}
+.k-perf{position:relative;height:0;border-top:2px dotted rgba(18,19,16,.45)}
+.k-perf::before,.k-perf::after{content:"";position:absolute;top:-8.5px;width:15px;height:15px;
+  transform:rotate(45deg);background:var(--shell,var(--navy))}
+.k-perf::before{left:-8.5px}
+.k-perf::after{right:-8.5px}
+
+.k-ticket{background:var(--yellow);border-radius:20px;color:var(--ink)}
+.k-ticket section{padding:16px 18px}
+
+.k-sheet__tab{position:relative;width:58%;height:52px;background:var(--paper);
+  border-radius:22px 22px 0 0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:6px}
+.k-sheet__tab::after{content:"";position:absolute;right:-16px;bottom:0;width:16px;height:16px;
+  background:radial-gradient(circle at 100% 0,rgba(0,0,0,0) 15.5px,var(--paper) 16px)}
+.k-sheet__handle{width:44px;height:5px;border-radius:var(--r-pill);background:rgba(18,19,16,.25)}
+.k-sheet__body{position:relative;background:var(--paper);border-radius:0 24px 0 0;padding:18px 20px 20px}
+.k-sheet__ghost{position:absolute;right:18px;top:26px;font-size:72px;font-weight:800;
+  letter-spacing:-.04em;opacity:.07;pointer-events:none;user-select:none}
 
 /* ================================================================
    PHONE FRAME — shell 410 r54 p12 · screen r42 navy
@@ -814,26 +831,48 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
     </div>
 
     <div class="sc-bench">
-      <h3>Modal / sheet — install compare</h3>
-      <div class="sc-stage sc-stage--navy" style="padding:24px 18px 0;gap:0;background:linear-gradient(rgba(20,28,38,.88),rgba(20,28,38,.88)),var(--navy)">
+      <h3>Modal / sheet — stepped tab + ticket perforation</h3>
+      <div class="sc-stage" style="--shell:#151d27;padding:24px 18px 0;gap:0;background:linear-gradient(rgba(20,28,38,.88),rgba(20,28,38,.88)),var(--navy)">
+        <div class="k-ticket" style="margin-bottom:20px">
+          <section class="sc-row" style="justify-content:space-between">
+            <span style="font-size:22px">◐</span>
+            <span class="k-tag">JDN node</span>
+          </section>
+          <div class="k-perf"></div>
+          <section class="sc-row" style="justify-content:space-between;align-items:flex-end">
+            <div><span class="t-micro t-dim">Run ticket</span>
+              <div class="k-row__name">OLD HOSPITAL NODE</div></div>
+            <span class="t-micro t-dim" style="writing-mode:vertical-rl">0024100002</span>
+          </section>
+        </div>
         <div class="k-sheet">
-          <div class="k-sheet__handle"></div>
-          <div class="t-title">Install GHOST LENS?</div>
-          <div class="sc-row" style="justify-content:space-between;margin-top:14px">
-            <span class="t-label t-dim">Scan</span>
-            <span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com" style="margin-left:6px">+4</span></span>
-          </div>
-          <div class="sc-row" style="justify-content:space-between;margin-top:8px">
-            <span class="t-label t-dim">Trace</span>
-            <span class="t-body">−02 → <b>−03</b> <span class="k-rar k-rar--com" style="margin-left:6px">OK</span></span>
-          </div>
-          <div class="sc-row" style="margin-top:16px">
-            <button class="k-pill" style="flex:1">Cancel</button>
-            <button class="k-pill k-pill--ink" style="flex:1">Install</button>
+          <div class="k-sheet__tab"><i class="k-sheet__handle"></i><span class="t-micro t-dim">Confirmation</span></div>
+          <div class="k-sheet__body">
+            <span class="k-sheet__ghost">+4</span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div class="t-title">Install GHOST LENS?</div>
+              <span class="k-chip" style="background:var(--yellow)">→</span>
+            </div>
+            <div class="sc-row" style="justify-content:space-between;margin-top:14px">
+              <span class="t-label t-dim">Scan</span>
+              <span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com" style="margin-left:6px">+4</span></span>
+            </div>
+            <div class="sc-row" style="justify-content:space-between;margin-top:8px">
+              <span class="t-label t-dim">Trace</span>
+              <span class="t-body">−02 → <b>−03</b> <span class="k-rar k-rar--com" style="margin-left:6px">OK</span></span>
+            </div>
+            <div class="k-perf" style="margin:16px -20px"></div>
+            <div class="sc-row">
+              <button class="k-pill" style="flex:1">Cancel</button>
+              <button class="k-pill k-pill--ink" style="flex:1">Install</button>
+            </div>
           </div>
         </div>
       </div>
-      <p class="spec">sheet r28 top, handle 44×5 · action shows reward/risk before confirm (screen checklist §20)</p>
+      <p class="spec">sheet edge = raised tab 58%×52 r22 flowing through a concave fillet r16 into the stepped
+      body corner r24 (the “bitten” top-right) · perforation = 2px dotted tear with 15px diamond notches cut in
+      the shell color, full-bleed · ticket: glyph/corp above the tear, name + vertical serial below ·
+      reward/risk always shown before confirm</p>
     </div>
 
     <div class="sc-bench">

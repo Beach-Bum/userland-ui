@@ -55,7 +55,14 @@ micro 9.5 caps +14%.
 Controls: pill buttons h48/40/30 (px 22/18/14, border 1.5) · icon chips 34/44 ·
 outline tag h26 · stadium rows h56 · tab bar + action bar h60 r24 · progress
 h8 · chart bars max-w 26 r 10/10/4/4 · joint tab 38×18 r9 · toggle 46×27 knob
-19 · sheet handle 44×5 · badge circle 62 · theme swatch 64×44 r14.
+19 · badge circle 62 · theme swatch 64×44 r14.
+
+Modal / ticket edges (from the second reference set): sheet = raised tab
+58%×52 r22 (handle 44×5 inside) flowing through a **concave fillet r16** into
+a stepped body corner r24 — the "bitten" top-right. Ticket perforation = 2px
+dotted tear line with **15px diamond notches** (45°-rotated squares in the
+shell color) cut into both edges, full-bleed. Ticket card r20, halves split
+by the perforation: glyph + corp tag above, name + vertical serial below.
 
 Palette: ink #121310 · black #0A0A0A · navy #1B2531 / #141C26 · paper #FFF ·
 bone #EDEAE0 · green #4FD645 · lime #CDF263 · mint #BFEBDC · yellow #F2DF4E ·
@@ -75,9 +82,10 @@ behind `prefers-reduced-motion`.
 All 17 brief-§9 primitives: app shell, board nav (pill chain + tab bar), status
 strip, action bar, card, device card, 3D device card (stage r16 = 3D library
 mount point; glyph rigs are placeholders — model library untouched), list row,
-modal/sheet, chat bubble, profile card, achievement badge, market listing,
-timer card, settings row, theme selector, donor card. Plus ticker, connectors
-(joint tab / dot rail), progress, chart.
+modal/sheet (stepped tab + ticket perforation), chat bubble, profile card,
+achievement badge, market listing, timer card, settings row, theme selector,
+donor card. Plus run ticket, ticker, connectors (joint tab / dot rail),
+progress, chart.
 
 Screens (three-zone contract, phone canonical): NOW command center · RIG
 vertical six-slot stack (CORE→LENS→PORT→BUS→ICE→SKIN with joint connectors) ·
