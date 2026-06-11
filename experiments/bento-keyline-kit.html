@@ -1,0 +1,1405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USERLAND · KIT-B "BENTO KEYLINE" — UI experiment</title>
+<!--
+  EXPERIMENT — NOT PRODUCTION.
+  Owner-directed UI test (Ned, 2026-06-11): bento/keyline visual system from
+  reference shots applied to Userland game content per the "Main Branch / 3D
+  Library / UI Kit Sync" brief. Deliberately departs from the locked .dk rails
+  (radius-0, 8x14 cell grid, all-caps mono). Production remains .dk per
+  docs/strategy/DIRECTION-OVERRIDE-2026-06-10.md. Do not port without owner
+  sign-off. Standalone file, no toolchain, no JS.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ================================================================
+   KIT-B TOKENS — exact measurements
+   base unit 4px · keyline 1.5px line / 3px gap
+   radii: pill 999 · frame 40 · card 26 · nested 16 · phone 54/42
+   ================================================================ */
+:root{
+  --u:4px;
+  --gap:12px;            /* mobile card gutter  (3u) */
+  --gap-desk:16px;       /* desktop bento gutter (4u) */
+  --pad:20px;            /* card padding mobile  (5u) */
+  --pad-desk:24px;       /* card padding desktop (6u) */
+  --key-w:1.5px;         /* keyline width  */
+  --key-gap:3px;         /* keyline offset */
+  --r-pill:999px;
+  --r-frame:40px;
+  --r-card:26px;
+  --r-nested:16px;
+
+  --ink:#121310;
+  --paper:#ffffff;
+  --bone:#edeae0;
+  --black:#0a0a0a;
+  --navy:#1b2531;
+  --navy-2:#141c26;
+
+  --green:#4fd645;
+  --lime:#cdf263;
+  --mint:#bfebdc;
+  --yellow:#f2df4e;
+  --pink:#f2cce3;
+  --lav:#dcddf6;
+  --violet:#b5a8f2;
+  --sky:#79a8e6;
+  --red:#f2472e;
+  --gray:#c7c4b8;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  background:var(--bone);color:var(--ink);
+  font-size:14px;line-height:1.45;font-weight:500;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ================================================================
+   TYPE SCALE
+   num-xl 64 · num 44 · num-s 34 (w800, -0.03em, lh 0.95)
+   title 17 w700 · body 14 w500 · label 11 caps · micro 9.5 caps
+   ================================================================ */
+.t-num-xl{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:.95}
+.t-num   {font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:.95}
+.t-num-s {font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}
+.t-title {font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.t-body  {font-size:14px;font-weight:500}
+.t-label {font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.t-micro {font-size:9.5px;font-weight:650;letter-spacing:.14em;text-transform:uppercase}
+.t-dim   {opacity:.62}
+.t-link  {text-decoration:underline;text-underline-offset:2px;font-weight:700}
+
+/* ================================================================
+   KEYLINE — the signature: 1.5px line offset 3px outside the fill
+   ================================================================ */
+.k-key   {outline:var(--key-w) solid var(--ink);outline-offset:var(--key-gap)}
+.k-key-lt{outline:var(--key-w) solid rgba(255,255,255,.92);outline-offset:var(--key-gap)}
+
+/* ================================================================
+   CARD
+   ================================================================ */
+.k-card{
+  position:relative;background:var(--paper);color:var(--ink);
+  border-radius:var(--r-card);padding:var(--pad);
+}
+.k-card--black {background:var(--black);color:#fff}
+.k-card--navy  {background:var(--navy);color:#fff}
+.k-card--green {background:var(--green)}
+.k-card--lime  {background:var(--lime)}
+.k-card--mint  {background:var(--mint)}
+.k-card--yellow{background:var(--yellow)}
+.k-card--pink  {background:var(--pink)}
+.k-card--lav   {background:var(--lav)}
+.k-card--violet{background:var(--violet)}
+.k-card--sky   {background:var(--sky)}
+.k-card--red   {background:var(--red);color:#fff}
+.k-card--gray  {background:var(--gray)}
+
+/* dotted leader under card titles: 2px dotted, 10px below title */
+.k-dotline{border-bottom:2px dotted rgba(18,19,16,.55);padding-bottom:10px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.k-card--black .k-dotline,.k-card--navy .k-dotline,.k-card--red .k-dotline{border-color:rgba(255,255,255,.5)}
+
+/* ================================================================
+   PILLS / BUTTONS — lg h48 px22 · md h40 px18 · sm h30 px14
+   ================================================================ */
+.k-pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:40px;padding:0 18px;border-radius:var(--r-pill);
+  border:var(--key-w) solid var(--ink);background:var(--paper);color:var(--ink);
+  font-size:13px;font-weight:700;letter-spacing:0;text-decoration:none;
+  white-space:nowrap;cursor:pointer;font-family:inherit;
+}
+.k-pill--lg{height:48px;padding:0 22px;font-size:14px}
+.k-pill--sm{height:30px;padding:0 14px;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.k-pill--ink   {background:var(--ink);border-color:var(--ink);color:#fff}
+.k-pill--lime  {background:var(--lime);border-color:var(--ink)}
+.k-pill--yellow{background:var(--yellow);border-color:var(--ink)}
+.k-pill--green {background:var(--green);border-color:var(--ink)}
+.k-pill--red   {background:var(--red);border-color:var(--ink);color:#fff}
+.k-pill--ghost {background:transparent}
+.k-pill--ghost-lt{background:transparent;border-color:rgba(255,255,255,.9);color:#fff}
+
+/* outline tag label — h26 px12, transparent */
+.k-tag{
+  display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;
+  border-radius:var(--r-pill);border:var(--key-w) solid currentColor;
+  font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  background:transparent;white-space:nowrap;
+}
+.k-tag--fill{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* circular icon chip — 34 / 44 */
+.k-chip{
+  display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:34px;height:34px;border-radius:50%;
+  border:var(--key-w) solid var(--ink);background:var(--paper);color:var(--ink);
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.k-chip--lg{width:44px;height:44px;font-size:16px}
+.k-chip--ink{background:var(--ink);border-color:var(--ink);color:#fff}
+.k-chip--flat{border-color:transparent}
+
+/* avatar dot */
+.k-ava{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:34px;height:34px;border-radius:50%;background:var(--violet);
+  border:var(--key-w) solid var(--ink);font-size:12px;font-weight:800}
+.k-ava--lg{width:56px;height:56px;font-size:18px}
+
+/* ================================================================
+   ROWS — stadium list row h56 · listing rows
+   ================================================================ */
+.k-row{
+  display:flex;align-items:center;gap:12px;
+  min-height:56px;padding:10px 12px 10px 16px;border-radius:var(--r-pill);
+  background:var(--paper);color:var(--ink);
+}
+.k-row__main{flex:1;min-width:0}
+.k-row__name{font-size:13.5px;font-weight:700;line-height:1.2}
+.k-row__sub{font-size:9.5px;font-weight:650;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-top:2px}
+
+/* ================================================================
+   STATUS STRIP — chips row (top zone)
+   ================================================================ */
+.k-strip{display:flex;gap:8px;flex-wrap:wrap}
+.k-strip__cell{
+  flex:1;min-width:74px;background:rgba(255,255,255,.07);color:#fff;
+  border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:9px 12px;
+}
+.k-strip__cell .v{font-size:15px;font-weight:800;letter-spacing:-.01em;margin-top:2px;white-space:nowrap}
+
+/* ================================================================
+   NAV — desktop pill chain + mobile tab bar h60
+   ================================================================ */
+.k-nav{display:flex;align-items:center}
+.k-nav .k-pill{margin-right:-10px}
+.k-nav .k-pill:last-child{margin-right:0}
+.k-nav .is-on{background:var(--lime);z-index:2}
+
+.k-tabbar{
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  height:60px;border-radius:24px;background:var(--navy-2);color:rgba(255,255,255,.55);
+  padding:0 18px;
+}
+.k-tabbar a{color:inherit;text-decoration:none;font-size:10.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;padding:6px 2px}
+.k-tabbar a.is-on{color:var(--lime)}
+
+/* action bar (bottom zone) h60 */
+.k-actionbar{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  height:60px;border-radius:24px;background:var(--sky);padding:0 12px;
+}
+
+/* ticker */
+.k-ticker{
+  display:flex;align-items:center;gap:14px;
+  background:var(--paper);border-radius:var(--r-pill);
+  padding:9px 10px 9px 20px;
+}
+.k-ticker__code{font-weight:800;letter-spacing:2px;font-size:15px;white-space:nowrap}
+.k-ticker__msg{flex:1;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ================================================================
+   PROGRESS h8 · CHART bars w26
+   ================================================================ */
+.k-progress{height:8px;border-radius:var(--r-pill);background:rgba(18,19,16,.16);overflow:hidden}
+.k-progress>i{display:block;height:100%;border-radius:var(--r-pill);background:var(--ink)}
+.k-progress--lt{background:rgba(255,255,255,.25)}
+.k-progress--lt>i{background:#fff}
+
+.k-chart{display:flex;align-items:flex-end;gap:10px;height:120px;padding-top:26px}
+.k-chart .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.k-chart .bar i{display:block;width:100%;max-width:26px;border-radius:10px 10px 4px 4px;background:rgba(18,19,16,.32)}
+.k-chart .bar.is-hi i{background:var(--ink)}
+.k-chart .bar b{font-size:11px;font-weight:800}
+.k-chart .bar span{font-size:9px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;opacity:.6}
+
+/* ================================================================
+   CONNECTORS — joint tab 38x18 r9 (bg color bridges two cards)
+   ================================================================ */
+.k-stack{display:flex;flex-direction:column;gap:var(--gap)}
+.k-joint{position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:38px;height:18px;border-radius:9px;background:var(--joint,var(--navy));z-index:2}
+.k-dots{display:flex;gap:10px;justify-content:center;align-items:center;padding:1px 0}
+.k-dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.85)}
+.k-dots .k-chip{width:26px;height:26px;font-size:11px}
+
+/* ================================================================
+   DEVICE CARD — rarity tints the fill, category drives the motion
+   ================================================================ */
+.k-device{width:200px;flex:none;border-radius:var(--r-card);padding:14px;background:var(--paper)}
+.k-device__stage{position:relative;height:104px;border-radius:var(--r-nested);
+  background:rgba(18,19,16,.08);overflow:hidden;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:center}
+.k-device__name{font-size:14px;font-weight:800;letter-spacing:-.01em}
+.k-device__meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.k-device__stat{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-top:10px}
+.k-device__anim{font-size:9px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;opacity:.55;margin-top:2px}
+.k-device__acts{display:flex;gap:6px;margin-top:12px}
+.k-device--s{width:148px;padding:12px}
+.k-device--s .k-device__stage{height:78px}
+.k-device--s .k-device__name{font-size:12.5px}
+.k-device--s .k-device__stat{font-size:15px;margin-top:8px}
+
+/* rarity fills */
+.r-brk {background:var(--gray)}
+.r-com {background:var(--green)}
+.r-tun {background:var(--mint)}
+.r-rare{background:var(--yellow)}
+.r-leg {background:var(--violet)}
+.r-epic{background:var(--sky)}
+.r-mil {background:var(--red);color:#fff}
+.r-mil .k-device__stage{background:rgba(0,0,0,.25)}
+.r-myth{background:linear-gradient(115deg,var(--violet),var(--sky),var(--mint),var(--yellow),var(--pink));
+  background-size:280% 280%}
+
+/* rarity text pill */
+.k-rar{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:var(--r-pill);
+  background:var(--ink);color:#fff;font-size:9px;font-weight:800;letter-spacing:.12em}
+.k-rar--brk{background:#8a877c}.k-rar--com{background:#1d8f15}.k-rar--tun{background:#1f9d84}
+.k-rar--rare{background:#a8961a;}.k-rar--leg{background:#6a55d8}.k-rar--epic{background:#2f6fc2}
+.k-rar--mil{background:#c41f08}.k-rar--myth{background:linear-gradient(100deg,#6a55d8,#2f6fc2,#1f9d84,#a8961a);color:#fff}
+
+/* ---- category motion glyph rigs (subtle, list intensity) ---- */
+.m-core,.m-lens,.m-port,.m-bus,.m-ice,.m-skin{position:relative;width:64px;height:64px;
+  display:flex;align-items:center;justify-content:center}
+.m-core i{width:22px;height:22px;border-radius:50%;background:var(--ink)}
+.m-lens{border:1.5px solid rgba(18,19,16,.7);border-radius:50%}
+.m-lens i{position:absolute;left:50%;top:50%;width:46%;height:1.5px;background:var(--ink);
+  transform-origin:left center}
+.m-port i,.m-port b{width:10px;height:10px;border-radius:50%;background:var(--ink);position:absolute;top:27px}
+.m-port i{left:8px}.m-port b{right:8px}
+.m-bus{align-items:center}
+.m-bus i{width:54px;height:0;border-top:3px dashed var(--ink)}
+.m-ice i{width:5px;height:36px;border-radius:3px;background:var(--ink);transform:rotate(24deg)}
+.m-skin{border-radius:14px;background:linear-gradient(115deg,rgba(18,19,16,.16),rgba(18,19,16,.02),rgba(18,19,16,.16));background-size:220% 220%}
+.r-mil .m-core i,.r-mil .m-lens i,.r-mil .m-ice i{background:#fff}
+.r-mil .m-lens{border-color:rgba(255,255,255,.8)}
+
+@media (prefers-reduced-motion: no-preference){
+  .m-core i  {animation:bloom 3s ease-in-out infinite}
+  .m-lens i  {animation:sweep 3.6s linear infinite}
+  .m-port i  {animation:shakeL 2.4s ease-in-out infinite}
+  .m-port b  {animation:shakeR 2.4s ease-in-out infinite}
+  .m-bus i   {animation:route 5s ease-in-out infinite}
+  .m-ice i   {animation:blade 3.2s ease-in-out infinite}
+  .m-skin,
+  .r-myth    {animation:shimmer 6s ease-in-out infinite}
+  .r-mil .k-device__stage,
+  .anim-threat{animation:threat 2.2s ease-in-out infinite}
+  .r-brk .k-device__stage{animation:flicker 4s steps(2,end) infinite}
+  .blink     {animation:blink 1.4s steps(2,end) infinite}
+}
+@keyframes bloom  {0%,100%{box-shadow:0 0 0 0 rgba(18,19,16,.30)}50%{box-shadow:0 0 0 12px rgba(18,19,16,0)}}
+@keyframes sweep  {to{transform:rotate(360deg)}}
+@keyframes shakeL {0%,100%{transform:translateX(0)}50%{transform:translateX(14px)}}
+@keyframes shakeR {0%,100%{transform:translateX(0)}50%{transform:translateX(-14px)}}
+@keyframes route  {0%,100%{transform:translateX(-6px)}50%{transform:translateX(6px)}}
+@keyframes blade  {0%,84%,100%{transform:rotate(24deg)}90%{transform:rotate(8deg)}}
+@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes threat {0%,100%{box-shadow:inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:inset 0 0 24px 0 rgba(255,255,255,.28)}}
+@keyframes flicker{0%,7%,100%{opacity:1}3%{opacity:.55}}
+@keyframes blink  {50%{opacity:.15}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+
+/* ================================================================
+   CHAT — bubbles r20, tail-less, linked item card
+   ================================================================ */
+.k-bubble{max-width:84%;border-radius:20px;padding:12px 14px;background:var(--paper);color:var(--ink)}
+.k-bubble--out{background:var(--lime);margin-left:auto}
+.k-bubble--sys{background:transparent;border:1px dashed rgba(255,255,255,.45);color:#fff;
+  max-width:100%;text-align:center;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.k-bubble .who{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:4px}
+.k-bubble .when{display:block;font-size:9px;font-weight:650;letter-spacing:.08em;opacity:.5;margin-top:6px;text-align:right}
+
+/* ================================================================
+   BADGES — achievement circle 62
+   ================================================================ */
+.k-badge{display:flex;flex-direction:column;align-items:center;gap:8px;width:76px}
+.k-badge i{display:flex;align-items:center;justify-content:center;width:62px;height:62px;
+  border-radius:50%;border:var(--key-w) solid var(--ink);font-size:22px;font-weight:800;font-style:normal}
+.k-badge span{font-size:8.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:center}
+.k-badge--locked i{border-style:dashed;opacity:.45;background:transparent !important}
+.k-badge--locked span{opacity:.45}
+
+/* ================================================================
+   TOGGLE 46x27 knob 19 · THEME SWATCH 64x44 r14
+   ================================================================ */
+.k-toggle{position:relative;display:inline-block;width:46px;height:27px;border-radius:var(--r-pill);
+  border:var(--key-w) solid var(--ink);background:var(--paper)}
+.k-toggle i{position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:var(--ink)}
+.k-toggle--on{background:var(--green)}
+.k-toggle--on i{left:auto;right:3px}
+.k-swatch{width:64px;height:44px;border-radius:14px;border:var(--key-w) solid var(--ink);
+  display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;
+  letter-spacing:.08em;text-transform:uppercase;flex:none}
+
+/* ================================================================
+   SHEET / MODAL — r28 top, drag handle 44x5
+   ================================================================ */
+.k-sheet{background:var(--paper);border-radius:28px 28px 0 0;padding:14px 20px 20px}
+.k-sheet__handle{width:44px;height:5px;border-radius:var(--r-pill);background:rgba(18,19,16,.25);margin:0 auto 14px}
+
+/* ================================================================
+   PHONE FRAME — shell 410 r54 p12 · screen r42 navy
+   ================================================================ */
+.k-phone{width:410px;flex:none;background:#10151b;border-radius:54px;padding:12px;
+  box-shadow:0 24px 60px rgba(10,12,16,.35)}
+.k-phone__screen{position:relative;background:var(--navy);border-radius:42px;padding:12px;
+  display:flex;flex-direction:column;gap:var(--gap);overflow:hidden}
+.k-phone__notch{position:absolute;top:22px;left:50%;transform:translateX(-50%);
+  width:112px;height:28px;border-radius:var(--r-pill);background:#10151b;z-index:5}
+.k-statusrow{display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;font-weight:700;padding:2px 10px 8px}
+.k-headcard{border-radius:34px 34px var(--r-card) var(--r-card);padding-top:14px}
+
+/* glyph field (background maps stay glyphs) */
+.k-glyphs{font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.5;
+  letter-spacing:3px;white-space:pre;opacity:.5;user-select:none}
+
+/* ================================================================
+   SHOWCASE SCAFFOLDING (sc- = not part of the kit)
+   ================================================================ */
+.sc-wrap{max-width:1280px;margin:0 auto;padding:28px 20px 80px}
+.sc-head{padding:34px 0 10px}
+.sc-head h1{font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.sc-head .sub{font-size:13px;font-weight:600;opacity:.65;margin-top:10px;max-width:760px}
+.sc-banner{display:flex;gap:10px;align-items:flex-start;background:var(--yellow);
+  border-radius:18px;padding:14px 18px;margin:18px 0 8px;font-size:12px;font-weight:600;line-height:1.5}
+.sc-banner b{font-weight:800}
+.sc-sec{margin-top:54px}
+.sc-sec>h2{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:#fff;
+  border-radius:var(--r-pill);padding:10px 20px;font-size:12px;font-weight:800;
+  letter-spacing:.14em;text-transform:uppercase}
+.sc-sec>.sc-note{font-size:12px;font-weight:600;opacity:.6;margin:12px 0 0;max-width:760px}
+.sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:20px}
+.sc-bench{background:var(--paper);border-radius:var(--r-card);padding:20px}
+.sc-bench>h3{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  opacity:.55;margin-bottom:14px}
+.sc-bench .spec{font-size:10px;font-weight:600;opacity:.5;margin-top:12px;line-height:1.6}
+.sc-stage{border-radius:var(--r-nested);padding:18px;display:flex;flex-direction:column;gap:12px}
+.sc-stage--navy{background:var(--navy)}
+.sc-stage--black{background:var(--black)}
+.sc-stage--bone{background:var(--bone)}
+.sc-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sc-col{display:flex;flex-direction:column;gap:10px}
+.sc-phones{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:22px;justify-content:center}
+.sc-phlabel{text-align:center;margin:14px 0 0;font-size:10px;font-weight:800;letter-spacing:.16em;
+  text-transform:uppercase;opacity:.55}
+.sc-pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:14px}
+.sc-pal .sw{height:64px;border-radius:var(--r-nested)}
+.sc-pal .nm{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-top:7px}
+.sc-pal .hx{font-size:10px;font-weight:600;opacity:.5}
+.sc-rule{display:flex;align-items:flex-end;gap:8px}
+.sc-rule i{display:block;background:var(--ink);border-radius:3px;width:18px}
+.sc-rule span{font-size:9px;font-weight:700;opacity:.6;text-align:center}
+.sc-cols{columns:2;column-gap:40px;margin-top:18px;font-size:13px;line-height:1.7;max-width:980px}
+.sc-cols h4{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin:0 0 6px}
+.sc-cols .blk{margin-bottom:16px;break-inside:avoid}
+@media (max-width:760px){.sc-cols{columns:1}}
+
+/* ================================================================
+   DESKTOP BENTO DEMO
+   ================================================================ */
+.dk-frame{background:var(--black);border:1.5px solid #fff;border-radius:var(--r-frame);
+  padding:22px;margin-top:22px;color:#fff}
+.dk-nav{display:flex;align-items:center;gap:14px;margin-bottom:var(--gap-desk);flex-wrap:wrap}
+.dk-logo{width:44px;height:44px;border-radius:50%;background:var(--yellow);
+  border:1.5px solid var(--ink);display:flex;align-items:center;justify-content:center}
+.dk-logo i{width:14px;height:14px;border-radius:50%;background:var(--ink)}
+.dk-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--gap-desk)}
+.dk-grid .k-card{border-radius:24px;padding:var(--pad-desk)}
+.dk-hero{grid-column:span 5;min-height:340px;display:flex;flex-direction:column;overflow:hidden}
+.dk-stat{grid-column:span 4}
+.dk-stat--last{grid-column:span 3}
+.dk-cell2{grid-column:span 3;min-height:200px;display:flex;flex-direction:column;justify-content:space-between}
+.dk-wide{grid-column:span 6;display:flex;flex-direction:column;justify-content:space-between}
+.dk-heroart{position:absolute;inset:0;overflow:hidden;border-radius:inherit;
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 2px,transparent 2px 16px)}
+.dk-heroart .k-glyphs{position:absolute;left:18px;bottom:14px;color:var(--lime);opacity:.35}
+@media (max-width:1020px){
+  .dk-hero{grid-column:span 12}
+  .dk-stat,.dk-stat--last{grid-column:span 6}
+  .dk-cell2{grid-column:span 6}
+  .dk-wide{grid-column:span 12}
+}
+@media (max-width:640px){
+  .dk-stat,.dk-stat--last,.dk-cell2{grid-column:span 12}
+}
+
+/* concentric signal circles (pink chart card) */
+.dk-circles{display:block;margin-top:6px}
+
+footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="sc-wrap">
+
+<!-- ============================================================ -->
+<header class="sc-head">
+  <h1>USERLAND · KIT-B<br>“BENTO KEYLINE”</h1>
+  <p class="sub">A UI-kit experiment: the bento / keyline / pill visual system from the four reference
+  shots, rebuilt with exact measurements and populated with real Userland game content
+  (six boards, rig slots, 96-item catalogue, SEN/HEAT economy). Phone canonical, scales to pad and desktop.</p>
+  <div class="sc-banner k-key">
+    <span>⚠</span>
+    <span><b>EXPERIMENT — NOT PRODUCTION.</b> Owner-directed test (2026-06-11). This file deliberately
+    departs from the locked .dk rails (radius-0, 8×14 cell grid, all-caps mono, decode transitions).
+    The production game UI remains .dk per <b>DIRECTION-OVERRIDE-2026-06-10</b>. Conflict recorded; do not
+    port any of this into the app without owner sign-off.</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     01 · FOUNDATIONS
+     ============================================================ -->
+<section class="sc-sec" id="s01">
+  <h2>01 · Foundations</h2>
+  <p class="sc-note">Base unit 4px. Keyline = 1.5px line offset 3px outside the fill (the “sticker” edge).
+  Radii: pill 999 · frame 40 · card 26 · nested 16 · phone shell 54 / screen 42. Card padding 20 (phone) / 24 (desk).
+  Gutters 12 (phone) / 16 (desk). Inter / neo-grotesque, tabular numerals everywhere.</p>
+
+  <div class="sc-grid">
+    <div class="sc-bench" style="grid-column:1/-1">
+      <h3>Palette</h3>
+      <div class="sc-pal">
+        <div><div class="sw k-key" style="background:var(--ink)"></div><div class="nm">Ink</div><div class="hx">#121310</div></div>
+        <div><div class="sw k-key" style="background:var(--black)"></div><div class="nm">Black</div><div class="hx">#0A0A0A</div></div>
+        <div><div class="sw k-key" style="background:var(--navy)"></div><div class="nm">Navy shell</div><div class="hx">#1B2531</div></div>
+        <div><div class="sw k-key" style="background:var(--paper)"></div><div class="nm">Paper</div><div class="hx">#FFFFFF</div></div>
+        <div><div class="sw k-key" style="background:var(--bone)"></div><div class="nm">Bone</div><div class="hx">#EDEAE0</div></div>
+        <div><div class="sw k-key" style="background:var(--green)"></div><div class="nm">Green · COM</div><div class="hx">#4FD645</div></div>
+        <div><div class="sw k-key" style="background:var(--lime)"></div><div class="nm">Lime · GO</div><div class="hx">#CDF263</div></div>
+        <div><div class="sw k-key" style="background:var(--mint)"></div><div class="nm">Mint · TUN</div><div class="hx">#BFEBDC</div></div>
+        <div><div class="sw k-key" style="background:var(--yellow)"></div><div class="nm">Yellow · RARE</div><div class="hx">#F2DF4E</div></div>
+        <div><div class="sw k-key" style="background:var(--pink)"></div><div class="nm">Pink</div><div class="hx">#F2CCE3</div></div>
+        <div><div class="sw k-key" style="background:var(--lav)"></div><div class="nm">Lavender</div><div class="hx">#DCDDF6</div></div>
+        <div><div class="sw k-key" style="background:var(--violet)"></div><div class="nm">Violet · LEG</div><div class="hx">#B5A8F2</div></div>
+        <div><div class="sw k-key" style="background:var(--sky)"></div><div class="nm">Sky · EPIC</div><div class="hx">#79A8E6</div></div>
+        <div><div class="sw k-key" style="background:var(--red)"></div><div class="nm">Red · MIL</div><div class="hx">#F2472E</div></div>
+        <div><div class="sw k-key" style="background:var(--gray)"></div><div class="nm">Gray · BRK</div><div class="hx">#C7C4B8</div></div>
+        <div><div class="sw k-key r-myth"></div><div class="nm">Shimmer · MYTH</div><div class="hx">multi</div></div>
+      </div>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Keyline anatomy</h3>
+      <div class="sc-stage sc-stage--bone" style="align-items:center;padding:28px">
+        <div class="k-card k-card--green k-key" style="width:200px">
+          <div class="k-dotline"><span class="t-label">Heat level</span></div>
+          <div class="t-num-s">21%</div>
+        </div>
+      </div>
+      <p class="spec">fill radius 26 · line 1.5px · gap 3px (line sits 4.5px outside the fill edge and follows the radius) ·
+      dotted leader: 2px dotted @ 55% ink, 10px under the title</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Radius scale</h3>
+      <div class="sc-row">
+        <span class="k-pill k-pill--ink">pill 999</span>
+        <div class="k-key" style="width:84px;height:64px;border-radius:40px;background:var(--navy)"></div>
+        <div class="k-key" style="width:84px;height:64px;border-radius:26px;background:var(--sky)"></div>
+        <div class="k-key" style="width:84px;height:64px;border-radius:16px;background:var(--mint)"></div>
+        <div class="k-key" style="width:64px;height:64px;border-radius:50%;background:var(--yellow)"></div>
+      </div>
+      <p class="spec">frame 40 · card 26 · nested 16 · chip circle · phone shell 54 / screen 42 · header card tops 34</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Spacing grid · 4px base</h3>
+      <div class="sc-rule">
+        <div><i style="height:4px"></i><span>4</span></div>
+        <div><i style="height:8px"></i><span>8</span></div>
+        <div><i style="height:12px"></i><span>12<br>gutter</span></div>
+        <div><i style="height:16px"></i><span>16<br>desk</span></div>
+        <div><i style="height:20px"></i><span>20<br>pad</span></div>
+        <div><i style="height:24px"></i><span>24<br>pad-d</span></div>
+      </div>
+      <p class="spec">all spacing = multiples of 4 · card gutter 12 phone / 16 desk · card padding 20 phone / 24 desk · screen inset 12</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Type scale</h3>
+      <div class="sc-col">
+        <span class="t-num-xl">62.8%</span>
+        <span class="t-num">2,410</span>
+        <span class="t-num-s">+1.2%</span>
+        <span class="t-title">Card title — 17 / 700</span>
+        <span class="t-body">Body copy — 14 / 500 / 1.45</span>
+        <span class="t-label">Label 11 · caps · +8%</span>
+        <span class="t-micro">Micro 9.5 · caps · +14%</span>
+      </div>
+      <p class="spec">numerals 64 / 44 / 34 · w800 · −3% tracking · lh 0.95 · tabular figures</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     02 · PRIMITIVES
+     ============================================================ -->
+<section class="sc-sec" id="s02">
+  <h2>02 · Primitives</h2>
+  <p class="sc-note">The 17 required kit primitives from the brief (§9), in this language. Names, rarities,
+  corps and stats come from the real 96-item catalogue. MIL replaces ILLEGAL everywhere.</p>
+
+  <div class="sc-grid">
+
+    <div class="sc-bench">
+      <h3>Pills &amp; buttons — h48 / 40 / 30</h3>
+      <div class="sc-row">
+        <button class="k-pill k-pill--lg k-pill--ink">RUN</button>
+        <button class="k-pill k-pill--lime">INSTALL</button>
+        <button class="k-pill">COMPARE</button>
+        <button class="k-pill k-pill--sm k-pill--yellow">Claim</button>
+        <button class="k-pill k-pill--sm k-pill--red">ABORT</button>
+      </div>
+      <div class="sc-row" style="margin-top:12px">
+        <button class="k-chip k-chip--ink">↗</button>
+        <button class="k-chip">✚</button>
+        <button class="k-chip">✕</button>
+        <button class="k-chip k-chip--lg k-chip--ink">→</button>
+        <span class="k-tag">Online</span>
+        <span class="k-tag k-tag--fill">Breach prep</span>
+      </div>
+      <p class="spec">pill border 1.5 · px 22/18/14 · icon chips 34/44 · outline tag h26</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Board navigation</h3>
+      <div class="sc-stage sc-stage--black">
+        <div class="k-nav">
+          <a class="k-pill is-on">NOW</a><a class="k-pill">MAP</a><a class="k-pill">RUNS</a><a class="k-pill">SOUL</a><a class="k-pill">MARKET</a><a class="k-pill">NET</a>
+        </div>
+      </div>
+      <div class="sc-stage sc-stage--navy" style="margin-top:10px">
+        <nav class="k-tabbar">
+          <a class="is-on">Now</a><a>Map</a><a>Runs</a><a>Soul</a><a>Market</a><a>Net</a>
+          <button class="k-chip" style="border-color:transparent">✚</button>
+        </nav>
+      </div>
+      <p class="spec">desktop: chained pills, −10px overlap, active = lime · phone: tab bar h60 r24 navy-2, active = lime · six boards, locked order</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Status strip — top zone</h3>
+      <div class="sc-stage sc-stage--navy">
+        <div class="k-strip">
+          <div class="k-strip__cell"><span class="t-micro t-dim">SEN</span><div class="v">2,410</div></div>
+          <div class="k-strip__cell"><span class="t-micro t-dim">Heat</span><div class="v">21</div></div>
+          <div class="k-strip__cell"><span class="t-micro t-dim">Rig</span><div class="v">GHOST 64%</div></div>
+          <div class="k-strip__cell"><span class="t-micro t-dim">Crew</span><div class="v">N·SAINTS</div></div>
+        </div>
+      </div>
+      <p class="spec">cells r18, 7% white fill + 16% white line · value 15/800 · every screen carries it</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Action bar + ticker — bottom zone</h3>
+      <div class="sc-stage sc-stage--navy">
+        <div class="k-actionbar">
+          <button class="k-pill k-pill--ink">RUN</button>
+          <button class="k-pill">INSTALL</button>
+          <button class="k-pill">SELL</button>
+        </div>
+        <div class="k-ticker k-key">
+          <span class="k-ticker__code">▮▯▮▮▯▮▮</span>
+          <span class="k-ticker__msg">Scan nodes© for better access and 5th generation connectivity.</span>
+          <button class="k-pill k-pill--sm k-pill--ink">Scan now</button>
+        </div>
+      </div>
+      <p class="spec">action bar h60 r24 sky, max 3 verbs · ticker = stadium bar, barcode glyphs + caps message + ink pill</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Stat card</h3>
+      <div class="k-card k-card--green k-key">
+        <div class="k-dotline"><span class="t-label">Heat level</span><span>⌁</span></div>
+        <div class="t-num">21%</div>
+        <p class="t-micro" style="margin-top:12px;line-height:1.7">Stay under 40% for the next
+        <span class="t-link">16 hours and 34 minutes</span> or fit a cooler bus.</p>
+        <div class="sc-row" style="margin-top:14px">
+          <span class="k-chip" style="font-size:9px">JDN</span>
+          <span class="k-chip" style="font-size:9px">GIL</span>
+          <span class="k-chip" style="font-size:9px">CPAL</span>
+        </div>
+      </div>
+      <p class="spec">title row + dotted leader · numeral 44 · micro caption with underlined live values · corp chips</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Timer card</h3>
+      <div class="k-card k-card--mint k-key">
+        <div class="k-dotline"><span class="t-label">TX Daemon</span><span class="k-rar k-rar--com">RUNNING</span></div>
+        <div class="t-num-xl">00:14:38</div>
+        <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+          <span class="t-micro t-dim">H&nbsp;&nbsp;&nbsp;&nbsp;M&nbsp;&nbsp;&nbsp;&nbsp;S</span>
+          <span class="t-micro t-dim">Claim at zero</span>
+        </div>
+        <div class="k-progress" style="margin-top:14px"><i style="width:72%"></i></div>
+      </div>
+      <p class="spec">digits 64/800 tabular · timers feed NOW when they hit zero (30s–weekly hierarchy, brief §19)</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Progress + chart</h3>
+      <div class="k-card k-card--black k-key" style="margin-bottom:12px">
+        <div class="sc-row" style="justify-content:space-between">
+          <span class="t-label">Gate 02 progress</span><span class="t-title">63%</span>
+        </div>
+        <div class="k-progress k-progress--lt" style="margin-top:12px"><i style="width:63%"></i></div>
+      </div>
+      <div class="k-card k-card--green k-key">
+        <span class="k-tag">7-day SEN flow</span>
+        <div class="k-chart">
+          <div class="bar"><i style="height:52%"></i><span>Mon</span></div>
+          <div class="bar is-hi"><b>7.2</b><i style="height:88%"></i><span>Tue</span></div>
+          <div class="bar"><i style="height:40%"></i><span>Wed</span></div>
+          <div class="bar"><i style="height:22%"></i><span>Thu</span></div>
+          <div class="bar"><i style="height:64%"></i><span>Fri</span></div>
+          <div class="bar"><i style="height:30%"></i><span>Sat</span></div>
+          <div class="bar"><i style="height:48%"></i><span>Sun</span></div>
+        </div>
+      </div>
+      <p class="spec">track h8 r999 · bars max-w 26, r 10/10/4/4, highlight = ink + value</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Card connectors</h3>
+      <div class="sc-stage sc-stage--navy">
+        <div class="k-stack">
+          <div class="k-card k-card--lime" style="padding:14px 18px"><span class="t-label">Run complete</span></div>
+          <div class="k-card k-card--pink" style="padding:14px 18px"><span class="k-joint"></span><span class="t-label">Cache earned → decode</span></div>
+          <div class="k-dots"><i></i><i></i><span class="k-chip k-chip--ink" style="border-color:#fff">✓</span></div>
+          <div class="k-card k-card--mint" style="padding:14px 18px"><span class="t-label">Part installed</span></div>
+        </div>
+      </div>
+      <p class="spec">joint tab 38×18 r9 in the shell color — chains causally-linked cards (run→cache→part) · dot rail = soft sequence</p>
+    </div>
+
+    <div class="sc-bench" style="grid-column:1/-1">
+      <h3>Device card + rarity ladder (real catalogue items) — rarity = color &amp; intensity, category = motion</h3>
+      <div class="sc-row" style="align-items:flex-start">
+        <div class="k-device r-rare k-key">
+          <div class="k-device__stage"><div class="m-lens"><i></i></div></div>
+          <div class="k-device__name">GHOST LENS</div>
+          <div class="k-device__meta"><span class="k-rar k-rar--rare">RARE</span><span class="k-tag" style="height:22px;font-size:8.5px">UOPT</span></div>
+          <div class="k-device__stat">SCAN +16</div>
+          <div class="k-device__anim">Radar sweep</div>
+          <div class="k-device__acts">
+            <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Install</button>
+            <button class="k-pill k-pill--sm">Compare</button>
+            <button class="k-chip" style="width:30px;height:30px">≡</button>
+          </div>
+        </div>
+        <div style="flex:1;min-width:280px;overflow-x:auto">
+          <div class="sc-row" style="flex-wrap:nowrap;align-items:stretch;padding-bottom:6px">
+            <div class="k-device k-device--s r-brk"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">CRACKED CORE</div><div class="k-device__meta"><span class="k-rar k-rar--brk">BRK</span></div>
+              <div class="k-device__stat">POWER +04</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-com"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">FIELD CORE</div><div class="k-device__meta"><span class="k-rar k-rar--com">COM</span></div>
+              <div class="k-device__stat">POWER +08</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-tun"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">TUNED CORE</div><div class="k-device__meta"><span class="k-rar k-rar--tun">TUN</span></div>
+              <div class="k-device__stat">POWER +12</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-rare"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">GHOST CORE</div><div class="k-device__meta"><span class="k-rar k-rar--rare">RARE</span></div>
+              <div class="k-device__stat">POWER +16</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-leg"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">MEMORY CORE</div><div class="k-device__meta"><span class="k-rar k-rar--leg">LEG</span></div>
+              <div class="k-device__stat">POWER +20</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-epic"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">BLACKBOX CORE</div><div class="k-device__meta"><span class="k-rar k-rar--epic">EPIC</span></div>
+              <div class="k-device__stat">POWER +24</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-mil"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">TACTICAL CORE</div><div class="k-device__meta"><span class="k-rar k-rar--mil">MIL</span></div>
+              <div class="k-device__stat">POWER +28</div><div class="k-device__anim">PSYS</div></div>
+            <div class="k-device k-device--s r-myth"><div class="k-device__stage"><div class="m-core"><i></i></div></div>
+              <div class="k-device__name">AURA CORE</div><div class="k-device__meta"><span class="k-rar k-rar--myth">MYTH</span></div>
+              <div class="k-device__stat">POWER +32</div><div class="k-device__anim">PSYS</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="sc-row" style="margin-top:16px;align-items:center">
+        <span class="t-micro t-dim" style="width:120px">Category motion</span>
+        <div class="sc-col" style="align-items:center"><div class="m-core"><i></i></div><span class="t-micro t-dim">CORE · bloom</span></div>
+        <div class="sc-col" style="align-items:center"><div class="m-lens"><i></i></div><span class="t-micro t-dim">LENS · sweep</span></div>
+        <div class="sc-col" style="align-items:center"><div class="m-port"><i></i><b></b></div><span class="t-micro t-dim">PORT · handshake</span></div>
+        <div class="sc-col" style="align-items:center"><div class="m-bus"><i></i></div><span class="t-micro t-dim">BUS · route</span></div>
+        <div class="sc-col" style="align-items:center"><div class="m-ice"><i></i></div><span class="t-micro t-dim">ICE · blade</span></div>
+        <div class="sc-col" style="align-items:center"><div class="m-skin"></div><span class="t-micro t-dim">SKIN · shimmer</span></div>
+      </div>
+      <p class="spec">device stage r16 = the 3D-model slot (current 3D library renders here; glyph rigs are the placeholder).
+      Subtle motion in lists, stronger in detail/decode/reveal. MIL pulses red, MYTH shimmers, BRK flickers. Honors reduced-motion.</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>List rows + market listing</h3>
+      <div class="sc-stage sc-stage--navy">
+        <div class="k-row k-key">
+          <span class="k-ava">NS</span>
+          <div class="k-row__main"><div class="k-row__name">Null Saint invited you to Gate 02</div>
+            <div class="k-row__sub">Crew · 2 min ago</div></div>
+          <button class="k-chip k-chip--flat">✕</button>
+          <button class="k-pill k-pill--sm k-pill--lime">Join</button>
+        </div>
+        <div class="k-row">
+          <span class="k-ava" style="background:var(--yellow)">◆</span>
+          <div class="k-row__main"><div class="k-row__name">GHOST LENS</div>
+            <div class="k-row__sub">Rare · UOPT · Scan +16</div></div>
+          <span class="t-title">480 SEN</span>
+          <button class="k-pill k-pill--sm k-pill--ink">Bid</button>
+        </div>
+      </div>
+      <p class="spec">stadium rows h56 · name 13.5/700 + micro sub (name · rarity · corp · stat) · trailing price/action</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Chat bubbles + item link card</h3>
+      <div class="sc-stage sc-stage--navy">
+        <div class="k-bubble">
+          <div class="who">Null Saint</div>
+          Need one more LENS for JADENET GATE.
+          <span class="when">14:02</span>
+        </div>
+        <div class="k-bubble" style="padding:10px">
+          <div class="k-row" style="background:var(--yellow);min-height:48px">
+            <div class="k-row__main"><div class="k-row__name">GHOST LENS</div>
+              <div class="k-row__sub">Rare · UOPT · Scan +16</div></div>
+            <button class="k-pill k-pill--sm k-pill--ink">Trade</button>
+          </div>
+        </div>
+        <div class="k-bubble k-bubble--out">I have a spare. 480 SEN.<span class="when">14:03 ✓✓</span></div>
+        <div class="k-bubble k-bubble--sys">Corp alert — Jadenet Gate 02 opens in 02:14:00</div>
+      </div>
+      <p class="spec">bubbles r20, in = paper / out = lime / system = dashed caps · linked item/run/profile cards embed as rows</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Profile card + achievement badges</h3>
+      <div class="k-card k-card--violet k-key">
+        <div class="sc-row" style="justify-content:space-between">
+          <div class="sc-row">
+            <span class="k-ava k-ava--lg" style="background:var(--paper)">N</span>
+            <div><div class="t-title">NED</div><span class="t-micro t-dim">Crew · Null Saints</span></div>
+          </div>
+          <span class="k-tag k-tag--fill">No-Heat Runner</span>
+        </div>
+        <div class="sc-row" style="margin-top:16px;gap:18px">
+          <div><div class="t-num-s">312</div><span class="t-micro t-dim">Runs</span></div>
+          <div><div class="t-num-s">9</div><span class="t-micro t-dim">Breaches</span></div>
+          <div><div class="t-num-s">4.8</div><span class="t-micro t-dim">Market rep</span></div>
+        </div>
+      </div>
+      <div class="sc-row" style="margin-top:14px;justify-content:space-around">
+        <div class="k-badge"><i style="background:var(--lime)">▲</i><span>Runner</span></div>
+        <div class="k-badge"><i style="background:var(--yellow)">◆</i><span>Economist</span></div>
+        <div class="k-badge"><i style="background:var(--mint)">●</i><span>Crew</span></div>
+        <div class="k-badge k-badge--locked"><i>?</i><span>Hidden</span></div>
+      </div>
+      <p class="spec">equipped title = filled tag · records row · badge circles 62, locked = dashed · titles/badges are cosmetic flex</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Modal / sheet — install compare</h3>
+      <div class="sc-stage sc-stage--navy" style="padding:24px 18px 0;gap:0;background:linear-gradient(rgba(20,28,38,.88),rgba(20,28,38,.88)),var(--navy)">
+        <div class="k-sheet">
+          <div class="k-sheet__handle"></div>
+          <div class="t-title">Install GHOST LENS?</div>
+          <div class="sc-row" style="justify-content:space-between;margin-top:14px">
+            <span class="t-label t-dim">Scan</span>
+            <span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com" style="margin-left:6px">+4</span></span>
+          </div>
+          <div class="sc-row" style="justify-content:space-between;margin-top:8px">
+            <span class="t-label t-dim">Trace</span>
+            <span class="t-body">−02 → <b>−03</b> <span class="k-rar k-rar--com" style="margin-left:6px">OK</span></span>
+          </div>
+          <div class="sc-row" style="margin-top:16px">
+            <button class="k-pill" style="flex:1">Cancel</button>
+            <button class="k-pill k-pill--ink" style="flex:1">Install</button>
+          </div>
+        </div>
+      </div>
+      <p class="spec">sheet r28 top, handle 44×5 · action shows reward/risk before confirm (screen checklist §20)</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Settings rows · themes · donor</h3>
+      <div class="sc-col">
+        <div class="k-row k-key" style="border-radius:20px">
+          <div class="k-row__main"><div class="k-row__name">Reduced motion</div>
+            <div class="k-row__sub">Lists stop animating · reveals simplify</div></div>
+          <span class="k-toggle k-toggle--on"><i></i></span>
+        </div>
+        <div class="k-row k-key" style="border-radius:20px">
+          <div class="k-row__main"><div class="k-row__name">Text size</div>
+            <div class="k-row__sub">Compact · Normal · Large</div></div>
+          <span class="k-pill k-pill--sm">Normal</span>
+        </div>
+        <div class="sc-row">
+          <div class="k-swatch" style="background:var(--black);color:var(--green)">TRML</div>
+          <div class="k-swatch" style="background:var(--green)">GRNE</div>
+          <div class="k-swatch" style="background:var(--lav)">DSTR</div>
+          <div class="k-swatch k-key" style="background:var(--lime)">MRTN ✓</div>
+          <div class="k-swatch" style="background:var(--paper)">HI-C</div>
+        </div>
+        <div class="k-card k-card--black k-key">
+          <div class="k-dotline"><span class="t-label">Supporter</span><span class="k-rar k-rar--rare">DONOR</span></div>
+          <p class="t-body">Back the grid. Cosmetic only — themes, 3D skins, chat flair, loadout slots.
+          <b>No stat power. Ever.</b></p>
+          <button class="k-pill k-pill--yellow" style="margin-top:14px">Support — €3/mo</button>
+        </div>
+      </div>
+      <p class="spec">settings rows r20 + toggle 46×27 · theme swatches 64×44, active keylined · donor card = black + yellow, fairness rule printed on it</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     03 · PHONE SCREENS (canonical)
+     ============================================================ -->
+<section class="sc-sec" id="s03">
+  <h2>03 · Phone screens — canonical</h2>
+  <p class="sc-note">Five boards on the 410-frame (screen content 386). Every screen keeps the three-zone
+  contract: top status → middle object → bottom actions. Navy shell, bright cards, one recommended next step.</p>
+
+  <div class="sc-phones">
+
+    <!-- ===================== PHONE 1 · NOW ===================== -->
+    <div>
+      <div class="k-phone">
+        <div class="k-phone__screen">
+          <div class="k-phone__notch"></div>
+
+          <div class="k-card k-card--lime k-headcard">
+            <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><div class="t-title" style="font-size:21px">Welcome back,<br>ned.</div></div>
+              <div class="sc-row" style="gap:8px">
+                <span class="k-chip">◍</span><span class="k-ava">N</span>
+              </div>
+            </div>
+            <div class="sc-row" style="margin-top:12px;gap:6px">
+              <span class="k-tag">SEN 2,410</span><span class="k-tag">Heat 21</span>
+              <span class="k-tag">Ghost 64%</span>
+            </div>
+          </div>
+
+          <div class="k-row" style="background:var(--pink)">
+            <span class="k-chip" style="background:transparent">▣</span>
+            <div class="k-row__main"><div class="k-row__name">Today’s drop · SIGNAL CACHE</div>
+              <div class="k-row__sub">Com · Natural World</div></div>
+            <button class="k-pill k-pill--sm k-pill--ink">Claim</button>
+          </div>
+
+          <div class="k-card k-card--black">
+            <span class="k-joint"></span>
+            <div class="k-dotline"><span class="t-label">Quick hack · ready</span><span class="k-rar k-rar--com blink">LIVE</span></div>
+            <div class="t-title" style="font-size:24px">OLD HOSPITAL<br>NODE</div>
+            <div class="sc-row" style="margin-top:10px;gap:6px">
+              <span class="k-tag">Reward +120 SEN</span><span class="k-tag" style="color:var(--red)">Heat +6</span>
+            </div>
+            <button class="k-pill k-pill--lg k-pill--lime" style="margin-top:16px;width:100%">RUN — 02:00</button>
+          </div>
+
+          <div class="k-card k-card--mint">
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Install part</span>
+                <div class="t-title">GHOST LENS</div>
+                <span class="t-micro t-dim">Rare · UOPT · Scan +16</span></div>
+              <div class="m-lens" style="width:48px;height:48px"><i></i></div>
+            </div>
+            <button class="k-pill k-pill--sm k-pill--ink" style="margin-top:10px">Install</button>
+          </div>
+
+          <div class="k-row">
+            <span class="k-ava">NS</span>
+            <div class="k-row__main"><div class="k-row__name">Crew · 2 messages</div>
+              <div class="k-row__sub">Null Saints</div></div>
+            <button class="k-pill k-pill--sm">Answer</button>
+          </div>
+          <div class="k-row" style="background:var(--yellow)">
+            <span class="k-chip" style="background:transparent">◆</span>
+            <div class="k-row__main"><div class="k-row__name">Market alert · lens bid found</div>
+              <div class="k-row__sub">480 SEN · expires 12 min</div></div>
+            <button class="k-pill k-pill--sm k-pill--ink">View</button>
+          </div>
+
+          <div class="k-card k-card--navy" style="border:1px solid rgba(255,255,255,.18)">
+            <div class="sc-row" style="justify-content:space-between">
+              <span class="k-tag">Next step</span><span class="t-title">63%</span>
+            </div>
+            <p class="t-body" style="margin-top:10px">Need <b>+8 BREACH</b> to hit JADENET GATE 02.</p>
+            <div class="k-progress k-progress--lt" style="margin-top:12px"><i style="width:63%"></i></div>
+          </div>
+
+          <nav class="k-tabbar">
+            <a class="is-on">Now</a><a>Map</a><a>Runs</a><a>Soul</a><a>Market</a><a>Net</a>
+          </nav>
+        </div>
+      </div>
+      <p class="sc-phlabel">NOW · command center</p>
+    </div>
+
+    <!-- ===================== PHONE 2 · RIG ===================== -->
+    <div>
+      <div class="k-phone">
+        <div class="k-phone__screen">
+          <div class="k-phone__notch"></div>
+
+          <div class="k-card k-card--sky k-headcard">
+            <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+            <div class="sc-row" style="justify-content:space-between">
+              <div class="t-title" style="font-size:21px">Rig</div>
+              <span class="k-tag k-tag--fill">Integrity 64%</span>
+            </div>
+            <div class="sc-row" style="margin-top:12px;gap:6px">
+              <span class="k-pill k-pill--sm k-pill--ink">Ghost</span>
+              <span class="k-pill k-pill--sm">Burn</span>
+              <span class="k-pill k-pill--sm">Script</span>
+            </div>
+          </div>
+
+          <div class="k-card r-epic" style="padding:14px 16px">
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Core</span><div class="k-row__name">BLACKBOX CORE</div>
+                <span class="t-micro t-dim">Epic · PSYS · Power +24</span></div>
+              <div class="m-core" style="width:44px;height:44px"><i></i></div>
+            </div>
+          </div>
+          <div class="k-card r-rare" style="padding:14px 16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Lens</span><div class="k-row__name">GHOST LENS</div>
+                <span class="t-micro t-dim">Rare · UOPT · Scan +16</span></div>
+              <div class="m-lens" style="width:44px;height:44px"><i></i></div>
+            </div>
+          </div>
+          <div class="k-card r-leg" style="padding:14px 16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Port</span><div class="k-row__name">ADMIN PORT</div>
+                <span class="t-micro t-dim">Leg · JDN · Power +20</span></div>
+              <div class="m-port" style="width:44px;height:44px"><i></i><b></b></div>
+            </div>
+          </div>
+          <div class="k-card r-com" style="padding:14px 16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Bus</span><div class="k-row__name">HIVE BUS</div>
+                <span class="t-micro t-dim">Com · UNET · Power +08</span></div>
+              <div class="m-bus" style="width:44px;height:44px"><i></i></div>
+            </div>
+          </div>
+          <div class="k-card r-rare" style="padding:14px 16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Ice</span><div class="k-row__name">TRACE NEEDLE</div>
+                <span class="t-micro t-dim">Rare · BLK · Breach +16</span></div>
+              <div class="m-ice" style="width:44px;height:44px"><i></i></div>
+            </div>
+          </div>
+          <div class="k-card r-com" style="padding:14px 16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><span class="t-micro t-dim">Skin</span><div class="k-row__name">NULL SKIN</div>
+                <span class="t-micro t-dim">Com · CPAL · Power +08</span></div>
+              <div class="m-skin" style="width:44px;height:44px"></div>
+            </div>
+          </div>
+
+          <div class="k-card k-card--navy" style="border:1px solid rgba(255,255,255,.18)">
+            <p class="t-micro" style="line-height:1.7;opacity:.75">Stack reads top-down: CORE → LENS → PORT →
+            BUS → ICE → SKIN. Joints mark the signal path. Tap a slot to compare against stash.</p>
+          </div>
+
+          <div class="k-actionbar">
+            <button class="k-pill k-pill--ink">INSTALL</button>
+            <button class="k-pill">COMPARE</button>
+            <button class="k-pill">STASH</button>
+          </div>
+          <nav class="k-tabbar">
+            <a>Now</a><a>Map</a><a>Runs</a><a class="is-on">Soul</a><a>Market</a><a>Net</a>
+          </nav>
+        </div>
+      </div>
+      <p class="sc-phlabel">RIG · vertical six-slot stack</p>
+    </div>
+
+    <!-- ===================== PHONE 3 · MARKET ===================== -->
+    <div>
+      <div class="k-phone">
+        <div class="k-phone__screen">
+          <div class="k-phone__notch"></div>
+
+          <div class="k-card k-card--yellow k-headcard">
+            <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+            <div class="k-dotline"><span class="t-label">SEN balance</span><span class="k-chip" style="width:28px;height:28px">↗</span></div>
+            <div class="t-num">2,410</div>
+            <p class="t-micro" style="margin-top:10px;line-height:1.7"><span class="t-link">+180 this cycle.</span>
+            Corp hacks move supply and prices.</p>
+          </div>
+
+          <div class="sc-row" style="gap:6px">
+            <span class="k-pill k-pill--sm">Sell</span>
+            <span class="k-pill k-pill--sm">Auction</span>
+            <span class="k-pill k-pill--sm">Bank</span>
+            <span class="k-pill k-pill--sm k-pill--ink">Stocks</span>
+            <span class="k-pill k-pill--sm">Trade</span>
+          </div>
+
+          <div class="k-card k-card--lav">
+            <div class="k-dotline"><span class="t-label">Stocks</span><span>⌁</span></div>
+            <div class="sc-col" style="gap:10px">
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-body"><b>JADENET</b></span><span class="k-rar k-rar--com">+1.2%</span></div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-body"><b>GIL</b></span><span class="k-rar k-rar--mil">−0.8%</span></div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-body"><b>CRYSTAL PALACE</b></span><span class="k-rar k-rar--com">+3.4%</span></div>
+              <div class="sc-row" style="justify-content:space-between;opacity:.55">
+                <span class="t-body"><b>PARADISE SYS</b></span><span class="k-rar k-rar--brk">LOCKED</span></div>
+            </div>
+            <p class="t-micro t-dim" style="margin-top:12px">Paradise Sys requires corp access · run the breach tree</p>
+          </div>
+
+          <div class="k-card k-card--green">
+            <span class="k-tag">7-day SEN flow</span>
+            <div class="k-chart" style="height:104px">
+              <div class="bar"><i style="height:52%"></i><span>M</span></div>
+              <div class="bar is-hi"><b>7.2</b><i style="height:88%"></i><span>T</span></div>
+              <div class="bar"><i style="height:40%"></i><span>W</span></div>
+              <div class="bar"><i style="height:22%"></i><span>T</span></div>
+              <div class="bar"><i style="height:64%"></i><span>F</span></div>
+              <div class="bar"><i style="height:30%"></i><span>S</span></div>
+              <div class="bar"><i style="height:48%"></i><span>S</span></div>
+            </div>
+          </div>
+
+          <div class="k-row">
+            <span class="k-ava" style="background:var(--yellow)">◆</span>
+            <div class="k-row__main"><div class="k-row__name">GHOST LENS</div>
+              <div class="k-row__sub">Rare · UOPT · Scan +16</div></div>
+            <span class="t-title">480</span>
+            <button class="k-pill k-pill--sm k-pill--ink">Bid</button>
+          </div>
+
+          <div class="k-ticker">
+            <span class="k-ticker__code">▮▯▮▮▯</span>
+            <span class="k-ticker__msg">Jadenet supply shock — lens prices +12%</span>
+            <button class="k-pill k-pill--sm k-pill--ink">Alert</button>
+          </div>
+
+          <div class="k-actionbar">
+            <button class="k-pill k-pill--ink">BUY</button>
+            <button class="k-pill">SELL</button>
+            <button class="k-pill">SET ALERT</button>
+          </div>
+          <nav class="k-tabbar">
+            <a>Now</a><a>Map</a><a>Runs</a><a>Soul</a><a class="is-on">Market</a><a>Net</a>
+          </nav>
+        </div>
+      </div>
+      <p class="sc-phlabel">MARKET · stocks &amp; listings</p>
+    </div>
+
+    <!-- ===================== PHONE 4 · NET / CHAT ===================== -->
+    <div>
+      <div class="k-phone">
+        <div class="k-phone__screen">
+          <div class="k-phone__notch"></div>
+
+          <div class="k-card k-card--pink k-headcard">
+            <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+            <div class="sc-row" style="justify-content:space-between">
+              <div class="t-title" style="font-size:21px">Net / Chat</div>
+              <span class="k-tag k-tag--fill">3 unread</span>
+            </div>
+            <div class="sc-row" style="margin-top:12px;gap:6px">
+              <span class="k-pill k-pill--sm">Global</span>
+              <span class="k-pill k-pill--sm k-pill--ink">Crew · 2</span>
+              <span class="k-pill k-pill--sm">DM</span>
+              <span class="k-pill k-pill--sm">Trade</span>
+            </div>
+          </div>
+
+          <div class="sc-col" style="gap:10px;padding:4px 2px;flex:1">
+            <div class="k-bubble">
+              <div class="who">Null Saint</div>
+              Need one more LENS for JADENET GATE.
+              <span class="when">14:02</span>
+            </div>
+            <div class="k-bubble" style="padding:10px">
+              <div class="k-row" style="background:var(--yellow);min-height:48px">
+                <div class="k-row__main"><div class="k-row__name">GHOST LENS</div>
+                  <div class="k-row__sub">Rare · UOPT · Scan +16</div></div>
+                <button class="k-pill k-pill--sm k-pill--ink">Trade</button>
+              </div>
+              <div class="sc-row" style="margin-top:8px;gap:6px">
+                <button class="k-pill k-pill--sm">Reply</button>
+                <button class="k-pill k-pill--sm">Profile</button>
+              </div>
+            </div>
+            <div class="k-bubble k-bubble--out">I have a spare. 480 SEN.<span class="when">14:03 ✓✓</span></div>
+            <div class="k-bubble">
+              <div class="who">Vex_11</div>
+              Heat manager slot still open for tonight?
+              <span class="when">14:05</span>
+            </div>
+            <div class="k-bubble k-bubble--sys blink">Corp alert — Jadenet Gate 02 opens in 02:14:00</div>
+          </div>
+
+          <div class="k-row">
+            <div class="k-row__main"><span class="t-body t-dim">Message crew…</span></div>
+            <button class="k-chip k-chip--ink">→</button>
+          </div>
+          <nav class="k-tabbar">
+            <a>Now</a><a>Map</a><a>Runs</a><a>Soul</a><a>Market</a><a class="is-on">Net</a>
+          </nav>
+        </div>
+      </div>
+      <p class="sc-phlabel">NET · familiar chat, game objects inline</p>
+    </div>
+
+    <!-- ===================== PHONE 5 · SOUL ===================== -->
+    <div>
+      <div class="k-phone">
+        <div class="k-phone__screen">
+          <div class="k-phone__notch"></div>
+
+          <div class="k-card k-card--violet k-headcard">
+            <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+            <div class="sc-row" style="justify-content:space-between">
+              <div class="sc-row">
+                <span class="k-ava k-ava--lg" style="background:var(--paper)">N</span>
+                <div><div class="t-title">NED</div><span class="t-micro t-dim">Null Saints</span></div>
+              </div>
+              <span class="k-tag k-tag--fill">No-Heat Runner</span>
+            </div>
+            <div class="sc-row" style="margin-top:14px;gap:18px">
+              <div><div class="t-num-s">312</div><span class="t-micro t-dim">Runs</span></div>
+              <div><div class="t-num-s">9</div><span class="t-micro t-dim">Breaches</span></div>
+              <div><div class="t-num-s">4.8</div><span class="t-micro t-dim">Rep</span></div>
+            </div>
+          </div>
+
+          <div class="k-card" style="padding:16px">
+            <div class="sc-row" style="justify-content:space-around">
+              <div class="k-badge"><i style="background:var(--lime)">▲</i><span>Runner</span></div>
+              <div class="k-badge"><i style="background:var(--yellow)">◆</i><span>Economist</span></div>
+              <div class="k-badge"><i style="background:var(--mint)">●</i><span>Crew</span></div>
+              <div class="k-badge k-badge--locked"><i>?</i><span>Hidden</span></div>
+            </div>
+          </div>
+
+          <div class="k-card k-card--mint" style="padding:16px">
+            <div class="sc-row" style="justify-content:space-between">
+              <div><div class="k-row__name">100 Quick Hacks</div><span class="t-micro t-dim">Runner</span></div>
+              <span class="t-title">64/100</span>
+            </div>
+            <div class="k-progress" style="margin-top:10px"><i style="width:64%"></i></div>
+          </div>
+          <div class="k-card k-card--lime" style="padding:16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><div class="k-row__name">First Corp Breach</div><span class="t-micro t-dim">Corp Breaker</span></div>
+              <span class="k-rar k-rar--com">CLAIMED ✓</span>
+            </div>
+          </div>
+          <div class="k-card" style="padding:16px"><span class="k-joint"></span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><div class="k-row__name">Market Maker</div><span class="t-micro t-dim">Economist</span></div>
+              <span class="t-title">12/50</span>
+            </div>
+            <div class="k-progress" style="margin-top:10px"><i style="width:24%"></i></div>
+          </div>
+
+          <div class="k-card k-card--black">
+            <div class="k-dotline"><span class="t-label">Supporter</span><span class="k-rar k-rar--rare">DONOR</span></div>
+            <p class="t-micro" style="line-height:1.7;opacity:.8">Themes · 3D skins · chat flair · loadout slots.
+            No stat power. Ever.</p>
+            <button class="k-pill k-pill--sm k-pill--yellow" style="margin-top:12px">Support</button>
+          </div>
+
+          <div class="k-row k-key" style="border-radius:20px">
+            <div class="k-row__main"><div class="k-row__name">Reduced motion</div></div>
+            <span class="k-toggle k-toggle--on"><i></i></span>
+          </div>
+
+          <nav class="k-tabbar">
+            <a>Now</a><a>Map</a><a>Runs</a><a class="is-on">Soul</a><a>Market</a><a>Net</a>
+          </nav>
+        </div>
+      </div>
+      <p class="sc-phlabel">SOUL · profile, achievements, donor</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     04 · DESKTOP / PAD BENTO
+     ============================================================ -->
+<section class="sc-sec" id="s04">
+  <h2>04 · Desktop &amp; pad — same kit, bento composition</h2>
+  <p class="sc-note">Identical components recomposed on a 12-column bento (gutter 16, card radius 24,
+  padding 24). Every card carries the keyline on black. Pad (768–1100) collapses to the 6-column midpoints;
+  below 640 it becomes the phone stack — resize this window to watch it happen.</p>
+
+  <div class="dk-frame">
+    <div class="dk-nav">
+      <span class="dk-logo"><i></i></span>
+      <div class="k-nav">
+        <a class="k-pill is-on">NOW ●</a><a class="k-pill">MAP</a><a class="k-pill">RUNS</a><a class="k-pill">SOUL</a><a class="k-pill">MARKET</a><a class="k-pill">NET</a>
+      </div>
+      <div style="flex:1"></div>
+      <span class="k-ava">N</span>
+      <button class="k-chip k-chip--ink k-key-lt">⏻</button>
+    </div>
+
+    <div class="dk-grid">
+      <div class="k-card k-card--black k-key-lt dk-hero">
+        <div class="dk-heroart">
+          <pre class="k-glyphs">·  :  ╱  ▘ ·    ⌁ ·
+ ▝ ·  JDN ╱ · ▖   :
+:  ╱ ·  ▘ ·  GIL ·
+· OLD HOSPITAL ▝ ╱ :</pre>
+        </div>
+        <div style="position:relative;display:flex;flex-direction:column;height:100%">
+          <div class="sc-row" style="justify-content:space-between">
+            <span class="k-tag blink" style="color:#fff">● Signal lock</span>
+            <span class="k-chip k-chip--ink k-key-lt" style="font-size:10px">JDN</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px">
+            <div class="t-num-xl" style="font-size:52px;font-weight:800">Quick Hack</div>
+            <div class="k-dots" style="justify-content:flex-start"><i></i><i style="opacity:.35"></i><i style="opacity:.35"></i></div>
+          </div>
+          <p class="t-micro" style="line-height:1.8;opacity:.85;max-width:300px">Your <span class="t-link">connection</span> to
+          OLD HOSPITAL NODE is constantly updated. Reward +120 SEN · Heat +6.</p>
+        </div>
+      </div>
+
+      <div class="k-card k-card--green k-key dk-stat">
+        <span style="font-size:20px">⌁</span>
+        <div class="k-dotline" style="margin-top:12px"><span class="t-label">Heat level</span></div>
+        <div class="t-num-xl">21%</div>
+        <p class="t-micro" style="margin-top:14px;line-height:1.8">Stay under 40% — <span class="t-link">cooler bus</span> ready
+        for the next 16 hours and 34 minutes.</p>
+        <div class="sc-row" style="margin-top:16px">
+          <span class="k-chip" style="font-size:9px">JDN</span>
+          <span class="k-chip" style="font-size:9px">GIL</span>
+          <span class="k-chip" style="font-size:9px">CPAL</span>
+        </div>
+      </div>
+
+      <div class="k-card k-card--yellow k-key dk-stat--last">
+        <span style="font-size:20px">◎</span>
+        <div class="k-dotline" style="margin-top:12px"><span class="t-label">Crew reputation</span></div>
+        <div class="t-num-xl">4.8k</div>
+        <p class="t-micro" style="margin-top:14px;line-height:1.8">Definitely a better result than the previous cycle.
+        <span class="t-link">Improve your results.</span></p>
+        <button class="k-pill k-pill--ink" style="margin-top:16px"><span class="k-chip" style="width:22px;height:22px;border-color:#fff;background:transparent;color:#fff;font-size:11px">✚</span>&nbsp;Invite runners</button>
+      </div>
+
+      <div class="k-card k-key dk-cell2">
+        <div class="sc-row" style="justify-content:space-between">
+          <span class="t-title">Start run</span>
+          <span class="k-chip k-chip--ink">→</span>
+        </div>
+        <div style="border-bottom:2px dotted rgba(18,19,16,.45);padding-top:70px"></div>
+      </div>
+
+      <div class="k-card k-card--pink k-key dk-cell2">
+        <div class="sc-row" style="justify-content:space-between">
+          <span class="t-title">Signal map</span>
+          <span class="k-chip k-chip--ink">→</span>
+        </div>
+        <svg class="dk-circles" width="100%" height="110" viewBox="0 0 220 120" fill="none" aria-hidden="true">
+          <circle cx="44"  cy="60" r="12" stroke="#121310" stroke-width="1.5"/>
+          <circle cx="56"  cy="60" r="24" stroke="#121310" stroke-width="1.5"/>
+          <circle cx="68"  cy="60" r="36" stroke="#121310" stroke-width="1.5"/>
+          <circle cx="80"  cy="60" r="48" stroke="#121310" stroke-width="1.5"/>
+          <circle cx="92"  cy="60" r="58" stroke="#121310" stroke-width="1.5"/>
+        </svg>
+      </div>
+
+      <div class="k-card k-card--black k-key-lt dk-wide">
+        <div class="sc-row" style="justify-content:space-between">
+          <span class="k-tag" style="color:#fff">Breach prep</span>
+          <span class="k-chip k-chip--ink k-key-lt">↗</span>
+        </div>
+        <div class="sc-row" style="justify-content:space-between;margin-top:18px">
+          <span class="t-title" style="font-size:20px">Jadenet Gate 02 progress</span>
+          <span class="t-title" style="font-size:20px">63%</span>
+        </div>
+        <div class="k-progress k-progress--lt" style="margin-top:14px"><i style="width:63%"></i></div>
+        <p class="t-micro" style="margin-top:16px;line-height:1.8;opacity:.8">Need +8 BREACH and crew assists 2/4.
+        Your <span class="t-link">rig needs upgrades</span>. Continue the tasks.</p>
+      </div>
+
+      <div class="k-card k-key" style="grid-column:1/-1;padding:10px 10px 10px 22px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="k-ticker__code">▮▯▮▮▯▮▮▯</span>
+          <span class="k-ticker__msg">Scan nodes© for better access and 5th generation connectivity.</span>
+          <button class="k-pill k-pill--sm k-pill--ink">Scan now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     05 · RULES & RECORD
+     ============================================================ -->
+<section class="sc-sec" id="s05">
+  <h2>05 · Rules &amp; conflict record</h2>
+  <div class="sc-cols">
+    <div class="blk"><h4>Three-zone contract</h4>
+    <p>Every screen: TOP = identity + resources + heat + timers (header card + tag strip). MIDDLE = the one
+    object/list/map being inspected. BOTTOM = action bar (≤3 verbs) above the board tab bar. One recommended
+    next action per screen, always.</p></div>
+
+    <div class="blk"><h4>Breakpoints</h4>
+    <p>Phone 390 logical is canonical — single column stack, gutter 12. Pad ≥768: two-column bento, gutter 16.
+    Desk ≥1100: 12-column bento in the black keyline frame; a right-side detail rail may appear, but core play
+    never requires it.</p></div>
+
+    <div class="blk"><h4>Motion</h4>
+    <p>Category controls motion type (CORE bloom · LENS sweep · PORT handshake · BUS route · ICE blade ·
+    SKIN shimmer · CACHE seal-crack · MIL threat-lock). Rarity controls color and intensity. Subtle in lists,
+    stronger in detail, strongest in decode/cache reveal. MYTH is the shimmer tier; BRK flickers. Everything
+    sits behind <code>prefers-reduced-motion</code> plus the in-app Motion setting.</p></div>
+
+    <div class="blk"><h4>Color is never alone</h4>
+    <p>Rarity text pill always accompanies rarity color (BRK/COM/TUN/RARE/LEG/EPIC/MIL/MYTH). MIL replaces
+    ILLEGAL everywhere and must read as red. High-contrast theme keeps ink-on-paper with rarity pills intact.</p></div>
+
+    <div class="blk"><h4>3D library slot</h4>
+    <p>The device-card stage (r16 inner surface) is the mount point for the production 3D device renders.
+    The glyph rigs here are stand-ins only — this file does not touch the model library or its hooks.</p></div>
+
+    <div class="blk"><h4>Conflict record — read before porting</h4>
+    <p>This kit contradicts the locked master-plan rails: it uses radii (26/16/999) instead of radius-0, free
+    bento composition instead of the 8×14 terminal cell grid, sentence case instead of all-caps, and grotesk
+    instead of mono. The six-board order, server-authoritative rule, rarity ladder (MIL not ILLEGAL), catalogue
+    names, and reduced-motion rule are all preserved. Status: owner-directed experiment, 2026-06-11, for
+    evaluation only. Production = .dk until the owner says otherwise.</p></div>
+  </div>
+</section>
+
+<footer class="sc-foot">
+  USERLAND · KIT-B “BENTO KEYLINE” · experiments/bento-keyline-kit.html · standalone, no toolchain, no JS ·
+  content sourced from the 96-item gear catalogue and the 3D-sync brief · 2026-06-11
+</footer>
+
+</div>
+</body>
+</html>
