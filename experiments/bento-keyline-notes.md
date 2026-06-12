@@ -77,9 +77,10 @@ Shape options on top of the default radius:
   directional (achievement chains, paired cards).
 - **Ticket tear (`k-perf`)** — 2px dotted line with 15px diamond notches.
 
-Type (Inter / neo-grotesque, tabular numerals): numerals 64/44/34 @ w800,
-−3% tracking, lh 0.95 · title 17/700 · body 14/500/1.45 · label 11 caps +8% ·
-micro 9.5 caps +14%.
+Type (rev 4): **Gamja Flower 400** carries display — numerals 68/48/36
+(lh ≤.95), card titles 22, device names 18, page h1 58. **Space Mono**
+carries body and small copy — body 13.5/1.55, label 11 caps +5%, micro 9.5
+caps +8%, pills 12/10, tab bar 9.5; tabular by nature.
 
 Controls: pill buttons h48/40/30 (px 22/18/14, border 1.5) · icon chips 34/44 ·
 outline tag h26 · rows h56 r8 · tab bar + action bar h60 r10 · progress h8
@@ -106,10 +107,34 @@ violet→pink, navy→sky. Gradients are static surface fills for hero / timer /
 decode moments; text color follows the contrast ratios printed on the source
 palettes.
 
-Palette: ink #121310 · black #0A0A0A · navy #1B2531 / #141C26 · paper #FFF ·
-bone #EDEAE0 · green #4FD645 · lime #CDF263 · mint #BFEBDC · yellow #F2DF4E ·
-pink #F2CCE3 · lavender #DCDDF6 · violet #B5A8F2 · sky #79A8E6 · red #F2472E ·
-gray #C7C4B8.
+Palette is SEMANTIC (rev 4) — components reference category tokens, themes
+remap categories 1:1, roles never change:
+
+| Token      | Default (hex)     | Category                          |
+|------------|-------------------|-----------------------------------|
+| --c-run    | lime #CDF263      | RUN · actions, CTAs, active       |
+| --c-build  | mint #BFEBDC      | BUILD · rig, install, parts       |
+| --c-trade  | yellow #F2DF4E    | TRADE · market, SEN, tickets      |
+| --c-social | lavender #DCDDF6  | SOCIAL · net, chat, crew          |
+| --c-grow   | violet #B5A8F2    | GROW · soul, achievements         |
+| --c-drop   | pink #F2CCE3      | DROP · caches, loot, claims       |
+| --c-info   | sky #79A8E6       | INFO · system chrome, action bar  |
+| --c-ok     | green #4FD645     | state · positive/COM — constant   |
+| --c-heat   | red #F2472E       | state · danger/MIL — constant     |
+
+Surfaces: ink #121310 · black #0A0A0A · navy #1B2531/#141C26 · paper #FFF ·
+bone #EDEAE0 · gray (BRK) #C7C4B8. Rarity rides the category palette
+(RARE=trade-yellow, EPIC=info-sky, LEG=grow-violet…) except MIL/COM which
+pin to the constant state colors.
+
+Live state (rev 4): every active surface narrates itself — pulsing state dot
+(OK green; RUN-color when ready; gray when idle) + caps label of what it is
+doing + counting percentage + 4px progress line. Mechanics: `--p` is a
+registered `@property <integer>` set inline on the card with class `.k-go`;
+a keyframe animates it 0→target in 2.2s and a CSS counter renders the
+number (`.k-pct`). Reduced motion strips the animation and shows final
+values instantly. States: `.is-ready` (100%, blinking label), `.is-idle`
+(dim, 0%).
 
 Rarity → fill: BRK gray (flicker) · COM green · TUN mint · RARE yellow · LEG
 violet · EPIC sky · MIL red (threat pulse) · MYTH animated multi-gradient
@@ -140,6 +165,14 @@ keyline frame with the connected pill nav chain. Breakpoints: 390 canonical /
 
 ## Revisions
 
+- **Rev 4 (2026-06-12):** type voice — Gamja Flower for display headings/subs
+  (numerals, titles, device names), Space Mono for body and small copy;
+  palette made semantic (category tokens RUN/BUILD/TRADE/SOCIAL/GROW/DROP/
+  INFO + constant OK/HEAT states; themes remap categories 1:1); live-state
+  system added (`.k-go`/`--p`/`.k-live`/`.k-pct`): pulsing dot, activity
+  label, counting % and progress line on NOW, RIG, MARKET, timer, sheet,
+  desktop, theme heroes + a dedicated bench; RIG header recolored to BUILD
+  mint, NET header to SOCIAL lavender.
 - **Rev 3 (2026-06-12, pixel-perfect pass):** all sculpted junctions redrawn
   as single-path inline SVG (plateau `.k-platop`, new centered pinch
   `.k-pinch`, sheet fillet `.k-fil`, bite `.k-bitefx`) — kills the gradient

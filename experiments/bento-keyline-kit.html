@@ -14,7 +14,7 @@
   sign-off. Standalone file, no toolchain, no JS.
 -->
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
 
 /* ================================================================
    KIT-B TOKENS — exact measurements (rev 2: thin shell, small radius)
@@ -44,40 +44,52 @@
   --black:#0a0a0a;
   --navy:#1b2531;
   --navy-2:#141c26;
-
-  --green:#4fd645;
-  --lime:#cdf263;
-  --mint:#bfebdc;
-  --yellow:#f2df4e;
-  --pink:#f2cce3;
-  --lav:#dcddf6;
-  --violet:#b5a8f2;
-  --sky:#79a8e6;
-  --red:#f2472e;
   --gray:#c7c4b8;
+
+  /* semantic category colors — themes remap CATEGORIES, never roles.
+     OK and HEAT are state colors and stay constant in every theme.   */
+  --c-run:#cdf263;    /* RUN · actions, CTAs, active            */
+  --c-build:#bfebdc;  /* BUILD · rig, install, parts            */
+  --c-trade:#f2df4e;  /* TRADE · market, SEN, tickets           */
+  --c-social:#dcddf6; /* SOCIAL · net, chat, crew               */
+  --c-grow:#b5a8f2;   /* GROW · soul, achievements, titles      */
+  --c-drop:#f2cce3;   /* DROP · caches, loot, claims            */
+  --c-info:#79a8e6;   /* INFO · system chrome, action bar       */
+  --c-ok:#4fd645;     /* state · positive / COM — constant      */
+  --c-heat:#f2472e;   /* state · danger / MIL — constant        */
+
+  /* legacy hue aliases resolve to the semantic tokens */
+  --green:var(--c-ok);
+  --lime:var(--c-run);
+  --mint:var(--c-build);
+  --yellow:var(--c-trade);
+  --pink:var(--c-drop);
+  --lav:var(--c-social);
+  --violet:var(--c-grow);
+  --sky:var(--c-info);
+  --red:var(--c-heat);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
-  font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-family:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   background:var(--bone);color:var(--ink);
-  font-size:14px;line-height:1.45;font-weight:500;
+  font-size:13.5px;line-height:1.55;font-weight:400;
   font-variant-numeric:tabular-nums;
 }
 
 /* ================================================================
-   TYPE SCALE
-   num-xl 64 · num 44 · num-s 34 (w800, -0.03em, lh 0.95)
-   title 17 w700 · body 14 w500 · label 11 caps · micro 9.5 caps
+   TYPE SCALE — display: Gamja Flower 400 · body/small: Space Mono
+   numerals 68/48/36 · titles 22 · body 13.5 · label 11 · micro 9.5
    ================================================================ */
-.t-num-xl{font-size:64px;font-weight:800;letter-spacing:-.03em;line-height:.95}
-.t-num   {font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:.95}
-.t-num-s {font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1}
-.t-title {font-size:17px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
-.t-body  {font-size:14px;font-weight:500}
-.t-label {font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.t-micro {font-size:9.5px;font-weight:650;letter-spacing:.14em;text-transform:uppercase}
+.t-num-xl{font-size:68px;font-weight:400;font-family:"Gamja Flower",cursive;letter-spacing:0;line-height:.9}
+.t-num   {font-size:48px;font-weight:400;font-family:"Gamja Flower",cursive;letter-spacing:0;line-height:.92}
+.t-num-s {font-size:36px;font-weight:400;font-family:"Gamja Flower",cursive;letter-spacing:0;line-height:.95}
+.t-title {font-size:22px;font-weight:400;font-family:"Gamja Flower",cursive;letter-spacing:0;line-height:1.02}
+.t-body  {font-size:13.5px;font-weight:400}
+.t-label {font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.t-micro {font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .t-dim   {opacity:.62}
 .t-link  {text-decoration:underline;text-underline-offset:2px;font-weight:700}
 
@@ -133,13 +145,25 @@ body{
 /* ================================================================
    THEMES — variable swap; MIL red stays constant as a state color
    ================================================================ */
+/* themes remap the semantic CATEGORY tokens 1:1 — same role, new hue.
+   --c-ok and --c-heat are state colors and are never remapped.        */
 .theme-dusk{--navy:#4a2c3f;--navy-2:#3a2233;--black:#2e1a28;--paper:#faefe9;--bone:#e2d5c2;--ink:#2e1a28;
-  --lime:#f4a384;--green:#f4a384;--mint:#e2d5c2;--yellow:#f4a384;--pink:#c2899b;--lav:#c2899b;
-  --violet:#7a5063;--sky:#486d83;
+  --c-run:#f4a384;   /* RUN    · creamy peach        */
+  --c-build:#e2d5c2; /* BUILD  · onion white         */
+  --c-trade:#e9c9a4; /* TRADE  · sand (peach tint)   */
+  --c-social:#d9aab9;/* SOCIAL · carmine tint        */
+  --c-grow:#bb8fa4;  /* GROW   · grey carmine tint   */
+  --c-drop:#ecbfcb;  /* DROP   · blossom tint        */
+  --c-info:#a9c0cf;  /* INFO   · blue loneliness tint*/
   --grad-a:linear-gradient(180deg,#7a5063,#f4a384);--grad-b:linear-gradient(180deg,#4a2c3f,#486d83)}
 .theme-mid{--navy:#002233;--navy-2:#001a27;--black:#001a27;--paper:#f6f2e8;--bone:#c5c0c9;--ink:#11425d;
-  --lime:#ddff55;--green:#ddff55;--mint:#c0d6ea;--yellow:#ddff55;--pink:#c5c0c9;--lav:#c0d6ea;
-  --violet:#c5c0c9;--sky:#c0d6ea;
+  --c-run:#ddff55;   /* RUN    · isotonic water      */
+  --c-build:#c0d6ea; /* BUILD  · pacific panorama    */
+  --c-trade:#e6e3ae; /* TRADE  · isotonic desat      */
+  --c-social:#c5c0c9;/* SOCIAL · grape mist          */
+  --c-grow:#a9aecf;  /* GROW   · grape/neptune tint  */
+  --c-drop:#d8cdd6;  /* DROP   · grape blossom       */
+  --c-info:#9fc2d8;  /* INFO   · pacific deep        */
   --grad-a:linear-gradient(180deg,#002233 0%,#c5c0c9 55%,#ddff55 100%);
   --grad-b:linear-gradient(180deg,#11425d,#c0d6ea)}
 .k-grad-a{background:var(--grad-a)}
@@ -177,11 +201,11 @@ body{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   height:40px;padding:0 18px;border-radius:var(--r-pill);
   border:var(--key-w) solid var(--ink);background:var(--paper);color:var(--ink);
-  font-size:13px;font-weight:700;letter-spacing:0;text-decoration:none;
+  font-size:12px;font-weight:700;letter-spacing:0;text-decoration:none;
   white-space:nowrap;cursor:pointer;font-family:inherit;
 }
-.k-pill--lg{height:48px;padding:0 22px;font-size:14px}
-.k-pill--sm{height:30px;padding:0 14px;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.k-pill--lg{height:48px;padding:0 22px;font-size:13px}
+.k-pill--sm{height:30px;padding:0 14px;font-size:10px;letter-spacing:.03em;text-transform:uppercase}
 .k-pill--ink   {background:var(--ink);border-color:var(--ink);color:#fff}
 .k-pill--lime  {background:var(--lime);border-color:var(--ink)}
 .k-pill--yellow{background:var(--yellow);border-color:var(--ink)}
@@ -251,8 +275,8 @@ body{
   height:60px;border-radius:10px;background:var(--navy-2);color:rgba(255,255,255,.55);
   padding:0 18px;
 }
-.k-tabbar a{color:inherit;text-decoration:none;font-size:10.5px;font-weight:700;
-  letter-spacing:.1em;text-transform:uppercase;padding:6px 2px}
+.k-tabbar a{color:inherit;text-decoration:none;font-size:9.5px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;padding:6px 2px}
 .k-tabbar a.is-on{color:var(--lime)}
 
 /* action bar (bottom zone) h60 */
@@ -302,14 +326,14 @@ body{
 .k-device__stage{position:relative;height:104px;border-radius:var(--r-nested);
   background:rgba(18,19,16,.08);overflow:hidden;margin-bottom:12px;
   display:flex;align-items:center;justify-content:center}
-.k-device__name{font-size:14px;font-weight:800;letter-spacing:-.01em}
+.k-device__name{font-size:18px;font-weight:400;font-family:"Gamja Flower",cursive;letter-spacing:0;line-height:1}
 .k-device__meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .k-device__stat{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-top:10px}
 .k-device__anim{font-size:9px;font-weight:650;letter-spacing:.14em;text-transform:uppercase;opacity:.55;margin-top:2px}
 .k-device__acts{display:flex;gap:6px;margin-top:12px}
 .k-device--s{width:148px;padding:12px}
 .k-device--s .k-device__stage{height:78px}
-.k-device--s .k-device__name{font-size:12.5px}
+.k-device--s .k-device__name{font-size:15px}
 .k-device--s .k-device__stat{font-size:15px;margin-top:8px}
 
 /* rarity fills */
@@ -372,6 +396,33 @@ body{
 @keyframes flicker{0%,7%,100%{opacity:1}3%{opacity:.55}}
 @keyframes blink  {50%{opacity:.15}}
 @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+
+/* ================================================================
+   LIVE STATE — every active surface narrates what it is doing:
+   pulsing state dot · caps label · counting % (--p) · progress line.
+   Set --p to the target on the card + class .k-go to animate 0→target.
+   Reduced motion: animation is stripped, final values show instantly.
+   ================================================================ */
+@property --p{syntax:"<integer>";inherits:true;initial-value:0}
+.k-go{animation:liveload 2.2s cubic-bezier(.2,.75,.25,1) .3s both}
+@keyframes liveload{from{--p:0}}
+.k-pct::after{counter-reset:pct var(--p);content:counter(pct) "%"}
+.k-live{display:flex;align-items:center;gap:8px;margin-top:14px}
+.k-live__dot{width:8px;height:8px;border-radius:50%;background:var(--c-ok);flex:none}
+.k-live__lbl{flex:1;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.k-live .k-pct{font-size:13px;font-weight:700}
+.k-live__bar{height:4px;border-radius:var(--r-pill);background:rgba(18,19,16,.16);overflow:hidden;margin-top:8px}
+.k-live__bar i{display:block;height:100%;width:calc(var(--p)*1%);background:var(--ink);border-radius:var(--r-pill)}
+.k-card--black .k-live__bar,.k-card--navy .k-live__bar{background:rgba(255,255,255,.22)}
+.k-card--black .k-live__bar i,.k-card--navy .k-live__bar i{background:var(--c-run)}
+.is-ready .k-live__dot{background:var(--c-run)}
+.is-idle .k-live__dot{background:#9a978c}
+.is-idle{opacity:.78}
+@media (prefers-reduced-motion: no-preference){
+  .k-live__dot{animation:livepulse 1.8s ease-out infinite}
+  .is-idle .k-live__dot{animation:none}
+}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(79,214,69,.45)}70%,100%{box-shadow:0 0 0 7px rgba(79,214,69,0)}}
 
 /* ================================================================
    CHAT — bubbles r20, tail-less, linked item card
@@ -450,7 +501,7 @@ body{
    ================================================================ */
 .sc-wrap{max-width:1280px;margin:0 auto;padding:28px 20px 80px}
 .sc-head{padding:34px 0 10px}
-.sc-head h1{font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.sc-head h1{font-size:58px;font-weight:400;font-family:"Gamja Flower",cursive;letter-spacing:0;line-height:.95}
 .sc-head .sub{font-size:13px;font-weight:600;opacity:.65;margin-top:10px;max-width:760px}
 .sc-banner{display:flex;gap:10px;align-items:flex-start;background:var(--yellow);border-radius:10px;
   padding:14px 18px;margin:18px 0 8px;font-size:12px;font-weight:600;line-height:1.5}
@@ -550,7 +601,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
   Surfaces use a very small radius — r8 cards/rows/bubbles, 6 nested, 10 bars, 12 frame — with shape options:
   sci-fi bite corner, 45° cuts, interlock tab, centered pinch, ticket tear — every sculpted junction is a
   single-path inline SVG (no gradient fringes, no element seams). Controls and indicators stay pill/circle.
-  Gutters 6 (phone) / 8 (desk). Inter / neo-grotesque, tabular numerals everywhere.</p>
+  Gutters 6 (phone) / 8 (desk). Gamja Flower carries display headings &amp; subs; Space Mono carries body and small copy.</p>
 
   <div class="sc-grid">
     <div class="sc-bench" style="grid-column:1/-1">
@@ -561,15 +612,15 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         <div><div class="sw k-line" style="background:var(--navy)"></div><div class="nm">Navy shell</div><div class="hx">#1B2531</div></div>
         <div><div class="sw k-line" style="background:var(--paper)"></div><div class="nm">Paper</div><div class="hx">#FFFFFF</div></div>
         <div><div class="sw k-line" style="background:var(--bone)"></div><div class="nm">Bone</div><div class="hx">#EDEAE0</div></div>
-        <div><div class="sw k-line" style="background:var(--green)"></div><div class="nm">Green · COM</div><div class="hx">#4FD645</div></div>
-        <div><div class="sw k-line" style="background:var(--lime)"></div><div class="nm">Lime · GO</div><div class="hx">#CDF263</div></div>
-        <div><div class="sw k-line" style="background:var(--mint)"></div><div class="nm">Mint · TUN</div><div class="hx">#BFEBDC</div></div>
-        <div><div class="sw k-line" style="background:var(--yellow)"></div><div class="nm">Yellow · RARE</div><div class="hx">#F2DF4E</div></div>
-        <div><div class="sw k-line" style="background:var(--pink)"></div><div class="nm">Pink</div><div class="hx">#F2CCE3</div></div>
-        <div><div class="sw k-line" style="background:var(--lav)"></div><div class="nm">Lavender</div><div class="hx">#DCDDF6</div></div>
-        <div><div class="sw k-line" style="background:var(--violet)"></div><div class="nm">Violet · LEG</div><div class="hx">#B5A8F2</div></div>
-        <div><div class="sw k-line" style="background:var(--sky)"></div><div class="nm">Sky · EPIC</div><div class="hx">#79A8E6</div></div>
-        <div><div class="sw k-line" style="background:var(--red)"></div><div class="nm">Red · MIL</div><div class="hx">#F2472E</div></div>
+        <div><div class="sw k-line" style="background:var(--green)"></div><div class="nm">Green · OK/COM</div><div class="hx">#4FD645</div></div>
+        <div><div class="sw k-line" style="background:var(--lime)"></div><div class="nm">Lime · RUN</div><div class="hx">#CDF263</div></div>
+        <div><div class="sw k-line" style="background:var(--mint)"></div><div class="nm">Mint · BUILD/TUN</div><div class="hx">#BFEBDC</div></div>
+        <div><div class="sw k-line" style="background:var(--yellow)"></div><div class="nm">Yellow · TRADE/RARE</div><div class="hx">#F2DF4E</div></div>
+        <div><div class="sw k-line" style="background:var(--pink)"></div><div class="nm">Pink · DROP</div><div class="hx">#F2CCE3</div></div>
+        <div><div class="sw k-line" style="background:var(--lav)"></div><div class="nm">Lavender · SOCIAL</div><div class="hx">#DCDDF6</div></div>
+        <div><div class="sw k-line" style="background:var(--violet)"></div><div class="nm">Violet · GROW/LEG</div><div class="hx">#B5A8F2</div></div>
+        <div><div class="sw k-line" style="background:var(--sky)"></div><div class="nm">Sky · INFO/EPIC</div><div class="hx">#79A8E6</div></div>
+        <div><div class="sw k-line" style="background:var(--red)"></div><div class="nm">Red · HEAT/MIL</div><div class="hx">#F2472E</div></div>
         <div><div class="sw k-line" style="background:var(--gray)"></div><div class="nm">Gray · BRK</div><div class="hx">#C7C4B8</div></div>
         <div><div class="sw k-line r-myth"></div><div class="nm">Shimmer · MYTH</div><div class="hx">multi</div></div>
       </div>
@@ -625,12 +676,12 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         <span class="t-num-xl">62.8%</span>
         <span class="t-num">2,410</span>
         <span class="t-num-s">+1.2%</span>
-        <span class="t-title">Card title — 17 / 700</span>
-        <span class="t-body">Body copy — 14 / 500 / 1.45</span>
-        <span class="t-label">Label 11 · caps · +8%</span>
-        <span class="t-micro">Micro 9.5 · caps · +14%</span>
+        <span class="t-title">Card title — 22 Gamja Flower</span>
+        <span class="t-body">Body copy — 13.5 Space Mono</span>
+        <span class="t-label">Label 11 · caps · +5%</span>
+        <span class="t-micro">Micro 9.5 · caps · +8%</span>
       </div>
-      <p class="spec">numerals 64 / 44 / 34 · w800 · −3% tracking · lh 0.95 · tabular figures</p>
+      <p class="spec">display: Gamja Flower 400 — numerals 68/48/36, titles 22 · body &amp; small: Space Mono — 13.5 body, 11 label, 9.5 micro</p>
     </div>
   </div>
 </section>
@@ -730,16 +781,41 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
     <div class="sc-bench">
       <h3>Timer card</h3>
-      <div class="k-card k-card--mint">
+      <div class="k-card k-card--mint k-go" style="--p:72">
         <div class="k-dotline"><span class="t-label">TX Daemon</span><span class="k-rar k-rar--com">RUNNING</span></div>
         <div class="t-num-xl">00:14:38</div>
         <div class="sc-row" style="justify-content:space-between;margin-top:6px">
           <span class="t-micro t-dim">H&nbsp;&nbsp;&nbsp;&nbsp;M&nbsp;&nbsp;&nbsp;&nbsp;S</span>
           <span class="t-micro t-dim">Claim at zero</span>
         </div>
-        <div class="k-progress" style="margin-top:14px"><i style="width:72%"></i></div>
+        <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl">Daemon running</span><span class="k-pct"></span></div>
+        <div class="k-live__bar"><i></i></div>
       </div>
-      <p class="spec">digits 64/800 tabular · timers feed NOW when they hit zero (30s–weekly hierarchy, brief §19)</p>
+      <p class="spec">timers feed NOW when they hit zero (30s–weekly hierarchy, brief §19) · live strip counts to the current %</p>
+    </div>
+
+    <div class="sc-bench">
+      <h3>Live state — what is this card doing?</h3>
+      <div class="sc-col">
+        <div class="k-card k-card--build k-go" style="background:var(--c-build);--p:63;padding:16px">
+          <div class="t-title" style="font-size:19px">Quick hack · Old Hospital</div>
+          <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl">Running · trace clean</span><span class="k-pct"></span></div>
+          <div class="k-live__bar"><i></i></div>
+        </div>
+        <div class="k-card k-go is-ready" style="background:var(--c-run);--p:100;padding:16px">
+          <div class="t-title" style="font-size:19px">Signal cache</div>
+          <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl blink">Ready · claim reward</span><span class="k-pct"></span></div>
+          <div class="k-live__bar"><i></i></div>
+        </div>
+        <div class="k-card k-go is-idle" style="--p:0;padding:16px">
+          <div class="t-title" style="font-size:19px">Corp breach · Gate 02</div>
+          <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl">Idle · needs +8 breach</span><span class="k-pct"></span></div>
+          <div class="k-live__bar"><i></i></div>
+        </div>
+      </div>
+      <p class="spec">three states: ACTIVE counts up to --p with a pulsing OK dot · READY hits 100, dot turns
+      RUN-color and the label blinks · IDLE sits dim at 0 · set --p + .k-go on the card; the % is a CSS
+      counter on a registered @property, so reduced-motion shows final values instantly</p>
     </div>
 
     <div class="sc-bench">
@@ -929,7 +1005,8 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
               <div class="t-title">Install GHOST LENS?</div>
               <span class="k-chip" style="background:var(--yellow)">→</span>
             </div>
-            <div class="sc-row" style="justify-content:space-between;margin-top:14px">
+            <div class="k-live" style="margin-top:8px"><i class="k-live__dot"></i><span class="k-live__lbl">Lens slot · comparing</span></div>
+            <div class="sc-row" style="justify-content:space-between;margin-top:12px">
               <span class="t-label t-dim">Scan</span>
               <span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com" style="margin-left:6px">+4</span></span>
             </div>
@@ -1022,14 +1099,16 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <button class="k-pill k-pill--sm k-pill--ink">Claim</button>
           </div>
 
-          <div class="k-card k-card--black k-tab-t" style="--tabc:var(--black)">
+          <div class="k-card k-card--black k-tab-t k-go" style="--tabc:var(--black);--p:100">
             <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="k-dotline"><span class="t-label">Quick hack · ready</span><span class="k-rar k-rar--com blink">LIVE</span></div>
-            <div class="t-title" style="font-size:24px">OLD HOSPITAL<br>NODE</div>
+            <div class="t-title" style="font-size:28px">OLD HOSPITAL<br>NODE</div>
             <div class="sc-row" style="margin-top:10px;gap:6px">
               <span class="k-tag">Reward +120 SEN</span><span class="k-tag" style="color:var(--red)">Heat +6</span>
             </div>
-            <button class="k-pill k-pill--lg k-pill--lime" style="margin-top:16px;width:100%">RUN — 02:00</button>
+            <div class="k-live is-ready"><i class="k-live__dot"></i><span class="k-live__lbl">Node live · ready to run</span><span class="k-pct"></span></div>
+            <div class="k-live__bar"><i></i></div>
+            <button class="k-pill k-pill--lg k-pill--lime" style="margin-top:14px;width:100%">RUN — 02:00</button>
           </div>
 
           <div class="k-card k-card--mint">
@@ -1055,12 +1134,13 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <button class="k-pill k-pill--sm k-pill--ink">View</button>
           </div>
 
-          <div class="k-card k-card--navy k-line-lt">
+          <div class="k-card k-card--navy k-line-lt k-go" style="--p:63">
             <div class="sc-row" style="justify-content:space-between">
-              <span class="k-tag">Next step</span><span class="t-title">63%</span>
+              <span class="k-tag">Next step</span><span class="t-title k-pct"></span>
             </div>
             <p class="t-body" style="margin-top:10px">Need <b>+8 BREACH</b> to hit JADENET GATE 02.</p>
-            <div class="k-progress k-progress--lt" style="margin-top:12px"><i style="width:63%"></i></div>
+            <div class="k-live" style="margin-top:10px"><i class="k-live__dot"></i><span class="k-live__lbl">Breach prep · active</span></div>
+            <div class="k-live__bar"><i></i></div>
           </div>
 
           <nav class="k-tabbar">
@@ -1077,10 +1157,10 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         <div class="k-phone__screen">
           <div class="k-phone__notch"></div>
 
-          <div class="k-card k-card--sky k-headcard">
+          <div class="k-card k-card--mint k-headcard">
             <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
             <div class="sc-row" style="justify-content:space-between">
-              <div class="t-title" style="font-size:21px">Rig</div>
+              <div class="t-title" style="font-size:24px">Rig</div>
               <span class="k-tag k-tag--fill">Integrity 64%</span>
             </div>
             <div class="sc-row" style="margin-top:12px;gap:6px">
@@ -1133,9 +1213,11 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-card k-card--navy k-line-lt">
+          <div class="k-card k-card--navy k-line-lt k-go" style="--p:64">
             <p class="t-micro" style="line-height:1.7;opacity:.75">Stack reads top-down: CORE → LENS → PORT →
             BUS → ICE → SKIN. Interlock tabs mark the signal path. Tap a slot to compare against stash.</p>
+            <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl">Ghost build · stable</span><span class="k-pct"></span></div>
+            <div class="k-live__bar"><i></i></div>
           </div>
 
           <div class="k-actionbar">
@@ -1175,6 +1257,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
           <div class="k-card k-card--lav k-bite-tr">
             <svg class="k-bitefx" width="76" height="34" viewBox="0 0 76 34" aria-hidden="true"><path d="M0 0 Q10 0 10 10 Q10 22 22 22 L64 22 Q76 22 76 34 L76 0 Z"/></svg>
+            <div class="k-live" style="margin:0 0 8px"><i class="k-live__dot"></i><span class="k-live__lbl">Feed live · 4 corps</span></div>
             <div class="k-dotline"><span class="t-label">Stocks</span></div>
             <div class="sc-col" style="gap:10px">
               <div class="sc-row" style="justify-content:space-between">
@@ -1235,10 +1318,10 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         <div class="k-phone__screen">
           <div class="k-phone__notch"></div>
 
-          <div class="k-card k-card--pink k-headcard">
+          <div class="k-card k-card--lav k-headcard">
             <div class="k-statusrow"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
             <div class="sc-row" style="justify-content:space-between">
-              <div class="t-title" style="font-size:21px">Net / Chat</div>
+              <div class="t-title" style="font-size:24px">Net / Chat</div>
               <span class="k-tag k-tag--fill">3 unread</span>
             </div>
             <div class="sc-row" style="margin-top:12px;gap:6px">
@@ -1451,17 +1534,18 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         </svg>
       </div>
 
-      <div class="k-card k-card--black dk-wide">
+      <div class="k-card k-card--black dk-wide k-go" style="--p:63">
         <div class="sc-row" style="justify-content:space-between">
           <span class="k-tag" style="color:#fff">Breach prep</span>
           <span class="k-chip k-chip--ink k-key-lt">↗</span>
         </div>
         <div class="sc-row" style="justify-content:space-between;margin-top:18px">
-          <span class="t-title" style="font-size:20px">Jadenet Gate 02 progress</span>
-          <span class="t-title" style="font-size:20px">63%</span>
+          <span class="t-title" style="font-size:24px">Jadenet Gate 02 progress</span>
+          <span class="t-title k-pct" style="font-size:24px"></span>
         </div>
-        <div class="k-progress k-progress--lt" style="margin-top:14px"><i style="width:63%"></i></div>
-        <p class="t-micro" style="margin-top:16px;line-height:1.8;opacity:.8">Need +8 BREACH and crew assists 2/4.
+        <div class="k-live" style="margin-top:12px"><i class="k-live__dot"></i><span class="k-live__lbl" style="color:#fff">Active · crew assists 2/4</span></div>
+        <div class="k-live__bar"><i></i></div>
+        <p class="t-micro" style="margin-top:14px;line-height:1.8;opacity:.8">Need +8 BREACH.
         Your <span class="t-link">rig needs upgrades</span>. Continue the tasks.</p>
       </div>
 
@@ -1481,8 +1565,9 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
      ============================================================ -->
 <section class="sc-sec" id="s05">
   <h2>05 · Themes — palettes + gradients</h2>
-  <p class="sc-note">Same components, retokened — a theme is a CSS-variable swap; MIL red stays constant as a
-  state color. DUSK = MP156 (Baby Blossom #FAEFE9 · Onion White #E2D5C2 · Creamy Peach #F4A384 · Grey Carmine
+  <p class="sc-note">Same components, retokened — a theme is a CSS-variable swap. Colors are SEMANTIC: each category
+  (RUN · BUILD · TRADE · SOCIAL · GROW · DROP · INFO) keeps its role in every theme, only the hue changes;
+  OK green and HEAT/MIL red are state colors and never remap. DUSK = MP156 (Baby Blossom #FAEFE9 · Onion White #E2D5C2 · Creamy Peach #F4A384 · Grey Carmine
   #7A5063 · Obsidian Plum #4A2C3F · Blue Loneliness #486D83). MIDNIGHT = MP206 (Cheviot #F6F2E8 · Grape Mist
   #C5C0C9 · Isotonic Water #DDFF55 · Pacific Panorama #C0D6EA · Neptune’s Wrath #11425D · Midnight Dreams
   #002233). Gradients are surface fills for hero / timer / decode moments.</p>
@@ -1499,9 +1584,12 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
               <span class="k-tag">MP156</span>
             </div>
           </div>
-          <div class="k-card k-grad-a" style="min-height:170px;display:flex;flex-direction:column;justify-content:space-between">
+          <div class="k-card k-grad-a k-go" style="--p:78;min-height:170px;display:flex;flex-direction:column;justify-content:space-between">
             <span class="k-tag" style="color:#fff;align-self:flex-start">Signal</span>
-            <div class="t-num" style="color:#fff">78%</div>
+            <div>
+              <div class="k-live" style="margin:0 0 6px"><i class="k-live__dot"></i><span class="k-live__lbl" style="color:#fff;opacity:.85">Uplink active</span></div>
+              <div class="t-num k-pct" style="color:#fff"></div>
+            </div>
           </div>
           <div class="k-card k-card--mint k-tab-t" style="--tabc:var(--mint)">
             <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
@@ -1532,9 +1620,12 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
               <span class="k-tag">MP206</span>
             </div>
           </div>
-          <div class="k-card k-grad-a" style="min-height:170px;display:flex;flex-direction:column;justify-content:space-between">
+          <div class="k-card k-grad-a k-go" style="--p:78;min-height:170px;display:flex;flex-direction:column;justify-content:space-between">
             <span class="k-tag" style="color:#fff;align-self:flex-start">Signal</span>
-            <div class="t-num" style="color:#11425d">78%</div>
+            <div>
+              <div class="k-live" style="margin:0 0 6px"><i class="k-live__dot"></i><span class="k-live__lbl" style="color:#11425d;opacity:.85">Uplink active</span></div>
+              <div class="t-num k-pct" style="color:#11425d"></div>
+            </div>
           </div>
           <div class="k-card k-card--mint k-tab-t" style="--tabc:var(--mint)">
             <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
