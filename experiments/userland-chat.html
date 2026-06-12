@@ -1,0 +1,821 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USERLAND — CHAT-FIRST PROTOTYPE</title>
+<link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   USERLAND CHAT-FIRST — one living conversation.
+   Boards are filters. Packets are game actions inside the stream.
+   Structure ref: stoatchat/for-web → docs/ui/stoat-structure-map.md
+     AppShell        ← src/Interface.tsx (shell owns chrome + state)
+     screen order    ← TextChannel.tsx: header → messages → composer
+     FeedFilterTabs  ← sidebar channel list, flattened to a strip
+     ChatFeed        ← Messages.tsx (one array → derived entries)
+     MessageGroup    ← Messages.tsx tail algo (same author, window,
+                       system always breaks the group)
+     GamePacketEmbed ← elements/TextEmbed.tsx (fit-content card,
+                       left accent border) + Invite.tsx (actionable
+                       embed with button inside the feed)
+     Composer        ← MessageBox.tsx (lead slot / flex / trailing)
+     typing line     ← TypingIndicator.tsx (above the composer)
+     DetailSheet     ← modal/index.tsx ModalController (one open,
+                       single-purpose renderers per type)
+     BoardGlyph      ← design/Unreads.tsx (corner dot on nav only)
+   Identity: userland bone/ink only — zero Stoat/Discord visuals.
+   Packet states: collapsed → peek (in place, VT) → sheet → resolved.
+   ================================================================ */
+:root{
+  --gap:6px; --pad:16px; --key-w:1.5px;
+  --r-pill:999px; --r-card:8px; --r-nested:6px;
+  --ink:#121310;
+  --bone:#edeae0; --bone-2:#e3dfd2;
+  --black:#0a0a0a; --navy:#1b2531; --navy-2:#141c26;
+  --c-run:#cdf263; --c-trade:#f2df4e; --c-grow:#b5a8f2;
+  --c-ok:#4fd645; --c-heat:#f2472e; --c-info:#79a8e6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:var(--ink);
+  font-size:13px;line-height:1.5;font-variant-numeric:tabular-nums;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 12px 80px}
+.t-title{font-size:22px;font-family:"Gamja Flower",cursive;line-height:1.02}
+.t-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.t-micro{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.t-dim{opacity:.6}
+.ok{color:#1d8f15}.bad{color:#b3300f}
+
+/* pills / chips (PacketActions roles) */
+.k-pill{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 15px;
+  border-radius:var(--r-pill);border:var(--key-w) solid var(--ink);background:var(--bone);color:var(--ink);
+  font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;
+  letter-spacing:.03em;text-transform:uppercase}
+.k-pill--ink{background:var(--ink);border-color:var(--ink);color:#fff}
+.k-pill--run{background:var(--c-run)}
+.k-pill--trade{background:var(--c-trade)}
+.k-pill--ghost{background:transparent;border-color:rgba(18,19,16,.35)}
+.k-pill:disabled{opacity:.4;cursor:not-allowed}
+.k-pill:active{transform:translateY(1px)}
+.k-pill.armed{background:var(--c-heat);border-color:var(--ink);color:#fff}
+.k-pill.is-pending{opacity:.55;pointer-events:none}
+
+.k-rar{display:inline-flex;align-items:center;height:19px;padding:0 8px;border-radius:var(--r-pill);
+  background:var(--ink);color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.12em;flex:none}
+.k-rar--com{background:#1d8f15}.k-rar--tun{background:#1f9d84}.k-rar--rare{background:#a8961a}
+.k-rar--leg{background:#6a55d8}.k-rar--mil{background:#c41f08}
+
+.k-st{display:inline-flex;align-items:center;height:19px;padding:0 8px;border-radius:var(--r-pill);
+  border:var(--key-w) solid currentColor;font-size:8.5px;font-weight:800;letter-spacing:.1em;flex:none;
+  text-transform:uppercase;background:transparent}
+.k-st--ready{color:#1d8f15}.k-st--running{color:#121310}.k-st--locked{color:#b3300f}
+.k-st--done{opacity:.45}
+.k-st--claim{background:var(--c-run);border-color:var(--ink);color:var(--ink)}
+.k-st--failed{background:var(--c-heat);border-color:var(--ink);color:#fff}
+
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:4px 0;
+  border-bottom:1px dotted rgba(18,19,16,.3)}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{opacity:.55;text-transform:uppercase;font-size:9px;font-weight:700;letter-spacing:.08em}
+
+.k-ava{display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;
+  border-radius:50%;background:var(--bone-2);border:var(--key-w) solid var(--ink);
+  font-size:10px;font-weight:800;color:var(--ink)}
+.k-ava--you{background:var(--c-grow)}
+
+.px{display:inline-flex;flex:none;width:22px;height:22px;color:var(--ink)}
+.px svg{width:100%;height:100%;shape-rendering:crispEdges}
+
+.stage{background:var(--bone-2);border-radius:var(--r-nested);height:118px;margin:8px 0;
+  display:flex;align-items:center;justify-content:center;position:relative}
+.stage .ph{position:absolute;bottom:5px;right:9px;font-size:7.5px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;opacity:.35}
+
+.k-live__bar{height:4px;border-radius:var(--r-pill);background:rgba(18,19,16,.16);overflow:hidden;margin-top:8px}
+.k-live__bar i{display:block;height:100%;width:0;background:var(--ink);transition:width .5s linear}
+
+/* ================= AppShell ================= */
+.k-phone{width:410px;max-width:100%;flex:none;background:#10151b;border-radius:44px;padding:10px;
+  box-shadow:0 24px 60px rgba(10,12,16,.35)}
+.k-screen{position:relative;background:var(--navy);border-radius:32px;padding:8px;
+  display:flex;flex-direction:column;gap:var(--gap);height:780px;overflow:hidden}
+
+/* TopHUD */
+.hud{flex:none;background:var(--bone);border-radius:var(--r-card);padding:10px var(--pad)}
+.hud__id{display:flex;align-items:center;gap:8px}
+.hud__strip{display:flex;gap:5px;margin-top:8px}
+.hud__cell{flex:1;background:var(--bone-2);padding:5px 9px;border-radius:var(--r-nested)}
+.hud__cell .v{font-size:13px;font-weight:800;margin-top:1px;white-space:nowrap}
+
+/* BoardFilterTabs — channel-row grammar: selected = filled + bright,
+   unselected = transparent + muted, trailing BoardGlyph stays tiny */
+.tabs{flex:none;display:flex;gap:4px;background:var(--navy-2);border-radius:10px;padding:5px}
+.tabs a{position:relative;flex:1;text-align:center;color:rgba(255,255,255,.55);font-size:9px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;padding:7px 0 6px;cursor:pointer;border-radius:7px}
+.tabs a.is-on{background:var(--bone);color:var(--ink)}
+.tabs a .gl{display:block;font-size:9px;line-height:1;height:10px;font-style:normal}
+.tabs a .gl.g-ready{color:var(--c-ok)}.tabs a .gl.g-warn{color:var(--c-heat)}.tabs a .gl.g-active{color:var(--c-run)}
+.tabs a.is-on .gl.g-ready{color:#1d8f15}.tabs a.is-on .gl.g-active{color:var(--ink)}
+
+/* PinnedAction — quiet. one line, must not compete with the feed */
+.pin{flex:none;display:flex;align-items:center;gap:8px;background:rgba(237,234,224,.12);
+  border-radius:var(--r-nested);padding:4px 11px;cursor:pointer}
+.pin .t-micro{color:rgba(255,255,255,.45);font-size:8px}
+.pin .txt{flex:1;font-size:10px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.85);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pin .go{font-size:9px;font-weight:800;color:var(--c-run);letter-spacing:.08em}
+
+/* ================= ChatFeed =================
+   Stoat Messages.tsx: top-down scrollback, ConversationStart at the
+   head, flat message rows — no bubbles, no right-aligned own rows */
+.feed{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;
+  gap:12px;padding:6px 4px}
+.feed::-webkit-scrollbar{display:none}
+
+/* board header — Stoat ChannelHeader: name + topic above the feed */
+.bhead{flex:none;display:flex;align-items:baseline;gap:8px;padding:2px 6px 0}
+.bhead .nm{font-family:"Gamja Flower",cursive;font-size:19px;color:var(--bone);line-height:1}
+.bhead .tp{font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ConversationStart (Stoat elements/ConversationStart.tsx) */
+.convstart{padding:6px 4px 2px;border-bottom:1px dotted rgba(255,255,255,.18);margin-bottom:2px}
+.convstart .nm{font-family:"Gamja Flower",cursive;font-size:26px;color:var(--bone);line-height:1.05}
+.convstart .tp{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);margin-top:3px}
+
+/* system divider */
+.sysline{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.4);font-size:8.5px;
+  font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.sysline::before,.sysline::after{content:"";flex:1;border-top:1px dotted rgba(255,255,255,.25)}
+
+/* MessageGroup / message row — Stoat Container.tsx: flat row, avatar
+   rail (fixed col), name+time header, body text directly on surface.
+   No bubbles, own messages also left-aligned. Tail (grouped) rows
+   drop avatar + header and tighten rhythm (Messages.tsx tail algo) */
+.msg{display:flex;gap:9px;align-items:flex-start}
+.msg .k-ava{width:33px;height:33px}
+.msg__col{flex:1;min-width:0}
+.msg__head{display:flex;align-items:baseline;gap:7px;margin-bottom:1px}
+.msg__who{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--bone);cursor:pointer}
+.msg__who.is-you{color:var(--c-grow)}
+.msg__who.is-sys{color:rgba(255,255,255,.6)}
+.msg__time{font-size:8.5px;font-weight:700;color:rgba(255,255,255,.35)}
+.msg__body{color:rgba(237,234,224,.92);font-size:12.5px;line-height:1.55;max-width:100%;
+  overflow-wrap:break-word}
+.msg--grp{margin-top:-8px}
+.msg--grp .k-ava{visibility:hidden;height:0;border:0}
+.msg--grp .msg__head{display:none}
+
+/* GamePacketEmbed — Stoat TextEmbed.tsx (fit-content card, left accent
+   border) + Invite.tsx (actionable embed in feed). Rendered like a
+   Stoat message row: source icon in the avatar rail, embed card in
+   the text column. resolved = quiet history */
+.pkt{background:var(--bone);color:var(--ink);border-radius:var(--r-card);
+  border-left:3px solid var(--ink);overflow:hidden;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;max-width:100%}
+.pkt__cause{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(237,234,224,.5);padding:0 2px 3px;cursor:default}
+.k-ava--sys{background:var(--navy-2);border-color:rgba(237,234,224,.35);color:var(--bone)}
+.k-ava--sys .px{width:15px;height:15px;color:var(--bone)}
+.pkt__line{display:flex;align-items:center;gap:9px;padding:9px 12px;min-height:46px}
+.pkt__main{flex:1;min-width:0}
+.pkt__kind{font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.45}
+.pkt__name{font-size:12.5px;font-weight:700;line-height:1.25}
+.pkt__sub{font-size:9px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;opacity:.6;margin-top:1px}
+.pkt__peek{display:none;padding:0 12px 11px}
+.pkt.is-peek .pkt__peek{display:block}
+.pkt.is-peek{box-shadow:inset 0 0 0 var(--key-w) rgba(18,19,16,.3)}
+.pkt--resolved{opacity:.62;border-left-color:rgba(18,19,16,.3);cursor:default}
+.pkt--warn{border-left-color:var(--c-heat)}
+.pkt--shimmer{animation:readysh 2.5s ease-in-out infinite}
+@keyframes readysh{0%,100%{box-shadow:0 0 0 rgba(79,214,69,0)}50%{box-shadow:0 0 9px rgba(79,214,69,.4)}}
+@media (prefers-reduced-motion:reduce){.pkt--shimmer{animation:none;box-shadow:0 0 0 1.5px rgba(79,214,69,.6)}}
+.chips{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.chips .k-pill{flex:1;min-width:0}
+
+/* typing indicator — sits above the composer like Stoat's */
+.typing{flex:none;height:13px;padding:0 14px;font-size:8.5px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:rgba(255,255,255,.45);visibility:hidden}
+.typing.is-vis{visibility:visible}
+.typing i{font-style:normal;animation:tblink 1.1s infinite}
+@keyframes tblink{50%{opacity:.25}}
+
+/* Composer — MessageBox grammar: lead slot / flex input / trailing send */
+.composer{flex:none;display:flex;align-items:center;gap:8px;background:var(--bone);
+  border-radius:var(--r-pill);padding:6px 6px 6px 16px}
+.composer input{flex:1;min-width:0;border:0;outline:0;background:transparent;font-family:inherit;
+  font-size:12px;color:var(--ink)}
+.composer input::placeholder{color:rgba(18,19,16,.4)}
+.composer .send{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--ink);
+  color:var(--bone);font-size:13px;cursor:pointer;font-family:inherit}
+
+/* UserlandSheet — kit modal grammar: title → desc → stats → action row,
+   cancel as text, one filled primary. one purpose, never nested */
+.scrim{position:absolute;inset:0;background:rgba(10,10,10,.45);z-index:30;display:none;border-radius:32px}
+.scrim.is-vis{display:block}
+.sheet{position:absolute;left:8px;right:8px;bottom:8px;z-index:31;background:var(--bone);
+  border-radius:var(--r-card);padding:var(--pad);display:none;max-height:80%;overflow-y:auto;scrollbar-width:none}
+.sheet.is-vis{display:block}
+.actrow{display:flex;gap:6px;margin-top:10px}
+.actrow .k-pill{flex:1;height:36px}
+
+/* Toast */
+.toast{position:absolute;left:14px;right:14px;bottom:64px;background:var(--black);color:var(--bone);
+  border-radius:10px;padding:10px 14px;font-size:10.5px;font-weight:700;display:none;align-items:center;
+  gap:9px;z-index:40}
+.toast.is-vis{display:flex;animation:toastin .25s ease-out}
+@keyframes toastin{from{opacity:0;transform:translateY(8px)}}
+.toast .dot{width:7px;height:7px;border-radius:50%;background:var(--c-ok);flex:none}
+
+/* debug event log — future LiveView event names */
+.dbg{width:410px;max-width:100%;background:var(--ink);color:var(--bone);border-radius:10px;
+  padding:9px 13px;font-size:9.5px;line-height:1.7;opacity:.85}
+.dbg b{color:var(--c-run);font-weight:700}
+.dbg .h{font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.5;display:block}
+
+.sc-note{max-width:410px;font-size:11px;opacity:.65;line-height:1.6;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+::view-transition-group(*){animation-duration:.22s}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
+</style>
+</head>
+<body>
+
+<div class="t-title" style="font-size:28px">USERLAND · CHAT-FIRST</div>
+<p class="sc-note">conversation first. boards are filters. packets are game actions inside the
+conversation — every action produces the next visible packet in the same stream.</p>
+
+<div class="k-phone"><div class="k-screen" id="screen">
+
+  <div class="hud" id="hud"></div>
+
+  <div class="tabs" id="tabs">
+    <a data-tab="now"><i class="gl" id="gl-now">·</i>NOW</a>
+    <a data-tab="map"><i class="gl" id="gl-map">·</i>MAP</a>
+    <a data-tab="runs"><i class="gl" id="gl-runs">·</i>RUNS</a>
+    <a data-tab="soul"><i class="gl" id="gl-soul">·</i>SOUL</a>
+    <a data-tab="market"><i class="gl" id="gl-market">·</i>MARKET</a>
+    <a data-tab="net"><i class="gl" id="gl-net">·</i>NET</a>
+  </div>
+
+  <div class="pin" id="pin"></div>
+
+  <div class="bhead" id="bhead"></div>
+
+  <div class="feed" id="feed"></div>
+
+  <div class="typing" id="typing"></div>
+
+  <div class="composer">
+    <input id="composer-in" placeholder="signal the net…" autocomplete="off">
+    <button class="send" data-act="message:send" title="send">▸</button>
+  </div>
+
+  <div class="scrim" id="scrim" data-act="sheet:close"></div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"><span class="dot"></span><span id="toast-msg"></span></div>
+
+</div></div>
+
+<div class="dbg"><span class="h">liveview events</span><span id="dbg-log">—</span></div>
+
+<p class="sc-note">structure ref: docs/ui/figma-discord-kit-extraction.md.
+identity: userland bone/ink. every action = future LiveView event.</p>
+
+<script>
+/* ============ HELPERS ============ */
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('en-US');
+function vt(fn){
+  if(document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    document.startViewTransition(fn);
+  }else{fn()}
+}
+function arm(btn,label,fn){
+  if(btn.classList.contains('armed')){btn.classList.remove('armed');fn();return}
+  btn.classList.add('armed');const old=btn.textContent;btn.textContent=label;
+  setTimeout(()=>{if(btn.classList.contains('armed')){btn.classList.remove('armed');btn.textContent=old}},3500);
+}
+const DBG=[];
+function logEv(name,detail){
+  console.log('[liveview-event]',name,detail||'');
+  DBG.unshift('<b>'+name+'</b>'+(detail?' '+detail:''));
+  $('dbg-log').innerHTML=DBG.slice(0,6).join('<br>');
+}
+const PX={
+ core:['...##...','..####..','.######.','########','########','.######.','..####..','...##...'],
+ lens:['..####..','.#....#.','#......#','#..##..#','#..##..#','#......#','.#....#.','..####..'],
+ bus: ['........','########','........','###..###','........','########','........','........'],
+ ice: ['...#....','...##...','..###...','..####..','.#####..','.####...','..##....','..#.....'],
+ node:['...#....','..###...','.#.#.#..','#..#..#.','.#.#.#..','..###...','...#....','........'],
+ lore:['...#....','..#.#...','.#...#..','#..#..#.','.#...#..','..#.#...','...#....','........']};
+function pxSVG(k){
+  const g=PX[k]||PX.core;let r='';
+  g.forEach((row,y)=>{[...row].forEach((c,x)=>{if(c==='#')r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`})});
+  return `<svg viewBox="0 0 8 8" fill="currentColor">${r}</svg>`;
+}
+const objSVG=tint=>`<svg width="72" height="72" viewBox="0 0 90 90">
+  <g stroke="#121310" stroke-width="1.5" fill="none">
+    <path d="M45 8 L78 27 L78 63 L45 82 L12 63 L12 27 Z"/>
+    <path d="M45 8 L45 45 L78 27 M45 45 L12 27 M45 45 L45 82"/>
+    <circle cx="45" cy="45" r="7" fill="${tint}" stroke="none" opacity=".75"/>
+  </g></svg>`;
+
+const ITEMS={
+  ghost_lens:{name:'GHOST LENS',cat:'lens',slot:'LENS',rar:'rare',stats:{scan:'+16',stealth:'+2'},
+    origin:'UOPT salvage',price:0,tint:'#a8961a'},
+  jade_relay:{name:'JADE RELAY',cat:'bus',slot:'BUS',rar:'tun',stats:{cycle:'+6'},
+    origin:'JADENET',price:300,tint:'#1f9d84'},
+  null_hex:{name:'NULL HEX',cat:'ice',slot:'ICE',rar:'mil',stats:{break:'+22',trace:'+9'},
+    origin:'Null Saints',price:950,tint:'#c41f08'}
+};
+
+const G={
+  tab:'now', sen:1200, heat:7, aura:42,
+  rig:{CORE:'hexcore',LENS:null,PORT:'duplex',BUS:null,ICE:null,SKIN:null},
+  inventory:[], unread:{}, peek:null, sheet:null,
+  scans:0, replied:false, crewed:false
+};
+const rigCount=()=>Object.values(G.rig).filter(Boolean).length;
+
+/* ============ THE STREAM ============
+   One array. Every packet: {id,kind,who,time,boards[],state,actionable,cause,...}
+   kinds: message system run item market crew lore warning result
+   Seed = step 1–3 of the playthrough: human context first, then the
+   cache packet. Everything else is pushed as a consequence. */
+let PID=0;
+const pkt=p=>({id:'p'+(++PID),state:'collapsed',time:now(),...p});
+function now(){const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+const STREAM=[
+  pkt({kind:'system',txt:'USERLAND OS · session open · trace nominal',boards:['now','net'],time:'09:38'}),
+  pkt({kind:'message',who:'PEGGY WOO',txt:'Ha7 is reweighting tonight. If your rig changes, the Index sees it.',
+    boards:['net','now'],time:'09:40'}),
+  pkt({kind:'message',who:'PEGGY WOO',txt:'Be boring. Boring operators live longest.',
+    boards:['net','now'],time:'09:40'}),
+  pkt({kind:'message',who:'NULL SAINTS',txt:'Gate breach forming tonight. We still need a lens. Keep your slot warm.',
+    boards:['net','now'],time:'09:41'}),
+  pkt({kind:'item',sub:'CACHE',icon:'core',name:'SIGNAL CACHE',det:'today\u2019s drop · the natural world',
+    boards:['now','soul'],actionable:true,shimmer:true,st:['ready','READY'],
+    kv:[['contents','1 item · 120 SEN'],['heat cost','+4']],
+    chips:[{lbl:'CLAIM',act:'cache:claim',style:'k-pill--ink'}],time:'09:42'})
+];
+const byId=id=>STREAM.find(p=>p.id===id);
+
+function resolvePkt(p,line){
+  p.state='resolved'; p.actionable=false; p.shimmer=false; p.chips=null; p.resolved=line;
+  if(G.peek===p.id)G.peek=null;
+}
+function pushPkt(p,opts={}){
+  STREAM.push(p);
+  p.boards.forEach(b=>{if(b!==G.tab)G.unread[b]=opts.glyph||'✦'});
+  vt(render); scrollFeed();
+}
+function scrollFeed(){const f=$('feed');f.scrollTop=f.scrollHeight}
+
+/* NPC reply with typing indicator above the composer (Stoat TypingIndicator) */
+function npcSay(who,delay,fn){
+  setTimeout(()=>{
+    const t=$('typing');
+    t.innerHTML=who.toLowerCase()+' is typing <i>···</i>';
+    t.classList.add('is-vis');
+    setTimeout(()=>{t.classList.remove('is-vis');fn()},Math.min(1400,delay));
+  },300);
+}
+
+/* ============ RENDER ============ */
+function renderHUD(){
+  $('hud').innerHTML=`
+   <div class="hud__id" data-act="tab:go" data-arg="soul">
+     <span class="k-ava k-ava--you">N</span>
+     <div style="flex:1"><div class="t-label" style="line-height:1.2">ned <span class="t-micro t-dim">· ghost build</span></div></div>
+     <span class="t-micro t-dim">null saints</span>
+   </div>
+   <div class="hud__strip">
+     <div class="hud__cell"><div class="t-micro t-dim">SEN</div><div class="v">${fmt(G.sen)}</div></div>
+     <div class="hud__cell"><div class="t-micro t-dim">HEAT</div><div class="v">${String(G.heat).padStart(2,'0')}</div></div>
+     <div class="hud__cell"><div class="t-micro t-dim">RIG</div><div class="v">${rigCount()}/6</div></div>
+     <div class="hud__cell"><div class="t-micro t-dim">AURA</div><div class="v">${G.aura}</div></div>
+   </div>`;
+}
+
+function nextBest(){
+  const cache=STREAM.find(p=>p.sub==='CACHE'&&p.actionable);
+  if(cache)return['claim the signal cache','now'];
+  if(G.inventory.includes('ghost_lens'))return['install the ghost lens','now'];
+  const warn=STREAM.find(p=>p.kind==='warning'&&p.actionable);
+  if(warn)return['scan while the Index is blind','now'];
+  const crew=STREAM.find(p=>p.kind==='crew'&&p.actionable);
+  if(crew)return['null saints want you on the breach','now'];
+  const open=STREAM.find(p=>p.kind==='run'&&p.actionable&&!p.running);
+  if(open)return['start the gate breach','now'];
+  const live=STREAM.find(p=>p.running);
+  if(live)return[live.name.toLowerCase()+' is live — watch it','runs'];
+  const claim=STREAM.find(p=>p.kind==='result'&&p.actionable);
+  if(claim)return['claim your run reward','now'];
+  const lore=STREAM.find(p=>p.kind==='lore'&&p.actionable);
+  if(lore)return['a lore fragment decoded — read it','soul'];
+  const listing=STREAM.find(p=>p.kind==='market'&&p.actionable);
+  if(listing)return['post-breach salvage on the market','market'];
+  if(!G.replied)return['peggy is waiting — reply on the stream','net'];
+  return['quiet stream · keep your heat down','now'];
+}
+function renderPin(){
+  const [txt,tab]=nextBest();
+  $('pin').innerHTML=`<span class="t-micro">next</span><span class="txt">${txt}</span><span class="go" data-act="tab:go" data-arg="${tab}">GO</span>`;
+}
+
+function renderPkt(p,grp){
+  if(p.kind==='system')
+    return `<div class="sysline">${p.txt}</div>`;
+  if(p.kind==='message'){
+    const you=p.who==='NED';
+    return `<div class="msg ${grp?'msg--grp':''}">
+      <span class="k-ava ${you?'k-ava--you':''}">${p.who[0]}</span>
+      <div class="msg__col">
+        <div class="msg__head"><span class="msg__who ${you?'is-you':''}">${p.who}</span><span class="msg__time">${p.time}</span></div>
+        <div class="msg__body">${p.txt}</div>
+      </div></div>`;
+  }
+  // GamePacketEmbed — a message row whose author is the source and
+  // whose body is the embed card (Stoat: SystemMessageIcon in the
+  // avatar slot, TextEmbed/Invite card in the text column)
+  const peek=G.peek===p.id;
+  const cls=['pkt'];
+  if(peek)cls.push('is-peek');
+  if(p.state==='resolved')cls.push('pkt--resolved');
+  if(p.kind==='warning')cls.push('pkt--warn');
+  if(p.shimmer)cls.push('pkt--shimmer');
+  const badge=p.rar?`<span class="k-rar k-rar--${p.rar}">${p.rar.toUpperCase()}</span>`
+    :p.st?`<span class="k-st k-st--${p.st[0]}">${p.st[1]}</span>`:'';
+  let inner='';
+  if(peek&&p.state!=='resolved'){
+    inner=`<div class="pkt__peek">
+      ${(p.kv||[]).map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+      ${p.prog!==undefined?`<div class="k-live__bar"><i style="width:${p.prog}%"></i></div>`:''}
+      ${p.chips?`<div class="chips">${p.chips.map(c=>
+        `<button class="k-pill ${c.style||''}" data-act="${c.act}" ${c.arg?`data-arg="${c.arg}"`:''} data-pkt="${p.id}">${c.lbl}</button>`).join('')}</div>`:''}
+    </div>`;
+  }
+  const cause=p.cause?`<div class="pkt__cause">↳ caused by ${p.cause}</div>`:'';
+  const card=`<div class="${cls.join(' ')}" data-peek="${p.id}" style="view-transition-name:${p.id}">
+    <div class="pkt__line">
+      <div class="pkt__main">
+        <div class="pkt__name">${p.name}</div>
+        <div class="pkt__sub">${p.state==='resolved'?p.resolved:p.det}</div>
+        ${p.prog!==undefined&&!peek?`<div class="k-live__bar"><i style="width:${p.prog}%"></i></div>`:''}
+      </div>${badge}
+    </div>${inner}</div>`;
+  return `<div class="msg ${grp?'msg--grp':''}">
+    <span class="k-ava k-ava--sys"><i class="px">${pxSVG(p.icon)}</i></span>
+    <div class="msg__col">
+      <div class="msg__head"><span class="msg__who is-sys">${p.who||'SYSTEM'} · ${p.sub||p.kind}</span><span class="msg__time">${p.time}</span></div>
+      ${cause}${card}
+    </div></div>`;
+}
+
+/* board filters over the one stream — chronology always preserved.
+   NOW = the living conversation: context + everything still actionable.
+   Resolved game packets fall off NOW but stay in their board history. */
+function visibleStream(){
+  if(G.tab==='now')
+    return STREAM.filter(p=>['message','system'].includes(p.kind)
+      ? p.boards.includes('now')
+      : (p.actionable||p.running||p.state!=='resolved'));
+  return STREAM.filter(p=>p.boards.includes(G.tab));
+}
+
+const BOARDS={
+  now:['now','everything actionable right now'],
+  map:['map','nodes · scans · locations'],
+  runs:['runs','jobs · prep · claims'],
+  soul:['soul','items · rig · lore'],
+  market:['market','listings · trades'],
+  net:['net','people on your signal']
+};
+
+function render(){
+  renderHUD(); renderPin();
+  const [bn,bt]=BOARDS[G.tab];
+  $('bhead').innerHTML=`<span class="nm"># ${bn}</span><span class="tp">${bt}</span>`;
+  const vis=visibleStream();
+  const convstart=`<div class="convstart"><div class="nm"># ${bn}</div>
+    <div class="tp">this is the start of your stream · ${bt}</div></div>`;
+  $('feed').innerHTML=convstart+vis.map((p,i)=>{
+    const prev=vis[i-1];
+    // tail grouping (Stoat): same author, both messages or both packets
+    // from the same source — system lines always break the group
+    const grp=prev&&p.kind===prev.kind&&p.kind!=='system'&&(p.who||'SYSTEM')===(prev.who||'SYSTEM');
+    return renderPkt(p,grp);
+  }).join('');
+  document.querySelectorAll('#tabs a').forEach(a=>{
+    const t=a.dataset.tab;
+    a.classList.toggle('is-on',t===G.tab);
+    const gl=$('gl-'+t);
+    gl.textContent=t===G.tab?'·':(G.unread[t]||'·');
+    gl.className='gl'+(G.unread[t]==='✦'&&t!==G.tab?' g-ready':G.unread[t]==='▴'&&t!==G.tab?' g-warn':G.unread[t]==='∴'&&t!==G.tab?' g-active':'');
+  });
+}
+
+function openSheet(html){G.sheet=true;$('sheet').innerHTML=html;
+  vt(()=>{$('sheet').classList.add('is-vis');$('scrim').classList.add('is-vis')})}
+function closeSheet(){G.sheet=null;
+  vt(()=>{$('sheet').classList.remove('is-vis');$('scrim').classList.remove('is-vis')})}
+function pushToast(msg){
+  $('toast-msg').textContent=msg;$('toast').classList.add('is-vis');
+  clearTimeout(pushToast._t);pushToast._t=setTimeout(()=>$('toast').classList.remove('is-vis'),2600);
+}
+
+/* ============ EVENTS (keys = future LiveView events) ============
+   Playthrough chain — every action produces the next packet in the
+   same stream:
+   cache:claim → cache:reveal → item:inspect/rig:install →
+   install result (system packet) → crew reacts → run unlocked →
+   map:scan → node found → run:join → run:start → live in place →
+   complete → run:claim → lore:unlock + market consequence →
+   market:buy/sell → message:send any time                       */
+const EV={
+  'tab:go':t=>{G.tab=t;delete G.unread[t];G.peek=null;vt(render);scrollFeed()},
+
+  'message:send':()=>{
+    const inp=$('composer-in');const txt=inp.value.trim();
+    if(!txt)return;
+    inp.value='';
+    logEv('message:send','"'+txt.slice(0,24)+'"');
+    pushPkt(pkt({kind:'message',who:'NED',txt,boards:['net','now']}));
+    if(!G.replied){
+      G.replied=true;
+      npcSay('PEGGY WOO',1600,()=>{
+        logEv('crew:reply','peggy_woo');
+        pushPkt(pkt({kind:'message',who:'PEGGY WOO',
+          txt:'Good. Stay boring out there. Watch the gate tonight.',boards:['net','now']}));
+      });
+    }
+  },
+
+  /* step 3–7: cache packet → claim in stream → resolves in place →
+     item reveal packet directly below */
+  'cache:claim':(a,btn,p)=>{
+    logEv('cache:claim','signal_cache');
+    G.sen+=120;G.heat+=4;
+    resolvePkt(p,'claimed · +120 SEN → wallet · item revealed below');
+    G.inventory.push('ghost_lens');
+    logEv('cache:reveal','ghost_lens');
+    pushPkt(pkt({kind:'item',sub:'REVEALED',icon:'lens',name:'GHOST LENS',rar:'rare',item:'ghost_lens',
+      cause:'signal cache · claim',
+      det:'LENS slot · UOPT salvage · in your inventory',boards:['soul','now'],actionable:true,shimmer:true,
+      kv:[['scan','+16'],['stealth','+2'],['where','INVENTORY']],
+      chips:[{lbl:'INSTALL',act:'rig:install',arg:'ghost_lens',style:'k-pill--ink'},
+             {lbl:'INSPECT',act:'item:inspect',arg:'ghost_lens',style:'k-pill--ghost'}]}));
+    pushToast('+120 SEN · GHOST LENS → INVENTORY');
+  },
+
+  /* step 8: tap reveal → bottom sheet with details */
+  'item:inspect':id=>{
+    logEv('item:inspect',id);
+    const it=ITEMS[id];
+    openSheet(`<div style="display:flex;justify-content:space-between;align-items:center">
+      <span class="t-micro t-dim">ITEM · ${it.slot}</span><span class="k-rar k-rar--${it.rar}">${it.rar.toUpperCase()}</span></div>
+      <div class="t-title" style="margin-top:4px">${it.name}</div>
+      <div class="stage">${objSVG(it.tint)}<span class="ph">toonholo · glb in prod</span></div>
+      ${Object.entries(it.stats).map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+      <div class="kv"><span>origin</span><span>${it.origin}</span></div>
+      <div class="actrow">
+        ${G.inventory.includes(id)?`<button class="k-pill k-pill--ink" data-act="rig:install" data-arg="${id}">INSTALL</button>`:''}
+        <button class="k-pill k-pill--ghost" data-act="sheet:close">CLOSE</button></div>`);
+  },
+
+  /* step 9–12: install → installation result as system packet →
+     crew message reacts → run packet becomes unlocked */
+  'rig:install':id=>{
+    if(!G.inventory.includes(id))return;
+    logEv('rig:install',id);
+    const it=ITEMS[id];
+    G.rig[it.slot]=id;G.inventory=G.inventory.filter(x=>x!==id);
+    closeSheet();
+    const p=STREAM.find(q=>q.item===id&&q.kind==='item'&&q.state!=='resolved');
+    if(p)resolvePkt(p,'installed → RIG · '+Object.entries(it.stats).map(([k,v])=>k+' '+v).join(' · '));
+    const rp=pkt({kind:'result',sub:'RIG',icon:it.cat,name:'RIG UPDATED',cause:it.name.toLowerCase()+' · install',
+      det:'',boards:['soul','now']});
+    resolvePkt(rp,it.name+' → '+it.slot+' slot · '+Object.entries(it.stats).map(([k,v])=>k+' '+v).join(' · '));
+    pushPkt(rp);
+    pushToast(it.name+' → INSTALLED TO RIG');
+    if(id==='ghost_lens'){
+      npcSay('NULL SAINTS',1400,()=>{
+        logEv('crew:reply','null_saints');
+        pushPkt(pkt({kind:'message',who:'NULL SAINTS',
+          txt:'Saw your lens light up on the net. That\u2019s our missing piece — breach window is open.',
+          boards:['net','now']}));
+        pushPkt(pkt({kind:'crew',who:'NULL SAINTS',sub:'CREW',icon:'ice',name:'GATE BREACH · crew forming',
+          cause:'ghost lens · install',
+          det:'we cover +2 heat · you bring the lens',boards:['net','runs','now'],actionable:true,st:['ready','INVITE'],
+          kv:[['crew','3/4'],['cut','equal split']],
+          chips:[{lbl:'JOIN',act:'run:join',style:'k-pill--ink'},{lbl:'IGNORE',act:'pkt:dismiss',style:'k-pill--ghost'}]}));
+      });
+      setTimeout(()=>pushPkt(pkt({kind:'warning',sub:'TRACE',icon:'lore',name:'YOUR SIGNAL CHANGED',who:'PEGGY WOO',
+        cause:'ghost lens · install',
+        det:'don\u2019t let the Index notice. scan while it\u2019s blind.',boards:['net','now','map'],
+        kv:[['window','~2 min'],['advice','scan now']],actionable:true,
+        chips:[{lbl:'SCAN',act:'map:scan',style:'k-pill--ink'}]}),{glyph:'▴'}),2800);
+    }
+    vt(render);
+  },
+
+  'map:scan':(a,btn,p)=>{
+    logEv('map:scan','sector_7');
+    if(btn){btn.classList.add('is-pending');btn.textContent='⌁ SCANNING'}
+    setTimeout(()=>{
+      G.scans++;
+      if(p)resolvePkt(p,'window used · scan complete');
+      if(G.rig.LENS){
+        pushPkt(pkt({kind:'run',sub:'NODE FOUND',icon:'node',name:'JADENET GATE',gate:true,
+          cause:'scan · ghost lens',
+          det:'sector 7 · med risk · lens made the difference',boards:['map','runs','now'],
+          actionable:true,shimmer:true,st:['ready','NEW'],
+          kv:[['reward','+420 SEN'],['heat',G.crewed?'+4 (crew −2)':'+6'],['crew',G.crewed?'null saints in':'offer stands']],
+          chips:[{lbl:'START RUN',act:'run:start',arg:'gate',style:'k-pill--run'},
+                 {lbl:'DETAIL',act:'sheet:run',arg:'gate',style:'k-pill--ghost'}]}));
+        pushToast('NODE FOUND · JADENET GATE');
+      }else{
+        pushPkt(pkt({kind:'warning',sub:'SCAN',icon:'node',name:'SCAN TOO WEAK',
+          det:'needs LENS installed — claim the cache first',boards:['map','now']}),{glyph:'▴'});
+      }
+      vt(render);
+    },900);
+  },
+
+  'run:join':(a,btn,p)=>{
+    logEv('run:join','gate_breach');
+    G.crewed=true;
+    resolvePkt(p,'joined · null saints cover +2 heat on the breach');
+    const run=STREAM.find(q=>q.gate&&q.actionable);
+    if(run){run.kv=[['reward','+420 SEN'],['heat','+4 (crew −2)'],['crew','null saints in']]}
+    pushToast('CREW JOINED · gate heat −2');
+    npcSay('NULL SAINTS',1200,()=>{
+      logEv('crew:reply','null_saints');
+      pushPkt(pkt({kind:'message',who:'NULL SAINTS',
+        txt:'In. We mask your trace on the breach. Call the gate when you\u2019re ready.',boards:['net','now']}));
+    });
+  },
+
+  /* step 13–15: start from stream → run updates in place → completion */
+  'run:start':(id,btn,p)=>{
+    logEv('run:start','jadenet_gate');
+    const heat=G.crewed?4:6;
+    if(p)resolvePkt(p,'run opened · live below');
+    closeSheet();
+    const rp=pkt({kind:'run',sub:'LIVE',icon:'core',name:'GATE BREACH',running:true,prog:0,
+      cause:'jadenet gate · start',
+      det:'running · trace live',boards:['runs','now'],st:['running','RUNNING'],
+      kv:[['reward','+420 SEN'],['heat','+'+heat]],
+      chips:[{lbl:'ABORT',act:'run:abort',style:'k-pill--ghost'}]});
+    pushPkt(rp,{glyph:'∴'});
+    const step=100/24;
+    rp._t=setInterval(()=>{
+      rp.prog=Math.min(100,rp.prog+step);
+      if(rp.prog>=100){
+        clearInterval(rp._t);
+        resolvePkt(rp,'complete · result below');rp.running=false;
+        pushPkt(pkt({kind:'result',sub:'RESULT',icon:'core',name:'GATE BREACH · COMPLETE',
+          cause:'gate breach · run',
+          det:'reward waiting',boards:['runs','now'],actionable:true,shimmer:true,st:['claim','CLAIM'],
+          reward:420,heatCost:heat,gate:true,
+          kv:[['SEN','+420'],['heat','+'+heat]],
+          chips:[{lbl:'CLAIM +420 SEN',act:'run:claim',style:'k-pill--run'}]}));
+      }
+      render();
+    },500);
+  },
+  'run:abort':(a,btn,p)=>{
+    clearInterval(p._t);p.running=false;
+    resolvePkt(p,'aborted · no reward, no extra heat');
+    vt(render);
+  },
+
+  /* step 16–17: claim reward → lore + market packet as consequence */
+  'run:claim':(a,btn,p)=>{
+    logEv('run:claim','+'+p.reward+' SEN');
+    G.sen+=p.reward;G.heat+=p.heatCost;
+    resolvePkt(p,'claimed · +'+p.reward+' SEN → wallet');
+    pushToast('+'+p.reward+' SEN → WALLET');
+    if(p.gate){
+      G.aura+=3;
+      setTimeout(()=>{
+        logEv('lore:unlock','the_gate_remembers');
+        pushPkt(pkt({kind:'lore',sub:'LORE',icon:'lore',name:'THE GATE REMEMBERS',
+          cause:'gate breach · claim',
+          det:'fragment decoded · aura +3 · in soul log',boards:['soul','net','now'],actionable:true,
+          kv:[['where','SOUL LOG'],['aura','+3']],
+          chips:[{lbl:'READ',act:'sheet:lore',style:'k-pill--ink'}]}));
+      },1200);
+      npcSay('NULL SAINTS',2600,()=>{
+        pushPkt(pkt({kind:'message',who:'NULL SAINTS',
+          txt:'Clean breach. Salvage is on the board — saints get first look.',boards:['net','now']}));
+        pushPkt(pkt({kind:'market',sub:'LISTING',icon:'ice',name:'NULL HEX',cause:'gate breach · salvage',
+          det:'null saints · ICE slot · 950 SEN',
+          boards:['market','now'],actionable:true,rar:'mil',item:'null_hex',
+          kv:[['break','+22'],['trace','+9'],['price','950 SEN']],
+          chips:[{lbl:'BUY 950 · MIL',act:'market:armbuy',arg:'null_hex',style:'k-pill--ink'},
+                 {lbl:'INSPECT',act:'item:inspect',arg:'null_hex',style:'k-pill--ghost'}]}));
+        pushPkt(pkt({kind:'market',sub:'LISTING',icon:'bus',name:'JADE RELAY',cause:'gate breach · salvage',
+          det:'JADENET · BUS slot · 300 SEN',
+          boards:['market'],actionable:true,rar:'tun',item:'jade_relay',
+          kv:[['cycle','+6'],['price','300 SEN']],
+          chips:[{lbl:'BUY 300',act:'market:confirmbuy',arg:'jade_relay',style:'k-pill--trade'},
+                 {lbl:'INSPECT',act:'item:inspect',arg:'jade_relay',style:'k-pill--ghost'}]}));
+      });
+    }
+    vt(render);
+  },
+
+  'sheet:run':id=>{
+    openSheet(`<span class="t-micro t-dim">NODE DETAIL</span>
+      <div class="t-title" style="margin-top:4px">JADENET GATE</div>
+      <div class="t-micro t-dim">sector 7 · jadenet edge</div>
+      <div class="kv" style="margin-top:8px"><span>reward</span><span>+420 SEN</span></div>
+      <div class="kv"><span>heat</span><span class="bad">${G.crewed?'+4 (crew −2)':'+6'}</span></div>
+      <div class="kv"><span>risk</span><span>MED</span></div>
+      <div class="actrow"><button class="k-pill k-pill--run" data-act="run:start" data-arg="gate">START RUN</button>
+      <button class="k-pill k-pill--ghost" data-act="sheet:close">CLOSE</button></div>`);
+  },
+  'sheet:lore':()=>{
+    openSheet(`<span class="t-micro t-dim">LORE FRAGMENT · DECODED</span>
+      <div class="t-title" style="margin-top:4px">THE GATE REMEMBERS</div>
+      <p style="font-size:11.5px;opacity:.75;margin-top:8px">…the Ha7 Index was never meant to measure
+      people. it measured load. someone at Paradise Systems changed one weight, once, and the city
+      has been paying interest on that edit ever since…</p>
+      <div class="kv" style="margin-top:8px"><span>where it went</span><span class="ok">SOUL LOG</span></div>
+      <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">CLOSE</button></div>`);
+  },
+
+  /* step 18: buy/sell — market packets resolve in stream like the rest */
+  'market:armbuy':(id,btn)=>arm(btn,'CONFIRM 950 · MIL',()=>EV['market:buy'](id)),
+  'market:confirmbuy':id=>{
+    const it=ITEMS[id];
+    openSheet(`<span class="t-micro t-dim">CONFIRM ORDER</span>
+      <div class="t-title" style="margin-top:4px">${it.name}</div>
+      <div class="kv" style="margin-top:8px"><span>price</span><span>${fmt(it.price)} SEN</span></div>
+      <div class="kv"><span>balance after</span><span>${fmt(G.sen-it.price)} SEN</span></div>
+      <div class="actrow"><button class="k-pill k-pill--trade" data-act="market:buy" data-arg="${id}">CONFIRM BUY</button>
+      <button class="k-pill k-pill--ghost" data-act="sheet:close">CANCEL</button></div>`);
+  },
+  'market:buy':id=>{
+    const it=ITEMS[id];
+    if(G.sen<it.price){pushToast('▴ not enough SEN');closeSheet();return}
+    logEv('market:buy',id+' −'+it.price+' SEN');
+    G.sen-=it.price;G.inventory.push(id);closeSheet();
+    const p=STREAM.find(q=>q.item===id&&q.kind==='market');
+    if(p)resolvePkt(p,'bought · '+it.name+' → inventory');
+    pushToast(it.name+' → INVENTORY');
+    npcSay('JADENET BROKER',1300,()=>pushPkt(pkt({kind:'message',who:'JADENET BROKER',
+      txt:'Order filled: '+it.name+'. Pleasure doing quiet business.',boards:['net','now']})));
+    pushPkt(pkt({kind:'item',sub:'OWNED',icon:it.cat,name:it.name,rar:it.rar,item:id,
+      cause:it.name.toLowerCase()+' · buy',
+      det:it.slot+' slot · in your inventory',boards:['soul','now'],actionable:true,
+      kv:Object.entries(it.stats),
+      chips:[{lbl:'INSTALL',act:'rig:install',arg:id,style:'k-pill--ink'},
+             {lbl:'SELL '+fmt(Math.round(it.price*.7)),act:'market:sell',arg:id,style:'k-pill--trade'}]}));
+  },
+  'market:sell':id=>{
+    const it=ITEMS[id];const ask=Math.round(it.price*.7);
+    logEv('market:sell',id+' +'+ask+' SEN');
+    G.sen+=ask;G.inventory=G.inventory.filter(x=>x!==id);
+    const p=STREAM.find(q=>q.item===id&&q.sub==='OWNED');
+    if(p)resolvePkt(p,'sold · +'+fmt(ask)+' SEN → wallet');
+    pushToast('+'+fmt(ask)+' SEN → WALLET');
+    setTimeout(()=>pushPkt(pkt({kind:'system',txt:'market reacted · '+it.slot+' prices dipped in sector 4',
+      boards:['market','now']}),{glyph:'⌁'}),1200);
+    vt(render);
+  },
+
+  'pkt:dismiss':(a,btn,p)=>{resolvePkt(p,'ignored');vt(render)},
+  'sheet:close':()=>closeSheet()
+};
+
+/* delegated dispatch — data-act keys = future LiveView event names */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');
+  if(t){
+    const p=t.dataset.pkt?byId(t.dataset.pkt):null;
+    if(EV[t.dataset.act])EV[t.dataset.act](t.dataset.arg,t,p);
+    return;
+  }
+  const tab=e.target.closest('[data-tab]');
+  if(tab){EV['tab:go'](tab.dataset.tab);return}
+  const pk=e.target.closest('[data-peek]');
+  if(pk){
+    const p=byId(pk.dataset.peek);
+    if(p&&p.state!=='resolved'&&(p.kv||p.chips)){
+      G.peek=G.peek===p.id?null:p.id;
+      vt(render);
+    }
+  }
+});
+$('composer-in').addEventListener('keydown',e=>{if(e.key==='Enter')EV['message:send']()});
+
+render(); scrollFeed();
+
+</script>
+</body>
+</html>

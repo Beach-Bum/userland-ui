@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Userland — pure chat skeleton</title>
+<style>
+/* ================================================================
+   PURE STOAT-STYLE CHAT SKELETON — structure pass only.
+   Map: docs/ui/stoat-pure-ui-map.md
+   Neutral dark chat-app styling. NO Userland/Bento identity:
+   no bone/ink, no Gamja, no Space Mono UI, no pixel glyphs,
+   no HUD, no phone shell, no packet styling.
+   ================================================================ */
+:root{
+  --bg-0:#141518;          /* server rail */
+  --bg-1:#1b1d22;          /* channel list */
+  --bg-2:#232529;          /* chat surface */
+  --bg-3:#2b2e34;          /* hover / cards */
+  --bg-4:#34373e;          /* inputs / embeds */
+  --txt:#e3e5e8;
+  --txt-2:#9a9da3;
+  --txt-3:#6c6f76;
+  --accent:#6573e8;
+  --accent-2:#4853b8;
+  --ok:#3aa55d;
+  --warn:#d8b13c;
+  --danger:#d84040;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg-2);color:var(--txt);font-size:14px;line-height:1.45;overflow:hidden}
+button{font-family:inherit;border:0;cursor:pointer}
+
+/* ============ App shell: rail | channels | chat ============ */
+.app{display:flex;height:100%}
+
+/* server/community rail */
+.rail{width:64px;flex:none;background:var(--bg-0);display:flex;flex-direction:column;
+  align-items:center;gap:10px;padding:12px 0}
+.rail__srv{width:44px;height:44px;border-radius:50%;background:var(--bg-3);color:var(--txt);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;
+  cursor:pointer;transition:border-radius .15s,background .15s}
+.rail__srv:hover{border-radius:14px}
+.rail__srv.is-on{border-radius:14px;background:var(--accent);color:#fff}
+.rail__sep{width:28px;border-top:1px solid var(--bg-3)}
+
+/* channel list */
+.chans{width:230px;flex:none;background:var(--bg-1);display:flex;flex-direction:column}
+.chans__head{padding:14px 16px;font-weight:700;font-size:15px;border-bottom:1px solid rgba(0,0,0,.25)}
+.chans__list{flex:1;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:1px}
+.chans__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;
+  color:var(--txt-3);padding:10px 8px 4px}
+.chan{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:5px;color:var(--txt-2);
+  cursor:pointer;font-weight:500}
+.chan:hover{background:var(--bg-3);color:var(--txt)}
+.chan.is-on{background:var(--bg-3);color:var(--txt)}
+.chan .hash{color:var(--txt-3);font-weight:400}
+.chan .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chan.has-unread{color:var(--txt);font-weight:600}
+.chan .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;display:none}
+.chan.has-unread .dot{display:block}
+
+/* user/account card pinned at bottom (Stoat UserMenu) */
+.me{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,.2)}
+.me .ava{cursor:pointer}
+.me__txt{flex:1;min-width:0;cursor:pointer}
+.me__name{font-size:13px;font-weight:600;line-height:1.2}
+.me__status{font-size:11px;color:var(--txt-2)}
+.me__gear{width:30px;height:30px;border-radius:6px;background:transparent;color:var(--txt-2);font-size:15px}
+.me__gear:hover{background:var(--bg-3);color:var(--txt)}
+
+/* chat column */
+.chat{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-2)}
+.chead{flex:none;display:flex;align-items:center;gap:8px;padding:11px 16px;
+  border-bottom:1px solid rgba(0,0,0,.25)}
+.chead .burger{display:none;width:30px;height:30px;border-radius:6px;background:transparent;
+  color:var(--txt-2);font-size:17px}
+.chead .hash{color:var(--txt-3);font-size:17px}
+.chead .nm{font-weight:700;font-size:15px}
+.chead .topic{color:var(--txt-2);font-size:13px;margin-left:8px;border-left:1px solid var(--bg-4);
+  padding-left:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ============ Feed ============ */
+.feed{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 4px;display:flex;flex-direction:column}
+.convstart{padding:8px 0 14px;margin-bottom:6px;border-bottom:1px solid var(--bg-3)}
+.convstart h2{font-size:22px;margin-bottom:2px}
+.convstart p{color:var(--txt-2);font-size:13px}
+
+.msg{display:flex;gap:12px;padding:2px 6px;margin-top:14px;border-radius:6px}
+.msg:hover{background:rgba(0,0,0,.12)}
+.msg.is-grp{margin-top:0}
+.msg .ava-slot{width:38px;flex:none}
+.msg__col{flex:1;min-width:0}
+.msg__head{display:flex;align-items:baseline;gap:8px}
+.msg__who{font-weight:600;font-size:14px;cursor:pointer}
+.msg__who:hover{text-decoration:underline}
+.msg__time{font-size:11px;color:var(--txt-3)}
+.msg__body{color:var(--txt);font-size:14px;overflow-wrap:break-word;padding:1px 0}
+.msg.is-grp .msg__body{color:var(--txt)}
+
+.ava{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:14px;color:#fff;cursor:pointer;user-select:none}
+
+.sysmsg{display:flex;align-items:center;gap:10px;margin-top:14px;padding:2px 6px;color:var(--txt-2);
+  font-size:13px}
+.sysmsg .ico{width:38px;text-align:center;color:var(--txt-3)}
+
+.divider{display:flex;align-items:center;gap:10px;margin-top:16px;color:var(--txt-3);
+  font-size:11px;font-weight:600}
+.divider::before,.divider::after{content:"";flex:1;border-top:1px solid var(--bg-3)}
+
+/* ============ Embeds (market / run / stock) ============ */
+.embed{width:fit-content;max-width:min(100%,420px);margin-top:6px;background:var(--bg-3);
+  border-left:4px solid var(--accent);border-radius:6px;padding:12px 14px}
+.embed--ok{border-left-color:var(--ok)}
+.embed--warn{border-left-color:var(--warn)}
+.embed__kicker{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--txt-2);margin-bottom:3px}
+.embed__title{font-weight:700;font-size:14px}
+.embed__desc{color:var(--txt-2);font-size:13px;margin-top:2px}
+.embed__fields{display:flex;gap:18px;margin-top:8px;flex-wrap:wrap}
+.embed__field b{display:block;font-size:11px;font-weight:600;color:var(--txt-2);text-transform:uppercase}
+.embed__field span{font-size:13px}
+.embed__acts{display:flex;gap:8px;margin-top:10px}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;background:var(--bg-4);color:var(--txt);
+  font-size:13px;font-weight:600}
+.btn:hover{background:#3d4047}
+.btn--primary{background:var(--accent);color:#fff}
+.btn--primary:hover{background:var(--accent-2)}
+.btn--danger{background:var(--danger);color:#fff}
+.btn--ghost{background:transparent;color:var(--txt-2)}
+.btn--ghost:hover{background:var(--bg-3);color:var(--txt)}
+
+/* ============ Typing + composer ============ */
+.typing{flex:none;height:20px;padding:0 22px;font-size:12px;color:var(--txt-2);visibility:hidden}
+.typing.is-vis{visibility:visible}
+.composer{flex:none;display:flex;align-items:center;gap:8px;margin:0 16px 18px;
+  background:var(--bg-4);border-radius:10px;padding:6px 8px 6px 12px}
+.composer .plus{width:30px;height:30px;border-radius:50%;background:var(--bg-3);color:var(--txt-2);
+  font-size:16px;flex:none}
+.composer .plus:hover{color:var(--txt)}
+.composer input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--txt);
+  font-size:14px;font-family:inherit}
+.composer input::placeholder{color:var(--txt-3)}
+.composer .send{width:32px;height:32px;border-radius:6px;background:transparent;color:var(--accent);
+  font-size:17px;flex:none}
+.composer .send:hover{background:var(--bg-3)}
+
+/* ============ Modal layer (one shell, many renderers) ============ */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;
+  justify-content:center;z-index:50;padding:20px}
+.scrim.is-vis{display:flex}
+.modal{background:var(--bg-1);border-radius:10px;width:440px;max-width:100%;max-height:90vh;
+  overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.modal--wide{width:760px;display:flex;overflow:hidden;height:min(560px,90vh)}
+
+/* profile modal (Stoat Profile.* composition) */
+.pf__banner{height:110px;background:linear-gradient(120deg,#3a3f63,#2c4a48);border-radius:10px 10px 0 0;
+  position:relative}
+.pf__ava{position:absolute;left:18px;bottom:-28px;width:72px;height:72px;border-radius:50%;
+  border:5px solid var(--bg-1)}
+.pf__ava .ava{width:100%;height:100%;font-size:24px}
+.pf__body{padding:38px 18px 18px}
+.pf__name{font-size:19px;font-weight:700}
+.pf__handle{color:var(--txt-2);font-size:13px}
+.pf__status{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--txt-2)}
+.pf__status .st-dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.pf__chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{background:var(--bg-3);border-radius:99px;padding:3px 10px;font-size:12px;color:var(--txt-2)}
+.pf__sect{margin-top:14px;background:var(--bg-2);border-radius:8px;padding:10px 12px}
+.pf__sect h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--txt-2);margin-bottom:6px}
+.pf__row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--txt)}
+.pf__row span:first-child{color:var(--txt-2)}
+.pf__acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.pf__acts .btn{flex:1;min-width:90px}
+
+/* settings modal (two-pane: nav list + content) */
+.set__nav{width:200px;flex:none;background:var(--bg-0);padding:18px 10px;display:flex;
+  flex-direction:column;gap:2px;overflow-y:auto}
+.set__nav h4{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--txt-3);
+  padding:8px 10px 4px}
+.set__item{text-align:left;padding:7px 10px;border-radius:5px;background:transparent;
+  color:var(--txt-2);font-size:14px;font-weight:500}
+.set__item:hover{background:var(--bg-3);color:var(--txt)}
+.set__item.is-on{background:var(--bg-3);color:var(--txt)}
+.set__item--danger{color:var(--danger)}
+.set__content{flex:1;min-width:0;padding:22px;overflow-y:auto}
+.set__content h2{font-size:18px;margin-bottom:14px}
+.set__card{background:var(--bg-2);border-radius:8px;padding:14px;margin-bottom:10px}
+.set__card h4{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--txt-2);margin-bottom:6px}
+.set__card p{font-size:13px;color:var(--txt-2)}
+.set__close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;
+  background:var(--bg-3);color:var(--txt-2);font-size:15px}
+.set__close:hover{color:var(--txt)}
+
+/* generic detail modal body */
+.dm__body{padding:18px}
+.dm__kicker{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--txt-2)}
+.dm__title{font-size:18px;font-weight:700;margin:2px 0 10px}
+.dm__acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+
+/* ============ responsive: collapse nav under 720px ============ */
+@media (max-width:720px){
+  .rail{display:none}
+  .chans{position:fixed;inset:0 auto 0 0;z-index:40;transform:translateX(-100%);
+    transition:transform .2s ease;width:260px;box-shadow:4px 0 24px rgba(0,0,0,.4)}
+  .chans.is-open{transform:none}
+  .chead .burger{display:block}
+  .modal--wide{flex-direction:column;height:90vh}
+  .set__nav{width:100%;flex-direction:row;flex-wrap:wrap;padding:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- server rail -->
+  <nav class="rail">
+    <div class="rail__srv is-on" title="Userland">U</div>
+    <div class="rail__sep"></div>
+    <div class="rail__srv" title="placeholder">+</div>
+  </nav>
+
+  <!-- channel list -->
+  <aside class="chans" id="chans">
+    <div class="chans__head">Userland</div>
+    <div class="chans__list" id="chan-list"></div>
+    <div class="me">
+      <span class="ava me-ava" data-profile="ned" style="background:#7b68c9">N</span>
+      <div class="me__txt" data-profile="ned">
+        <div class="me__name">ned</div>
+        <div class="me__status">Online</div>
+      </div>
+      <button class="me__gear" data-modal="settings" title="settings">⚙</button>
+    </div>
+  </aside>
+
+  <!-- chat column -->
+  <main class="chat">
+    <div class="chead">
+      <button class="burger" id="burger">☰</button>
+      <span class="hash">#</span><span class="nm" id="ch-name"></span>
+      <span class="topic" id="ch-topic"></span>
+    </div>
+    <div class="feed" id="feed"></div>
+    <div class="typing" id="typing"></div>
+    <div class="composer">
+      <button class="plus" title="attach">+</button>
+      <input id="composer-in" placeholder="Message #global" autocomplete="off">
+      <button class="send" id="send" title="send">➤</button>
+    </div>
+  </main>
+
+</div>
+
+<!-- modal layer -->
+<div class="scrim" id="scrim"></div>
+
+<script>
+/* ============ data ============ */
+const USERS={
+  ned:   {name:'ned',  handle:'@ned#0001',  color:'#7b68c9', status:'Online',
+          level:14, title:'Ghost Operator', rep:'+62 trusted', crew:'Null Saints',
+          worth:'12,450 cr', badges:['Early Access','Courier I','Clean Trader'],
+          listings:[['Signal Booster','450 cr'],['Spare Relay','120 cr']]},
+  peggy: {name:'Peggy',handle:'@peggywoo#7741',color:'#4e9a8f', status:'Online',
+          level:31, title:'Index Watcher', rep:'+118 trusted', crew:'—',
+          worth:'88,300 cr', badges:['Analyst','Veteran','Mentor'],
+          listings:[['Market Feed Key','1,200 cr']]},
+  marco: {name:'Marco',handle:'@marco_v#2210', color:'#b3703f', status:'Idle',
+          level:22, title:'Crew Lead', rep:'+74 trusted', crew:'Null Saints',
+          worth:'31,900 cr', badges:['Crew Founder','Runner II'],
+          listings:[]},
+  vera:  {name:'Vera', handle:'@vera#0930',  color:'#5f7fc2', status:'Do Not Disturb',
+          level:18, title:'Broker', rep:'+41 neutral', crew:'JadeNet',
+          worth:'54,000 cr', badges:['Broker','Verified Seller'],
+          listings:[['Encrypted Drive','2,400 cr'],['Bulk Credits','—'],['Access Pass','900 cr']]}
+};
+
+const CHANNELS=[
+  {id:'global', label:'global',  topic:'general chatter', group:'Channels'},
+  {id:'crew',   label:'crew',    topic:'Null Saints private', group:'Channels'},
+  {id:'dm',     label:'direct messages', topic:'Peggy', group:'Channels'},
+  {id:'market', label:'market',  topic:'listings and trades', group:'Game'},
+  {id:'runs',   label:'runs',    topic:'jobs and invites', group:'Game'},
+  {id:'system', label:'system',  topic:'service notices', group:'Game'}
+];
+
+/* messages: {who,t,text} | {sys:true,text} | {who,t,embed:{...}} */
+const T=h=>h; // times as plain strings for the skeleton
+const MSGS={
+  global:[
+    {sys:true,text:'Welcome to #global. Be decent.'},
+    {who:'peggy',t:'09:12',text:'Morning. Index is choppy today, watch your margins.'},
+    {who:'peggy',t:'09:12',text:'If you bought relays last week you are fine.'},
+    {who:'marco',t:'09:15',text:'Anyone running the east sector job later?'},
+    {who:'ned',  t:'09:16',text:'Maybe after lunch. Need one more crew member.'},
+    {who:'marco',t:'09:16',text:'Count me in then.'},
+    {who:'vera', t:'09:31',text:'Posting new listings in #market in a bit.'},
+    {who:'vera', t:'09:31',embed:{kind:'stock',kicker:'Stock alert',title:'RELAY ▲ 4.2%',
+      desc:'Relay components are up after the supply notice.',cls:'embed--warn',
+      fields:[['Price','38.10 cr'],['Change','+4.2%'],['Volume','High']],
+      acts:[['View','view'],['Inspect','inspect']]}},
+    {who:'peggy',t:'09:33',text:'Called it.'}
+  ],
+  crew:[
+    {sys:true,text:'You joined #crew.'},
+    {who:'marco',t:'08:40',text:'Crew meeting tonight. Bring your loadouts.'},
+    {who:'marco',t:'08:41',embed:{kind:'run',kicker:'Run invite',title:'East Sector Sweep',
+      desc:'3 of 4 slots filled · medium risk · even split.',cls:'embed--ok',
+      fields:[['Reward','600 cr'],['Risk','Medium'],['Crew','3/4']],
+      acts:[['Join','join'],['View','view']]}},
+    {who:'ned',t:'08:55',text:'Looking at it now.'}
+  ],
+  dm:[
+    {sys:true,text:'This is the beginning of your direct message history with Peggy.'},
+    {who:'peggy',t:'Yesterday',text:'You still owe me for the feed key.'},
+    {who:'ned',t:'Yesterday',text:'I know, I know. After the next run.'},
+    {who:'peggy',t:'09:35',text:'Today, ideally.'}
+  ],
+  market:[
+    {sys:true,text:'Listings posted here are escrow-protected.'},
+    {who:'vera',t:'09:40',embed:{kind:'listing',kicker:'Market listing',title:'Encrypted Drive',
+      desc:'Sealed, origin unknown. Sold as-is.',cls:'',
+      fields:[['Price','2,400 cr'],['Seller','Vera'],['Escrow','Yes']],
+      acts:[['Buy','buy'],['Inspect','inspect']]}},
+    {who:'vera',t:'09:41',embed:{kind:'listing',kicker:'Market listing',title:'Access Pass — Dock 9',
+      desc:'Single use. Transfers on purchase.',cls:'',
+      fields:[['Price','900 cr'],['Seller','Vera'],['Escrow','Yes']],
+      acts:[['Buy','buy'],['Inspect','inspect']]}},
+    {who:'ned',t:'09:44',text:'Is the drive clean?'},
+    {who:'vera',t:'09:45',text:'Sold as-is means sold as-is.'}
+  ],
+  runs:[
+    {sys:true,text:'Open jobs and invites appear here.'},
+    {who:'marco',t:'09:02',embed:{kind:'run',kicker:'Run invite',title:'Warehouse Recount',
+      desc:'Low risk inventory job. Two people, one hour.',cls:'embed--ok',
+      fields:[['Reward','250 cr'],['Risk','Low'],['Crew','1/2']],
+      acts:[['Join','join'],['View','view']]}}
+  ],
+  system:[
+    {sys:true,text:'Service notices only. Nobody can post here.'},
+    {who:'peggy',t:'07:00',embed:{kind:'stock',kicker:'System notice',title:'Maintenance window',
+      desc:'Trading pauses tonight 02:00–02:20 UTC.',cls:'embed--warn',
+      fields:[['Impact','Market'],['Duration','20 min']],
+      acts:[['View','view']]}}
+  ]
+};
+
+const state={chan:'global',unread:{crew:true,market:true},modal:null};
+
+/* ============ render: channel list ============ */
+function renderChans(){
+  let html='',lastGroup='';
+  CHANNELS.forEach(c=>{
+    if(c.group!==lastGroup){lastGroup=c.group;html+=`<div class="chans__label">${c.group}</div>`}
+    const on=c.id===state.chan;
+    html+=`<div class="chan ${on?'is-on':''} ${state.unread[c.id]?'has-unread':''}" data-chan="${c.id}">
+      <span class="hash">#</span><span class="nm">${c.label}</span><span class="dot"></span></div>`;
+  });
+  $('chan-list').innerHTML=html;
+}
+
+/* ============ render: feed with grouping ============
+   Stoat Messages.tsx tail rule: group when same author and the
+   previous entry is a normal message (system breaks groups).   */
+function renderFeed(){
+  const ch=CHANNELS.find(c=>c.id===state.chan);
+  $('ch-name').textContent=ch.label;
+  $('ch-topic').textContent=ch.topic;
+  $('composer-in').placeholder='Message #'+ch.label;
+
+  const list=MSGS[state.chan];
+  let html=`<div class="convstart"><h2># ${ch.label}</h2><p>This is the start of #${ch.label}. ${ch.topic}.</p></div>`;
+  let prev=null;
+  list.forEach(m=>{
+    if(m.sys){
+      html+=`<div class="sysmsg"><span class="ico">→</span>${m.text}</div>`;
+      prev=null;return;
+    }
+    const u=USERS[m.who];
+    const grp=prev&&prev.who===m.who&&!prev.sys;
+    const body=m.embed?renderEmbed(m.embed):esc(m.text);
+    if(grp){
+      html+=`<div class="msg is-grp"><div class="ava-slot"></div>
+        <div class="msg__col"><div class="msg__body">${body}</div></div></div>`;
+    }else{
+      html+=`<div class="msg"><div class="ava-slot">
+          <span class="ava" data-profile="${m.who}" style="background:${u.color}">${u.name[0].toUpperCase()}</span></div>
+        <div class="msg__col">
+          <div class="msg__head"><span class="msg__who" data-profile="${m.who}">${u.name}</span>
+            <span class="msg__time">${m.t}</span></div>
+          <div class="msg__body">${body}</div>
+        </div></div>`;
+    }
+    prev=m;
+  });
+  $('feed').innerHTML=html;
+  $('feed').scrollTop=$('feed').scrollHeight;
+}
+
+function renderEmbed(e){
+  return `<div class="embed ${e.cls||''}">
+    <div class="embed__kicker">${e.kicker}</div>
+    <div class="embed__title">${e.title}</div>
+    <div class="embed__desc">${e.desc}</div>
+    <div class="embed__fields">${e.fields.map(([k,v])=>
+      `<div class="embed__field"><b>${k}</b><span>${v}</span></div>`).join('')}</div>
+    <div class="embed__acts">${e.acts.map(([lbl,act],i)=>
+      `<button class="btn ${i===0?'btn--primary':''}" data-embed-act="${act}" data-embed-kind="${e.kind}" data-embed-title="${e.title}">${lbl}</button>`).join('')}</div>
+  </div>`;
+}
+
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+
+/* ============ modal shell: openModal(type, props) ============ */
+function openModal(type,props={}){
+  state.modal=type;
+  $('scrim').innerHTML=MODALS[type](props);
+  $('scrim').classList.add('is-vis');
+}
+function closeModal(){
+  state.modal=null;
+  $('scrim').classList.remove('is-vis');
+  $('scrim').innerHTML='';
+}
+
+const MODALS={
+  /* --- user profile popout (Stoat Profile.* order: banner → identity
+         → status → badges → fields → actions) --- */
+  profile(p){
+    const u=USERS[p.id];
+    return `<div class="modal" data-stop>
+      <div class="pf__banner">
+        <div class="pf__ava"><span class="ava" style="background:${u.color}">${u.name[0].toUpperCase()}</span></div>
+      </div>
+      <div class="pf__body">
+        <div class="pf__name">${u.name}</div>
+        <div class="pf__handle">${u.handle} · Level ${u.level} · ${u.title}</div>
+        <div class="pf__status"><span class="st-dot"></span>${u.status}</div>
+        <div class="pf__chips">${u.badges.map(b=>`<span class="chip">${b}</span>`).join('')}</div>
+        <div class="pf__sect"><h4>Standing</h4>
+          <div class="pf__row"><span>Reputation</span><span>${u.rep}</span></div>
+          <div class="pf__row"><span>Crew</span><span>${u.crew}</span></div>
+          <div class="pf__row"><span>Net worth</span><span>${u.worth}</span></div>
+        </div>
+        <div class="pf__sect"><h4>Public listings (${u.listings.length})</h4>
+          ${u.listings.length?u.listings.map(([n,pr])=>
+            `<div class="pf__row"><span>${n}</span><span>${pr}</span></div>`).join('')
+            :'<div class="pf__row"><span>Nothing listed</span><span>—</span></div>'}
+        </div>
+        <div class="pf__acts">
+          <button class="btn btn--primary">Message</button>
+          <button class="btn">Trade</button>
+          <button class="btn btn--danger">Hack</button>
+          <button class="btn">View listings</button>
+          <button class="btn">View crew</button>
+        </div>
+      </div>
+    </div>`;
+  },
+
+  /* --- settings/account: two-pane modal (Stoat Settings) --- */
+  settings(p){
+    const page=p.page||'profile';
+    const NAV=[['User',['profile','account','appearance']],
+               ['App',['notifications','privacy','donor & cosmetics']],
+               ['',['log out']]];
+    const CONTENT={
+      profile:`<h2>Profile</h2>
+        <div class="set__card"><h4>Display name</h4><p>ned</p></div>
+        <div class="set__card"><h4>Title</h4><p>Ghost Operator (placeholder)</p></div>
+        <div class="set__card"><h4>Banner & avatar</h4><p>Upload placeholders go here.</p></div>`,
+      account:`<h2>Account</h2>
+        <div class="set__card"><h4>Handle</h4><p>@ned#0001</p></div>
+        <div class="set__card"><h4>Email</h4><p>ned@example.com</p></div>
+        <div class="set__card"><h4>Password</h4><p>········ <button class="btn" style="margin-left:8px">Change</button></p></div>`,
+      appearance:`<h2>Appearance</h2>
+        <div class="set__card"><h4>Theme</h4><p>Dark (skeleton default)</p></div>
+        <div class="set__card"><h4>Density</h4><p>Comfortable</p></div>`,
+      notifications:`<h2>Notifications</h2>
+        <div class="set__card"><h4>Mentions</h4><p>On</p></div>
+        <div class="set__card"><h4>Market alerts</h4><p>On</p></div>`,
+      privacy:`<h2>Privacy</h2>
+        <div class="set__card"><h4>Who can message you</h4><p>Everyone</p></div>
+        <div class="set__card"><h4>Show net worth on profile</h4><p>On (placeholder)</p></div>`,
+      'donor & cosmetics':`<h2>Donor & cosmetics</h2>
+        <div class="set__card"><h4>Supporter tier</h4><p>None — placeholder surface for cosmetics.</p></div>`,
+      'log out':`<h2>Log out</h2>
+        <div class="set__card"><p>Placeholder. No session to end in the skeleton.</p>
+        <p style="margin-top:8px"><button class="btn btn--danger">Log out</button></p></div>`
+    };
+    return `<div class="modal modal--wide" data-stop style="position:relative">
+      <div class="set__nav">
+        ${NAV.map(([h,items])=>(h?`<h4>${h}</h4>`:'<h4>&nbsp;</h4>')+items.map(i=>
+          `<button class="set__item ${i===page?'is-on':''} ${i==='log out'?'set__item--danger':''}"
+            data-set-page="${i}">${i[0].toUpperCase()+i.slice(1)}</button>`).join('')).join('')}
+      </div>
+      <div class="set__content">${CONTENT[page]}</div>
+      <button class="set__close" data-close>✕</button>
+    </div>`;
+  },
+
+  /* --- generic detail modal: proves one shell holds item / run /
+         listing / stock / trade / hack confirm --- */
+  detail(p){
+    const KIND={listing:'Market listing',run:'Run details',stock:'Stock detail',
+      item:'Inventory item',trade:'Trade offer',hack:'Confirm hack'}[p.kind]||'Detail';
+    const danger=p.kind==='hack';
+    return `<div class="modal" data-stop>
+      <div class="dm__body">
+        <div class="dm__kicker">${KIND}</div>
+        <div class="dm__title">${esc(p.title||'Untitled')}</div>
+        <div class="set__card"><p>Placeholder body. The same modal shell renders
+          profile, settings, items, runs, listings, stocks, trades and confirmations —
+          only the inner renderer changes.</p></div>
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Cancel</button>
+          <button class="btn ${danger?'btn--danger':'btn--primary'}">${danger?'Confirm hack':'Confirm'}</button>
+        </div>
+      </div>
+    </div>`;
+  }
+};
+
+/* ============ events ============ */
+document.addEventListener('click',e=>{
+  const t=e.target;
+
+  // channel switch
+  const chan=t.closest('[data-chan]');
+  if(chan){state.chan=chan.dataset.chan;delete state.unread[state.chan];
+    $('chans').classList.remove('is-open');renderChans();renderFeed();return}
+
+  // burger (mobile nav)
+  if(t.closest('#burger')){$('chans').classList.toggle('is-open');return}
+
+  // profile popout
+  const prof=t.closest('[data-profile]');
+  if(prof){openModal('profile',{id:prof.dataset.profile});return}
+
+  // settings
+  if(t.closest('[data-modal="settings"]')){openModal('settings',{});return}
+  const sp=t.closest('[data-set-page]');
+  if(sp){openModal('settings',{page:sp.dataset.setPage});return}
+
+  // embed actions → generic detail modal
+  const ea=t.closest('[data-embed-act]');
+  if(ea){
+    const act=ea.dataset.embedAct;
+    const kind=act==='buy'?'listing':act==='join'?'run':ea.dataset.embedKind;
+    openModal('detail',{kind,title:ea.dataset.embedTitle});return;
+  }
+
+  // close modal
+  if(t.closest('[data-close]')){closeModal();return}
+  if(t.id==='scrim')closeModal();
+
+  // send
+  if(t.closest('#send'))send();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+$('composer-in').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+
+function send(){
+  const inp=$('composer-in');const txt=inp.value.trim();
+  if(!txt)return;
+  inp.value='';
+  MSGS[state.chan].push({who:'ned',t:'now',text:txt});
+  renderFeed();
+  // canned reply with typing indicator in #dm and #global
+  if(['dm','global'].includes(state.chan)){
+    const ty=$('typing');
+    setTimeout(()=>{ty.textContent='Peggy is typing…';ty.classList.add('is-vis')},500);
+    setTimeout(()=>{
+      ty.classList.remove('is-vis');
+      MSGS[state.chan].push({who:'peggy',t:'now',text:'Noted.'});
+      renderFeed();
+    },1700);
+  }
+}
+
+renderChans();renderFeed();
+</script>
+</body>
+</html>
