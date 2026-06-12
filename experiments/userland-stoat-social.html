@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Userland — social game shell (neutral pass 2)</title>
+<style>
+/* ================================================================
+   PASS 2: Discord/Stoat-style SOCIAL GAME SHELL — still neutral.
+   Builds on userland-stoat-pure-chat.html. NO Userland/Bento skin.
+   Renames: Nitro→Patron, Shop→Blackmarket, Quests→Runs,
+   Friends→Contacts, Servers→Crews/Zones.
+   ================================================================ */
+:root{
+  --bg-0:#141518; --bg-1:#1b1d22; --bg-2:#232529; --bg-3:#2b2e34; --bg-4:#34373e;
+  --txt:#e3e5e8; --txt-2:#9a9da3; --txt-3:#6c6f76;
+  --accent:#6573e8; --accent-2:#4853b8;
+  --ok:#3aa55d; --warn:#d8b13c; --danger:#d84040; --gold:#d8a83c;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg-2);color:var(--txt);font-size:14px;line-height:1.45;overflow:hidden}
+button{font-family:inherit;border:0;cursor:pointer}
+.app{display:flex;height:100%}
+
+/* ============ crew/server rail ============ */
+.rail{width:64px;flex:none;background:var(--bg-0);display:flex;flex-direction:column;
+  align-items:center;gap:10px;padding:12px 0;overflow-y:auto}
+.rail__srv{width:44px;height:44px;border-radius:50%;background:var(--bg-3);color:var(--txt);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;
+  cursor:pointer;transition:border-radius .15s,background .15s;flex:none}
+.rail__srv:hover{border-radius:14px}
+.rail__srv.is-on{border-radius:14px;background:var(--accent);color:#fff}
+.rail__sep{width:28px;border-top:1px solid var(--bg-3);flex:none}
+
+/* ============ left nav column ============ */
+.chans{width:240px;flex:none;background:var(--bg-1);display:flex;flex-direction:column}
+.chans__head{padding:14px 16px;font-weight:700;font-size:15px;border-bottom:1px solid rgba(0,0,0,.25)}
+.chans__list{flex:1;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:1px}
+.chans__label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;
+  color:var(--txt-3);padding:12px 8px 4px}
+.chan{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;color:var(--txt-2);
+  cursor:pointer;font-weight:500}
+.chan:hover{background:var(--bg-3);color:var(--txt)}
+.chan.is-on{background:var(--bg-3);color:var(--txt)}
+.chan .ico{width:18px;text-align:center;color:var(--txt-3);font-size:13px}
+.chan .hash{color:var(--txt-3);font-weight:400}
+.chan .nm{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chan.has-unread{color:var(--txt);font-weight:600}
+.chan .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none;display:none}
+.chan.has-unread .dot{display:block}
+.chan .mini{width:24px;height:24px;border-radius:50%;font-size:11px;display:flex;align-items:center;
+  justify-content:center;font-weight:700;color:#fff;flex:none;position:relative}
+.chan .mini .st{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;
+  border:2px solid var(--bg-1);background:var(--ok)}
+.chan .mini .st.idle{background:var(--warn)} .chan .mini .st.dnd{background:var(--danger)}
+
+.me{flex:none;display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,0,0,.2)}
+.me__txt{flex:1;min-width:0;cursor:pointer}
+.me__name{font-size:13px;font-weight:600;line-height:1.2}
+.me__status{font-size:11px;color:var(--txt-2)}
+.me__gear{width:30px;height:30px;border-radius:6px;background:transparent;color:var(--txt-2);font-size:15px}
+.me__gear:hover{background:var(--bg-3);color:var(--txt)}
+
+/* ============ main column ============ */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--bg-2)}
+.chead{flex:none;display:flex;align-items:center;gap:8px;padding:11px 16px;
+  border-bottom:1px solid rgba(0,0,0,.25)}
+.chead .burger{display:none;width:30px;height:30px;border-radius:6px;background:transparent;
+  color:var(--txt-2);font-size:17px}
+.chead .hash{color:var(--txt-3);font-size:17px}
+.chead .nm{font-weight:700;font-size:15px}
+.chead .topic{color:var(--txt-2);font-size:13px;margin-left:8px;border-left:1px solid var(--bg-4);
+  padding-left:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* chat view */
+.chatview{flex:1;min-height:0;display:flex;flex-direction:column}
+.feed{flex:1;min-height:0;overflow-y:auto;padding:14px 16px 4px;display:flex;flex-direction:column}
+.convstart{padding:8px 0 14px;margin-bottom:6px;border-bottom:1px solid var(--bg-3)}
+.convstart h2{font-size:22px;margin-bottom:2px}
+.convstart p{color:var(--txt-2);font-size:13px}
+.msg{display:flex;gap:12px;padding:2px 6px;margin-top:14px;border-radius:6px}
+.msg:hover{background:rgba(0,0,0,.12)}
+.msg.is-grp{margin-top:0}
+.msg .ava-slot{width:38px;flex:none}
+.msg__col{flex:1;min-width:0}
+.msg__head{display:flex;align-items:baseline;gap:7px}
+.msg__who{font-weight:600;font-size:14px;cursor:pointer}
+.msg__who:hover{text-decoration:underline}
+.msg__time{font-size:11px;color:var(--txt-3)}
+.msg__body{color:var(--txt);font-size:14px;overflow-wrap:break-word;padding:1px 0}
+.ava{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:14px;color:#fff;cursor:pointer;user-select:none}
+.crewtag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--bg-4);
+  color:var(--txt-2);cursor:pointer;letter-spacing:.03em}
+.crewtag:hover{background:var(--accent);color:#fff}
+.donor{color:var(--gold);font-size:12px;cursor:default}
+.sysmsg{display:flex;align-items:center;gap:10px;margin-top:14px;padding:2px 6px;color:var(--txt-2);font-size:13px}
+.sysmsg .ico{width:38px;text-align:center;color:var(--txt-3)}
+
+/* embeds / packets */
+.embed{width:fit-content;max-width:min(100%,440px);margin-top:6px;background:var(--bg-3);
+  border-left:4px solid var(--accent);border-radius:6px;padding:12px 14px;cursor:pointer}
+.embed--ok{border-left-color:var(--ok)} .embed--warn{border-left-color:var(--warn)}
+.embed--danger{border-left-color:var(--danger)}
+.embed__kicker{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--txt-2);margin-bottom:3px}
+.embed__title{font-weight:700;font-size:14px}
+.embed__desc{color:var(--txt-2);font-size:13px;margin-top:2px}
+.embed__fields{display:flex;gap:18px;margin-top:8px;flex-wrap:wrap}
+.embed__field b{display:block;font-size:11px;font-weight:600;color:var(--txt-2);text-transform:uppercase}
+.embed__field span{font-size:13px}
+.embed__acts{display:flex;gap:8px;margin-top:10px}
+
+.btn{height:32px;padding:0 14px;border-radius:5px;background:var(--bg-4);color:var(--txt);
+  font-size:13px;font-weight:600}
+.btn:hover{background:#3d4047}
+.btn--primary{background:var(--accent);color:#fff}
+.btn--primary:hover{background:var(--accent-2)}
+.btn--danger{background:var(--danger);color:#fff}
+.btn--ghost{background:transparent;color:var(--txt-2)}
+.btn--ghost:hover{background:var(--bg-3);color:var(--txt)}
+.btn--sm{height:26px;padding:0 10px;font-size:12px}
+
+/* typing + composer + slash menu */
+.typing{flex:none;height:20px;padding:0 22px;font-size:12px;color:var(--txt-2);visibility:hidden}
+.typing.is-vis{visibility:visible}
+.compwrap{position:relative;flex:none;margin:0 16px 18px}
+.composer{display:flex;align-items:center;gap:8px;background:var(--bg-4);border-radius:10px;
+  padding:6px 8px 6px 12px}
+.composer .plus{width:30px;height:30px;border-radius:50%;background:var(--bg-3);color:var(--txt-2);
+  font-size:16px;flex:none}
+.composer .plus:hover{color:var(--txt)}
+.composer input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--txt);
+  font-size:14px;font-family:inherit}
+.composer input::placeholder{color:var(--txt-3)}
+.composer .send{width:32px;height:32px;border-radius:6px;background:transparent;color:var(--accent);
+  font-size:17px;flex:none}
+.composer .send:hover{background:var(--bg-3)}
+.popmenu{position:absolute;left:0;right:0;bottom:calc(100% + 8px);background:var(--bg-1);
+  border:1px solid var(--bg-4);border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.5);
+  max-height:300px;overflow-y:auto;display:none;z-index:30}
+.popmenu.is-vis{display:block}
+.popmenu__h{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--txt-3);padding:10px 14px 4px}
+.cmd{display:flex;align-items:baseline;gap:10px;padding:8px 14px;cursor:pointer}
+.cmd:hover,.cmd.is-sel{background:var(--bg-3)}
+.cmd b{font-size:13px;font-family:ui-monospace,Menlo,monospace}
+.cmd .args{font-size:12px;color:var(--accent)}
+.cmd .desc{font-size:12px;color:var(--txt-2);margin-left:auto}
+
+/* ============ pages (Home / Contacts / Requests / Blackmarket / Runs) ============ */
+.page{flex:1;min-height:0;overflow-y:auto;padding:22px 26px;display:none}
+.page.is-vis{display:block}
+.page h1{font-size:20px;margin-bottom:4px}
+.page .sub{color:var(--txt-2);font-size:13px;margin-bottom:18px}
+.page h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--txt-2);margin:20px 0 10px}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.fchip{height:28px;padding:0 12px;border-radius:99px;background:var(--bg-3);color:var(--txt-2);
+  font-size:12px;font-weight:600}
+.fchip.is-on{background:var(--accent);color:#fff}
+.fsort{margin-left:auto;background:var(--bg-3);color:var(--txt-2);border:0;border-radius:5px;
+  height:28px;font-size:12px;padding:0 8px;font-family:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--bg-3);border-radius:8px;padding:12px;cursor:pointer}
+.card:hover{background:var(--bg-4)}
+.card__img{height:74px;border-radius:6px;background:var(--bg-4);display:flex;align-items:center;
+  justify-content:center;color:var(--txt-3);font-size:11px;margin-bottom:10px}
+.card__name{font-weight:700;font-size:14px}
+.card__meta{font-size:12px;color:var(--txt-2);margin-top:2px}
+.card__price{font-size:13px;font-weight:700;margin-top:8px}
+.rarity{font-size:10px;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:4px;
+  background:var(--bg-2);color:var(--txt-2)}
+.runcard{background:var(--bg-3);border-radius:8px;overflow:hidden;cursor:pointer}
+.runcard:hover{background:var(--bg-4)}
+.runcard__banner{height:64px;display:flex;align-items:flex-end;padding:8px 12px;font-size:11px;
+  color:rgba(255,255,255,.8);background:linear-gradient(120deg,#39406b,#2c4a48)}
+.runcard__body{padding:10px 12px}
+.contact{display:flex;align-items:center;gap:10px;padding:10px;border-radius:6px;cursor:pointer}
+.contact:hover{background:var(--bg-3)}
+.contact .nm{font-weight:600}
+.contact .meta{font-size:12px;color:var(--txt-2)}
+.contact .acts{margin-left:auto;display:flex;gap:6px}
+.stockrow{display:flex;align-items:center;gap:14px;padding:10px 12px;background:var(--bg-3);
+  border-radius:8px;margin-bottom:8px;cursor:pointer}
+.stockrow:hover{background:var(--bg-4)}
+.stockrow .tk{font-weight:700;font-family:ui-monospace,Menlo,monospace;width:64px}
+.stockrow .co{flex:1;color:var(--txt-2);font-size:13px}
+.up{color:var(--ok)} .down{color:var(--danger)}
+
+/* ============ modal layer ============ */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;
+  justify-content:center;z-index:50;padding:20px}
+.scrim.is-vis{display:flex}
+.modal{background:var(--bg-1);border-radius:10px;width:460px;max-width:100%;max-height:90vh;
+  overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.modal--wide{width:760px;display:flex;overflow:hidden;height:min(560px,90vh)}
+
+/* profile modal */
+.pf__banner{height:110px;border-radius:10px 10px 0 0;position:relative}
+.pf__ava{position:absolute;left:18px;bottom:-28px;width:72px;height:72px;border-radius:50%;
+  border:5px solid var(--bg-1)}
+.pf__ava .ava{width:100%;height:100%;font-size:24px}
+.pf__body{padding:38px 18px 18px}
+.pf__name{font-size:19px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pf__handle{color:var(--txt-2);font-size:13px}
+.pf__status{display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:13px;color:var(--txt-2)}
+.st-dot{width:9px;height:9px;border-radius:50%;background:var(--ok);display:inline-block}
+.st-dot.idle{background:var(--warn)} .st-dot.dnd{background:var(--danger)}
+.pf__chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{background:var(--bg-3);border-radius:99px;padding:3px 10px;font-size:12px;color:var(--txt-2)}
+.pf__sect{margin-top:14px;background:var(--bg-2);border-radius:8px;padding:10px 12px}
+.pf__sect h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--txt-2);margin-bottom:6px}
+.pf__row{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:var(--txt)}
+.pf__row span:first-child{color:var(--txt-2)}
+.pf__acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.pf__acts .btn{flex:1;min-width:86px}
+
+/* player plates */
+.plate{width:150px;height:46px;border-radius:8px;display:flex;align-items:center;padding:0 12px;
+  font-size:11px;font-weight:700;color:rgba(255,255,255,.85);position:relative;overflow:hidden}
+.plate small{position:absolute;right:8px;bottom:4px;font-size:9px;font-weight:600;opacity:.7}
+.plate.is-cur{outline:2px solid var(--accent)}
+.plate--default{background:#3a3d45}
+.plate--level{background:linear-gradient(110deg,#33415e,#3c5a78)}
+.plate--achv{background:linear-gradient(110deg,#4d3a5e,#6a4a86)}
+.plate--crew{background:linear-gradient(110deg,#2c4a48,#3a6b62)}
+.plate--event{background:linear-gradient(110deg,#5e4a33,#86683a)}
+.plate--patron{background:linear-gradient(110deg,#5e3a3a,#9a6230);box-shadow:inset 0 0 0 1px var(--gold)}
+.plate--founder{background:linear-gradient(110deg,#222,#444);box-shadow:inset 0 0 0 1px #888}
+.platewrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+
+/* settings modal */
+.set__nav{width:200px;flex:none;background:var(--bg-0);padding:18px 10px;display:flex;
+  flex-direction:column;gap:2px;overflow-y:auto}
+.set__nav h4{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--txt-3);padding:8px 10px 4px}
+.set__item{text-align:left;padding:7px 10px;border-radius:5px;background:transparent;
+  color:var(--txt-2);font-size:14px;font-weight:500}
+.set__item:hover{background:var(--bg-3);color:var(--txt)}
+.set__item.is-on{background:var(--bg-3);color:var(--txt)}
+.set__item--danger{color:var(--danger)}
+.set__content{flex:1;min-width:0;padding:22px;overflow-y:auto}
+.set__content h2{font-size:18px;margin-bottom:14px}
+.set__card{background:var(--bg-2);border-radius:8px;padding:14px;margin-bottom:10px}
+.set__card h4{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--txt-2);margin-bottom:6px}
+.set__card p{font-size:13px;color:var(--txt-2)}
+.set__close{position:absolute;top:14px;right:16px;width:32px;height:32px;border-radius:50%;
+  background:var(--bg-3);color:var(--txt-2);font-size:15px}
+.set__close:hover{color:var(--txt)}
+
+/* generic detail modal bits */
+.dm__body{padding:18px}
+.dm__kicker{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--txt-2)}
+.dm__title{font-size:18px;font-weight:700;margin:2px 0 10px}
+.dm__acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap}
+.dm__img{height:110px;border-radius:8px;background:var(--bg-4);display:flex;align-items:center;
+  justify-content:center;color:var(--txt-3);font-size:12px;margin-bottom:12px}
+.seller{display:flex;align-items:center;gap:10px;margin:10px 0;cursor:pointer;padding:8px;
+  border-radius:6px;background:var(--bg-2)}
+.seller:hover{background:var(--bg-3)}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+  color:var(--txt-2);margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg-2);border:1px solid var(--bg-4);
+  border-radius:5px;color:var(--txt);padding:7px 9px;font-size:13px;font-family:inherit;outline:0}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.tradecols{display:flex;gap:10px}
+.tradecols>div{flex:1;background:var(--bg-2);border-radius:8px;padding:10px}
+.tradecols h4{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--txt-2);margin-bottom:6px}
+.memrow{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px}
+.memrow .role{margin-left:auto;font-size:11px;color:var(--txt-3)}
+
+@media (max-width:720px){
+  .rail{display:none}
+  .chans{position:fixed;inset:0 auto 0 0;z-index:40;transform:translateX(-100%);
+    transition:transform .2s ease;width:268px;box-shadow:4px 0 24px rgba(0,0,0,.4)}
+  .chans.is-open{transform:none}
+  .chead .burger{display:block}
+  .modal--wide{flex-direction:column;height:90vh}
+  .set__nav{width:100%;flex-direction:row;flex-wrap:wrap;padding:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- crew/server rail: Home / Current Crew / Other Crews-Zones / + / Discover -->
+  <nav class="rail" id="rail">
+    <div class="rail__srv is-on" title="Home" data-rail="home">U</div>
+    <div class="rail__sep"></div>
+    <div class="rail__srv" title="Null Saints (your crew)" data-crew-open="ns" style="background:#2c4a48">NS</div>
+    <div class="rail__srv" title="JadeNet" data-crew-open="jn" style="background:#33415e">JN</div>
+    <div class="rail__srv" title="Dock Zone 9" data-crew-open="dz" style="background:#4d3a5e">DZ</div>
+    <div class="rail__srv" title="Create a crew" data-modal="createCrew">+</div>
+    <div class="rail__sep"></div>
+    <div class="rail__srv" title="Discover crews & zones">⌕</div>
+  </nav>
+
+  <!-- left nav -->
+  <aside class="chans" id="chans">
+    <div class="chans__head">Userland</div>
+    <div class="chans__list" id="nav-list"></div>
+    <div class="me">
+      <span class="ava" data-profile="ned" style="background:#7b68c9;width:32px;height:32px;font-size:13px">N</span>
+      <div class="me__txt" data-profile="ned">
+        <div class="me__name">ned <span class="donor" title="Supporter">✦</span></div>
+        <div class="me__status">Online</div>
+      </div>
+      <button class="me__gear" data-modal="settings" title="settings">⚙</button>
+    </div>
+  </aside>
+
+  <!-- main -->
+  <main class="main">
+    <div class="chead">
+      <button class="burger" id="burger">☰</button>
+      <span class="hash" id="ch-ico">#</span><span class="nm" id="ch-name"></span>
+      <span class="topic" id="ch-topic"></span>
+    </div>
+
+    <!-- chat view -->
+    <div class="chatview" id="chatview">
+      <div class="feed" id="feed"></div>
+      <div class="typing" id="typing"></div>
+      <div class="compwrap">
+        <div class="popmenu" id="popmenu"></div>
+        <div class="composer">
+          <button class="plus" id="plus" title="insert packet">+</button>
+          <input id="composer-in" placeholder="Message" autocomplete="off">
+          <button class="send" id="send" title="send">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- page views -->
+    <div class="page" id="page-home"></div>
+    <div class="page" id="page-contacts"></div>
+    <div class="page" id="page-requests"></div>
+    <div class="page" id="page-blackmarket"></div>
+    <div class="page" id="page-runs"></div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<script>
+/* ================= data ================= */
+const CREWS={
+  ns:{tag:'NSX',name:'Null Saints',color:'#2c4a48',banner:'linear-gradient(120deg,#2c4a48,#3a6b62)',
+      members:14,rep:'+208 respected',worth:'412,000 SEN',
+      runs:[['East Sector Sweep','Medium risk · 3/4'],['Vault Recon','High risk · forming']],
+      listings:[['Crew Relay Bundle','3,800 SEN'],['Sector Maps','650 SEN']],
+      roster:[['marco','Leader'],['ned','Officer'],['rosa','Runner'],['kit','Runner']]},
+  jn:{tag:'JDN',name:'JadeNet',color:'#33415e',banner:'linear-gradient(120deg,#33415e,#3c5a78)',
+      members:31,rep:'+96 neutral',worth:'1,204,000 SEN',
+      runs:[['Index Audit','Low risk · open']],
+      listings:[['Feed Keys (bulk)','9,900 SEN']],
+      roster:[['vera','Broker'],['peggy','Associate']]},
+  dz:{tag:'DZ9',name:'Dock Zone 9',color:'#4d3a5e',banner:'linear-gradient(120deg,#4d3a5e,#6a4a86)',
+      members:120,rep:'open zone',worth:'—',
+      runs:[['Cargo Recount','Low risk · rolling']],
+      listings:[],
+      roster:[['marina','Moderator']]}
+};
+const USERS={
+  ned:   {name:'ned',handle:'@ned#0001',color:'#7b68c9',status:'Online',st:'',level:14,
+          title:'Ghost Operator',rep:'+62 trusted',crew:'ns',worth:'12,450 SEN',donor:true,
+          plate:'patron',badges:['Early Access','Courier I','Clean Trader'],
+          listings:[['Signal Booster','450 SEN'],['Spare Relay','120 SEN']],
+          activity:['Completed run: Warehouse Recount','Sold: Spare Cabling — 80 SEN','Joined crew: Null Saints']},
+  peggy: {name:'Peggy Woo',handle:'@peggywoo#7741',color:'#4e9a8f',status:'Online',st:'',level:31,
+          title:'Index Watcher',rep:'+118 trusted',crew:null,worth:'88,300 SEN',donor:true,
+          plate:'founder',badges:['Analyst','Veteran','Mentor','Founder'],
+          listings:[['Market Feed Key','1,200 SEN']],
+          activity:['Called RELAY move +4.2%','Mentored 2 new players']},
+  marina:{name:'Marina',handle:'@marina#3318',color:'#a8568f',status:'Online',st:'',level:9,
+          title:'Dock Hand',rep:'+12 new',crew:'dz',worth:'2,100 SEN',donor:false,
+          plate:'default',badges:['Newcomer'],listings:[],
+          activity:['Joined Dock Zone 9','First run completed']},
+  marco: {name:'Marco',handle:'@marco_v#2210',color:'#b3703f',status:'Idle',st:'idle',level:22,
+          title:'Crew Lead',rep:'+74 trusted',crew:'ns',worth:'31,900 SEN',donor:false,
+          plate:'crew',badges:['Crew Founder','Runner II'],listings:[],
+          activity:['Founded Null Saints','Posted run: East Sector Sweep']},
+  vera:  {name:'Vera',handle:'@vera#0930',color:'#5f7fc2',status:'Do Not Disturb',st:'dnd',level:18,
+          title:'Broker',rep:'+41 neutral',crew:'jn',worth:'54,000 SEN',donor:false,
+          plate:'level',badges:['Broker','Verified Seller'],
+          listings:[['Encrypted Drive','2,400 SEN'],['Access Pass','900 SEN']],
+          activity:['Listed: Encrypted Drive','Escrow cleared ×3']}
+};
+const PLATES=[['default','Default'],['level','Level 25'],['achv','Achievement'],['crew','Crew'],
+  ['event','Event'],['patron','Patron'],['founder','Founder']];
+
+const LISTINGS=[
+  {id:'drive',name:'Encrypted Drive',rarity:'Rare',seller:'vera',price:'2,400 SEN',escrow:'Active',
+   type:'item',sales:[['2 days ago','2,250 SEN'],['5 days ago','2,600 SEN']]},
+  {id:'pass',name:'Access Pass — Dock 9',rarity:'Uncommon',seller:'vera',price:'900 SEN',escrow:'Active',
+   type:'item',sales:[['1 day ago','880 SEN']]},
+  {id:'booster',name:'Signal Booster',rarity:'Common',seller:'ned',price:'450 SEN',escrow:'Active',
+   type:'player',sales:[['3 days ago','430 SEN']]},
+  {id:'feedkey',name:'Market Feed Key',rarity:'Epic',seller:'peggy',price:'1,200 SEN',escrow:'Active',
+   type:'player',sales:[['1 week ago','1,150 SEN'],['2 weeks ago','1,300 SEN']]},
+  {id:'maps',name:'Sector Maps (Crew)',rarity:'Uncommon',seller:'marco',price:'650 SEN',escrow:'Pending',
+   type:'item',sales:[]}
+];
+const STOCKS=[
+  {tk:'RELAY',co:'Relay Logistics',price:'38.10',chg:'+4.2%',up:true,vol:'High',owned:120,
+   event:'Supply notice lifted prices',trend:['+4.2%','-0.8%','+1.1%','+0.4%','-2.0%']},
+  {tk:'JADE',co:'JadeNet Holdings',price:'112.40',chg:'-1.3%',up:false,vol:'Medium',owned:0,
+   event:'Audit announced',trend:['-1.3%','+0.2%','+3.1%','-0.5%','+0.9%']},
+  {tk:'HAVN',co:'Haven Storage',price:'9.85',chg:'+0.6%',up:true,vol:'Low',owned:400,
+   event:'New dock contracts',trend:['+0.6%','+0.1%','-0.2%','+1.4%','+0.3%']}
+];
+const RUNS=[
+  {id:'east',title:'East Sector Sweep',node:'Sector E-4',risk:'Medium',reward:'600 SEN',heat:'+2',
+   req:'Level 8+',part:'3/4',crewStatus:'Crew run — Null Saints',state:'available',
+   banner:'linear-gradient(120deg,#39406b,#2c4a48)'},
+  {id:'ware',title:'Warehouse Recount',node:'Dock 9',risk:'Low',reward:'250 SEN',heat:'+0',
+   req:'None',part:'1/2',crewStatus:'Open to anyone',state:'available',
+   banner:'linear-gradient(120deg,#3c5a78,#33415e)'},
+  {id:'vault',title:'Vault Recon',node:'Sublevel B',risk:'High',reward:'2,000 SEN',heat:'+5',
+   req:'Level 15+ · ICE module',part:'2/5',crewStatus:'Crew run — Null Saints',state:'crew',
+   banner:'linear-gradient(120deg,#5e3a3a,#4d3a5e)'},
+  {id:'courier',title:'Courier Chain',node:'Citywide',risk:'Low',reward:'180 SEN',heat:'+0',
+   req:'None',part:'In progress 2/3 stops',crewStatus:'Solo',state:'active',
+   banner:'linear-gradient(120deg,#2c4a48,#3c5a78)'},
+  {id:'audit',title:'Index Audit',node:'JadeNet HQ',risk:'Low',reward:'320 SEN — UNCLAIMED',heat:'+0',
+   req:'Done',part:'Complete',crewStatus:'Finished yesterday',state:'claim',
+   banner:'linear-gradient(120deg,#5e4a33,#33415e)'}
+];
+
+/* nav: PRIMARY / ROOMS / DIRECT MESSAGES */
+const PRIMARY=[
+  ['home','Home','⌂'],['contacts','Contacts','☻'],['requests','Requests','✉'],
+  ['patron','Patron','✦'],['blackmarket','Blackmarket','◬'],['runs','Runs','➜']];
+const ROOMS=[
+  ['global','global','general chatter'],['crew','crew','Null Saints private'],
+  ['market','market','listings and trades'],['runrooms','run-rooms','active run coordination'],
+  ['system','system','service notices']];
+const DMS=['peggy','marina','marco','vera'];
+
+/* embed factory: ref opens the matching modal */
+const E={
+  listing:id=>{const l=LISTINGS.find(x=>x.id===id);return{kind:'listing',ref:id,kicker:'Market listing',
+    title:l.name,desc:`Sold by ${USERS[l.seller].name}. Escrow ${l.escrow.toLowerCase()}.`,cls:'',
+    fields:[['Price',l.price],['Rarity',l.rarity],['Escrow',l.escrow]],acts:[['Buy','buy'],['Inspect','inspect']]}},
+  run:id=>{const r=RUNS.find(x=>x.id===id);return{kind:'run',ref:id,kicker:'Run invite',
+    title:r.title,desc:`${r.node} · ${r.crewStatus}.`,cls:'embed--ok',
+    fields:[['Reward',r.reward],['Risk',r.risk],['Crew',r.part]],acts:[['Join','join'],['View','view']]}},
+  stock:tk=>{const s=STOCKS.find(x=>x.tk===tk);return{kind:'stock',ref:tk,kicker:'Stock alert',
+    title:`${s.tk} ${s.up?'▲':'▼'} ${s.chg}`,desc:s.event+'.',cls:'embed--warn',
+    fields:[['Price',s.price+' SEN'],['Change',s.chg],['Volume',s.vol]],acts:[['View','view']]}},
+  trade:who=>({kind:'trade',ref:who,kicker:'Trade offer',title:`Trade with ${USERS[who].name}`,
+    desc:'Pending offer. Open to review items on both sides.',cls:'',
+    fields:[['Status','Pending'],['Escrow','Auto']],acts:[['Review','review']]}),
+  hack:who=>({kind:'hack',ref:who,kicker:'Hack warning',title:`Intrusion attempt on ${USERS[who].name}`,
+    desc:'A breach attempt was detected. Counter-measures available.',cls:'embed--danger',
+    fields:[['Severity','Medium'],['Trace','Partial']],acts:[['Details','view']]}),
+  crewinv:id=>({kind:'crewinv',ref:id,kicker:'Crew invite',title:`Join ${CREWS[id].name} [${CREWS[id].tag}]`,
+    desc:'Open invitation. Reviewed by crew officers.',cls:'embed--ok',
+    fields:[['Members',CREWS[id].members],['Rep',CREWS[id].rep]],acts:[['View crew','crew']]})
+};
+
+const MSGS={
+  global:[
+    {sys:true,text:'Welcome to #global. Be decent.'},
+    {who:'peggy',t:'09:12',text:'Morning. Index is choppy today, watch your margins.'},
+    {who:'peggy',t:'09:12',text:'If you bought relays last week you are fine.'},
+    {who:'marco',t:'09:15',text:'Anyone running the east sector job later?'},
+    {who:'ned',t:'09:16',text:'Maybe after lunch. Need one more crew member.'},
+    {who:'vera',t:'09:31',embed:E.stock('RELAY')},
+    {who:'peggy',t:'09:33',text:'Called it.'},
+    {who:'marco',t:'09:40',embed:E.crewinv('ns')},
+    {who:'marina',t:'09:42',text:'New here — is escrow automatic on every trade?'},
+    {who:'vera',t:'09:43',text:'On listed trades, yes. Private trades are on you.'}
+  ],
+  crew:[
+    {sys:true,text:'You joined #crew.'},
+    {who:'marco',t:'08:40',text:'Crew meeting tonight. Bring your loadouts.'},
+    {who:'marco',t:'08:41',embed:E.run('east')},
+    {who:'ned',t:'08:55',text:'Looking at it now.'}
+  ],
+  market:[
+    {sys:true,text:'Listings posted here are escrow-protected.'},
+    {who:'vera',t:'09:40',embed:E.listing('drive')},
+    {who:'vera',t:'09:41',embed:E.listing('pass')},
+    {who:'ned',t:'09:44',text:'Is the drive clean?'},
+    {who:'vera',t:'09:45',text:'Sold as-is means sold as-is.'}
+  ],
+  runrooms:[
+    {sys:true,text:'Live run coordination. Keep it short.'},
+    {who:'marco',t:'09:02',embed:E.run('ware')},
+    {who:'marco',t:'09:05',text:'Vault recon needs one more with ICE. Ping me.'}
+  ],
+  system:[
+    {sys:true,text:'Service notices only. Nobody can post here.'},
+    {who:'peggy',t:'07:00',embed:E.hack('ned')},
+    {who:'peggy',t:'07:30',embed:E.stock('JADE')}
+  ],
+  'dm-peggy':[
+    {sys:true,text:'This is the beginning of your direct message history with Peggy Woo.'},
+    {who:'peggy',t:'Yesterday',text:'You still owe me for the feed key.'},
+    {who:'ned',t:'Yesterday',text:'I know, I know. After the next run.'},
+    {who:'peggy',t:'09:35',text:'Today, ideally.'}
+  ],
+  'dm-marina':[
+    {sys:true,text:'This is the beginning of your direct message history with Marina.'},
+    {who:'marina',t:'09:50',text:'Thanks for the help in #global!'}
+  ],
+  'dm-marco':[
+    {sys:true,text:'This is the beginning of your direct message history with Marco.'},
+    {who:'marco',t:'08:20',embed:E.trade('marco')},
+    {who:'marco',t:'08:20',text:'Sent you an offer for the booster.'}
+  ],
+  'dm-vera':[
+    {sys:true,text:'This is the beginning of your direct message history with Vera.'},
+    {who:'vera',t:'Monday',text:'Restock on Thursday. Drives and passes.'}
+  ]
+};
+
+const COMMANDS=[
+  ['/sell','item price','List an item on the Blackmarket'],
+  ['/run','[name]','Open run details / create a run'],
+  ['/hack','@player','Attempt a hack (confirmation required)'],
+  ['/trade','@player','Open a trade offer'],
+  ['/stock','TICKER','Open a stock detail'],
+  ['/crew','create','Create or manage a crew'],
+  ['/profile','@player','View a player profile'],
+  ['/item','[name]','Inspect an inventory item'],
+  ['/market','','Open the Blackmarket'],
+  ['/invite','[run]','Insert a run invite into chat']
+];
+const PACKETS=[
+  ['Trade offer',()=>E.trade('marco')],['Run invite',()=>E.run('east')],
+  ['Market listing',()=>E.listing('booster')],['Hack warning',()=>E.hack('vera')],
+  ['Stock alert',()=>E.stock('RELAY')],['Crew invite',()=>E.crewinv('ns')]
+];
+
+const state={view:'chat',chan:'global',unread:{crew:true,market:true,'dm-marco':true},modal:null};
+
+/* ================= helpers ================= */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const avaHtml=(id,sz)=>{const u=USERS[id];return `<span class="ava" data-profile="${id}"
+  style="background:${u.color};${sz?`width:${sz}px;height:${sz}px;font-size:${sz/2.6}px`:''}">${u.name[0].toUpperCase()}</span>`};
+const crewTag=id=>{const u=USERS[id];return u.crew?` <span class="crewtag" data-crew="${u.crew}">${CREWS[u.crew].tag}</span>`:''};
+const donorMark=id=>USERS[id].donor?' <span class="donor" title="Supporter cosmetics — no gameplay power">✦</span>':'';
+
+/* ================= nav ================= */
+function renderNav(){
+  let h='';
+  h+='<div class="chans__label">Primary</div>';
+  PRIMARY.forEach(([id,lbl,ico])=>{
+    const on=state.view===id;
+    h+=`<div class="chan ${on?'is-on':''}" data-nav="${id}"><span class="ico">${ico}</span><span class="nm">${lbl}</span></div>`;
+  });
+  h+='<div class="chans__label">Rooms</div>';
+  ROOMS.forEach(([id,lbl])=>{
+    const on=state.view==='chat'&&state.chan===id;
+    h+=`<div class="chan ${on?'is-on':''} ${state.unread[id]?'has-unread':''}" data-room="${id}">
+      <span class="hash">#</span><span class="nm">${lbl}</span><span class="dot"></span></div>`;
+  });
+  h+='<div class="chans__label">Direct messages</div>';
+  DMS.forEach(id=>{
+    const u=USERS[id],ch='dm-'+id,on=state.view==='chat'&&state.chan===ch;
+    h+=`<div class="chan ${on?'is-on':''} ${state.unread[ch]?'has-unread':''}" data-room="${ch}">
+      <span class="mini" style="background:${u.color}">${u.name[0].toUpperCase()}<span class="st ${u.st}"></span></span>
+      <span class="nm">${u.name}</span><span class="dot"></span></div>`;
+  });
+  h+=`<div class="chan" data-nav="contacts"><span class="ico">↻</span><span class="nm" style="color:var(--txt-3)">Recent players</span></div>`;
+  $('nav-list').innerHTML=h;
+}
+
+/* ================= main view switch ================= */
+function show(view){
+  state.view=view;
+  $('chatview').style.display=view==='chat'?'flex':'none';
+  ['home','contacts','requests','blackmarket','runs'].forEach(p=>
+    $('page-'+p).classList.toggle('is-vis',view===p));
+  if(view!=='chat'){
+    const lbl=PRIMARY.find(x=>x[0]===view);
+    $('ch-ico').textContent='';
+    $('ch-name').textContent=lbl?lbl[1]:view;
+    $('ch-topic').textContent='';
+    PAGES[view]&&PAGES[view]();
+  }
+  renderNav();
+  $('chans').classList.remove('is-open');
+}
+
+/* ================= chat ================= */
+function openRoom(ch){
+  state.chan=ch;delete state.unread[ch];show('chat');renderFeed();
+}
+function renderFeed(){
+  let label,topic,icon='#';
+  if(state.chan.startsWith('dm-')){
+    const u=USERS[state.chan.slice(3)];label=u.name;topic='Direct message';icon='@';
+  }else{
+    const r=ROOMS.find(x=>x[0]===state.chan);label=r[1];topic=r[2];
+  }
+  $('ch-ico').textContent=icon;$('ch-name').textContent=label;$('ch-topic').textContent=topic;
+  $('composer-in').placeholder=`Message ${icon==='#'?'#'+label:label} — type / for commands`;
+
+  const list=MSGS[state.chan]||[];
+  let h=`<div class="convstart"><h2>${icon} ${label}</h2><p>This is the start of ${icon==='#'?'#'+label:'your conversation with '+label}. ${topic}.</p></div>`;
+  let prev=null;
+  list.forEach(m=>{
+    if(m.sys){h+=`<div class="sysmsg"><span class="ico">→</span>${m.text}</div>`;prev=null;return}
+    const u=USERS[m.who];
+    const grp=prev&&prev.who===m.who;
+    const body=m.embed?renderEmbed(m.embed):esc(m.text);
+    if(grp){
+      h+=`<div class="msg is-grp"><div class="ava-slot"></div><div class="msg__col"><div class="msg__body">${body}</div></div></div>`;
+    }else{
+      h+=`<div class="msg"><div class="ava-slot">${avaHtml(m.who)}</div>
+        <div class="msg__col"><div class="msg__head">
+          <span class="msg__who" data-profile="${m.who}">${u.name}</span>${crewTag(m.who)}${donorMark(m.who)}
+          <span class="msg__time">${m.t}</span></div>
+        <div class="msg__body">${body}</div></div></div>`;
+    }
+    prev=m;
+  });
+  $('feed').innerHTML=h;
+  $('feed').scrollTop=$('feed').scrollHeight;
+}
+function renderEmbed(e){
+  return `<div class="embed ${e.cls||''}" data-open-kind="${e.kind}" data-open-ref="${e.ref||''}">
+    <div class="embed__kicker">${e.kicker}</div>
+    <div class="embed__title">${e.title}</div>
+    <div class="embed__desc">${e.desc}</div>
+    <div class="embed__fields">${e.fields.map(([k,v])=>
+      `<div class="embed__field"><b>${k}</b><span>${v}</span></div>`).join('')}</div>
+    <div class="embed__acts">${e.acts.map(([lbl],i)=>
+      `<button class="btn btn--sm ${i===0?'btn--primary':''}">${lbl}</button>`).join('')}</div>
+  </div>`;
+}
+
+/* ================= pages ================= */
+const PAGES={
+  home(){
+    $('page-home').innerHTML=`<h1>Home</h1>
+      <p class="sub">Your activity, contacts and open threads.</p>
+      <h3>Jump back in</h3>
+      <div class="grid">
+        <div class="card" data-room="dm-peggy"><div class="card__name">Peggy Woo</div>
+          <div class="card__meta">"Today, ideally."</div></div>
+        <div class="card" data-room="crew"><div class="card__name"># crew</div>
+          <div class="card__meta">Crew meeting tonight</div></div>
+        <div class="card" data-open-kind="run" data-open-ref="courier"><div class="card__name">Courier Chain</div>
+          <div class="card__meta">Active run · 2/3 stops</div></div>
+        <div class="card" data-open-kind="run" data-open-ref="audit"><div class="card__name">Index Audit</div>
+          <div class="card__meta">Reward unclaimed — 320 SEN</div></div>
+      </div>
+      <h3>Recent activity</h3>
+      ${USERS.ned.activity.map(a=>`<div class="set__card"><p>${a}</p></div>`).join('')}`;
+  },
+  contacts(){
+    $('page-contacts').innerHTML=`<h1>Contacts</h1>
+      <p class="sub">People you trade, run and talk with.</p>
+      <div class="filters"><button class="fchip is-on">All</button><button class="fchip">Online</button>
+        <button class="fchip">Crew</button><button class="btn btn--primary btn--sm" style="margin-left:auto">Add Contact</button></div>
+      ${DMS.map(id=>{const u=USERS[id];return `<div class="contact" data-profile="${id}">
+        ${avaHtml(id,34)}<div><div class="nm">${u.name}${u.crew?` <span class="crewtag" data-crew="${u.crew}">${CREWS[u.crew].tag}</span>`:''}</div>
+        <div class="meta">${u.status} · Level ${u.level} · ${u.title}</div></div>
+        <div class="acts"><button class="btn btn--sm" data-room="dm-${id}">Message</button>
+        <button class="btn btn--sm btn--ghost" data-profile="${id}">Profile</button></div></div>`}).join('')}
+      <h3>Recent players</h3>
+      <div class="contact" data-profile="marina">${avaHtml('marina',34)}
+        <div><div class="nm">Marina</div><div class="meta">Met in #global · 10 min ago</div></div>
+        <div class="acts"><button class="btn btn--sm">Add Contact</button></div></div>`;
+  },
+  requests(){
+    $('page-requests').innerHTML=`<h1>Requests</h1>
+      <p class="sub">Message and contact requests from players you haven't added.</p>
+      <div class="contact">${avaHtml('marina',34)}
+        <div><div class="nm">Marina</div><div class="meta">Wants to send you messages</div></div>
+        <div class="acts"><button class="btn btn--primary btn--sm">Accept</button>
+        <button class="btn btn--sm btn--ghost">Ignore</button></div></div>
+      <div class="contact">${avaHtml('vera',34)}
+        <div><div class="nm">Vera</div><div class="meta">Trade request: Encrypted Drive</div></div>
+        <div class="acts"><button class="btn btn--primary btn--sm" data-open-kind="trade" data-open-ref="vera">Review</button>
+        <button class="btn btn--sm btn--ghost">Decline</button></div></div>`;
+  },
+  blackmarket(){
+    $('page-blackmarket').innerHTML=`<h1>Blackmarket</h1>
+      <p class="sub">Items, player listings and stocks. Escrow on everything listed.</p>
+      <div class="filters">
+        <button class="fchip is-on">All</button><button class="fchip">Items</button>
+        <button class="fchip">Player listings</button><button class="fchip">Stocks</button>
+        <button class="fchip">Rare+</button>
+        <select class="fsort"><option>Sort: Newest</option><option>Price ↑</option><option>Price ↓</option><option>Rarity</option></select>
+      </div>
+      <h3>Item listings</h3>
+      <div class="grid">${LISTINGS.filter(l=>l.type==='item').map(cardListing).join('')}</div>
+      <h3>Player listings</h3>
+      <div class="grid">${LISTINGS.filter(l=>l.type==='player').map(cardListing).join('')}</div>
+      <h3>Stocks</h3>
+      ${STOCKS.map(s=>`<div class="stockrow" data-open-kind="stock" data-open-ref="${s.tk}">
+        <span class="tk">${s.tk}</span><span class="co">${s.co}</span>
+        <span>${s.price} SEN</span><span class="${s.up?'up':'down'}">${s.up?'▲':'▼'} ${s.chg}</span>
+        <span style="color:var(--txt-3);font-size:12px">Vol ${s.vol}</span></div>`).join('')}`;
+  },
+  runs(){
+    const card=r=>`<div class="runcard" data-open-kind="run" data-open-ref="${r.id}">
+      <div class="runcard__banner" style="background:${r.banner}">${r.node}</div>
+      <div class="runcard__body"><div class="card__name">${r.title}</div>
+      <div class="card__meta">${r.risk} risk · ${r.reward} · crew ${r.part}</div>
+      <div class="card__meta">${r.crewStatus}</div></div></div>`;
+    $('page-runs').innerHTML=`<h1>Runs</h1>
+      <p class="sub">Jobs, crew operations and reward claims.</p>
+      <h3>Available runs</h3><div class="grid">${RUNS.filter(r=>r.state==='available').map(card).join('')}</div>
+      <h3>Crew runs</h3><div class="grid">${RUNS.filter(r=>r.state==='crew').map(card).join('')}</div>
+      <h3>Active</h3><div class="grid">${RUNS.filter(r=>r.state==='active').map(card).join('')}</div>
+      <h3>Completed — claim rewards</h3><div class="grid">${RUNS.filter(r=>r.state==='claim').map(card).join('')}</div>`;
+  }
+};
+function cardListing(l){
+  const u=USERS[l.seller];
+  return `<div class="card" data-open-kind="listing" data-open-ref="${l.id}">
+    <div class="card__img">item preview</div>
+    <div class="card__name">${l.name} <span class="rarity">${l.rarity}</span></div>
+    <div class="card__meta">by ${u.name} · ${u.rep}</div>
+    <div class="card__price">${l.price}</div></div>`;
+}
+
+/* ================= modal shell ================= */
+function openModal(type,props={}){
+  state.modal=type;
+  $('scrim').innerHTML=MODALS[type](props);
+  $('scrim').classList.add('is-vis');
+}
+function closeModal(){
+  state.modal=null;$('scrim').classList.remove('is-vis');$('scrim').innerHTML='';
+}
+const sect=(h,inner)=>`<div class="pf__sect"><h4>${h}</h4>${inner}</div>`;
+const row=(k,v)=>`<div class="pf__row"><span>${k}</span><span>${v}</span></div>`;
+
+const MODALS={
+  /* 1. UserProfileModal — the central social object */
+  profile(p){
+    const u=USERS[p.id];
+    const crew=u.crew?CREWS[u.crew]:null;
+    return `<div class="modal">
+      <div class="pf__banner" style="background:linear-gradient(120deg,${u.color},#2c2f3a)">
+        <span style="position:absolute;right:12px;top:10px;font-size:10px;color:rgba(255,255,255,.6)">customizable banner</span>
+        <div class="pf__ava"><span class="ava" style="background:${u.color}">${u.name[0].toUpperCase()}</span></div>
+      </div>
+      <div class="pf__body">
+        <div class="pf__name">${u.name}${u.donor?' <span class="donor" title="Supporter — cosmetic only">✦</span>':''}
+          ${crew?`<span class="crewtag" data-crew="${u.crew}">${crew.tag}</span>`:''}</div>
+        <div class="pf__handle">${u.handle} · Level ${u.level} · ${u.title}</div>
+        <div class="pf__status"><span class="st-dot ${u.st}"></span>${u.status}</div>
+        <div class="pf__chips">${u.badges.map(b=>`<span class="chip">${b}</span>`).join('')}</div>
+        ${sect('Player plate <span style="float:right;font-weight:400;text-transform:none">cosmetic only</span>',
+          `<div class="platewrap">${PLATES.map(([id,lbl])=>
+            `<div class="plate plate--${id} ${u.plate===id?'is-cur':''}">${u.name}<small>${lbl}</small></div>`).join('')}</div>`)}
+        ${sect('Standing',row('Reputation',u.rep)+row('Crew',crew?`<span class="crewtag" data-crew="${u.crew}">${crew.tag} ${crew.name}</span>`:'—')+row('Net worth',u.worth))}
+        ${sect(`Public listings (${u.listings.length})`,u.listings.length?u.listings.map(([n,pr])=>row(n,pr)).join(''):row('Nothing listed','—'))}
+        ${sect('Recent activity',u.activity.map(a=>row(a,'')).join(''))}
+        <div class="pf__acts">
+          <button class="btn btn--primary" data-room="dm-${p.id}" data-close>Message</button>
+          <button class="btn" data-open-kind="trade" data-open-ref="${p.id}">Trade</button>
+          <button class="btn btn--danger" data-open-kind="hack" data-open-ref="${p.id}">Hack</button>
+          <button class="btn">View Listings</button>
+          ${crew?`<button class="btn" data-crew="${u.crew}">View Crew</button>`:''}
+          <button class="btn">Add Contact</button>
+        </div>
+      </div></div>`;
+  },
+
+  /* 2. AccountSettingsModal */
+  settings(p){
+    const page=p.page||'profile';
+    const NAV=[['User',['profile','account','appearance']],
+               ['App',['notifications','privacy','patron & cosmetics']],['',['log out']]];
+    const C={
+      profile:`<h2>Profile</h2><div class="set__card"><h4>Display name</h4><p>ned</p></div>
+        <div class="set__card"><h4>Title</h4><p>Ghost Operator</p></div>
+        <div class="set__card"><h4>Banner & avatar</h4><p>Upload placeholders.</p></div>
+        <div class="set__card"><h4>Player plate</h4><p>Patron plate equipped — change in Patron & cosmetics.</p></div>`,
+      account:`<h2>Account</h2><div class="set__card"><h4>Handle</h4><p>@ned#0001</p></div>
+        <div class="set__card"><h4>Email</h4><p>ned@example.com</p></div>
+        <div class="set__card"><h4>Password</h4><p>········ <button class="btn btn--sm" style="margin-left:8px">Change</button></p></div>`,
+      appearance:`<h2>Appearance</h2><div class="set__card"><h4>Theme</h4><p>Dark (neutral pass)</p></div>
+        <div class="set__card"><h4>Density</h4><p>Comfortable</p></div>`,
+      notifications:`<h2>Notifications</h2><div class="set__card"><h4>Mentions</h4><p>On</p></div>
+        <div class="set__card"><h4>Market alerts</h4><p>On</p></div>
+        <div class="set__card"><h4>Run invites</h4><p>On</p></div>`,
+      privacy:`<h2>Privacy</h2><div class="set__card"><h4>Who can message you</h4><p>Everyone</p></div>
+        <div class="set__card"><h4>Show net worth on profile</h4><p>On</p></div>
+        <div class="set__card"><h4>Hack visibility</h4><p>Show attempts publicly</p></div>`,
+      'patron & cosmetics':`<h2>Patron & cosmetics</h2>
+        <div class="set__card"><h4>Supporter tier</h4><p>Patron — cosmetics only, no gameplay power.</p></div>
+        <div class="set__card"><h4>Manage</h4><p><button class="btn btn--primary btn--sm" data-modal="patron">Open Patron</button></p></div>`,
+      'log out':`<h2>Log out</h2><div class="set__card"><p>Placeholder. No session in this prototype.</p>
+        <p style="margin-top:8px"><button class="btn btn--danger">Log out</button></p></div>`
+    };
+    return `<div class="modal modal--wide" style="position:relative">
+      <div class="set__nav">${NAV.map(([h,items])=>(h?`<h4>${h}</h4>`:'<h4>&nbsp;</h4>')+items.map(i=>
+        `<button class="set__item ${i===page?'is-on':''} ${i==='log out'?'set__item--danger':''}"
+          data-set-page="${i}">${i[0].toUpperCase()+i.slice(1)}</button>`).join('')).join('')}</div>
+      <div class="set__content">${C[page]}</div>
+      <button class="set__close" data-close>✕</button></div>`;
+  },
+
+  /* 3. PatronCosmeticsModal — cosmetics ONLY, no gameplay power */
+  patron(){
+    const s=(h,p)=>`<div class="set__card"><h4>${h}</h4><p>${p}</p></div>`;
+    return `<div class="modal" style="width:560px">
+      <div class="dm__body">
+        <div class="dm__kicker">Patron</div>
+        <div class="dm__title">Supporter & cosmetics <span class="donor">✦</span></div>
+        <div class="set__card" style="border:1px solid var(--gold)"><h4>Supporter status</h4>
+          <p>Active — Patron tier. Everything here is cosmetic and status only. <b>No gameplay power.</b></p></div>
+        ${s('Profile plates',`<span class="platewrap">${PLATES.slice(3).map(([id,lbl])=>
+          `<span class="plate plate--${id}" style="width:120px;height:38px">ned<small>${lbl}</small></span>`).join('')}</span>`)}
+        ${s('Banners','Animated and static profile banners. Preview grid placeholder.')}
+        ${s('PFP frames','Avatar rings and frames. Placeholder shelf.')}
+        ${s('Name effects','Subtle color/gradient name styling in chat. Placeholder.')}
+        ${s('Badge showcase','Pin up to 3 achievement badges on your profile. Placeholder.')}
+        ${s('Cosmetic shop','Rotating cosmetic stock — plates, frames, banners. Placeholder.')}
+        ${s('Gift supporter pass','Gift a month of Patron to another player. Placeholder.')}
+        <div class="dm__acts"><button class="btn btn--ghost" data-close>Close</button>
+          <button class="btn btn--primary">Manage subscription</button></div>
+      </div></div>`;
+  },
+
+  /* 4. CrewProfileModal */
+  crew(p){
+    const c=CREWS[p.id];
+    return `<div class="modal" style="width:520px">
+      <div class="pf__banner" style="background:${c.banner}">
+        <div class="pf__ava"><span class="ava" style="background:${c.color};border-radius:14px">${c.tag[0]}</span></div>
+      </div>
+      <div class="pf__body">
+        <div class="pf__name">${c.name} <span class="crewtag">${c.tag}</span></div>
+        <div class="pf__handle">${c.members} members · ${c.rep}</div>
+        ${sect('Standing',row('Reputation',c.rep)+row('Crew net worth',c.worth)+row('Members',c.members))}
+        ${sect('Public runs',c.runs.length?c.runs.map(([n,m])=>row(n,m)).join(''):row('None','—'))}
+        ${sect('Market listings',c.listings.length?c.listings.map(([n,pr])=>row(n,pr)).join(''):row('None','—'))}
+        ${sect('Members & roles',c.roster.map(([id,role])=>{
+          const u=USERS[id];return u?`<div class="memrow">${avaHtml(id,22)}<span data-profile="${id}"
+            style="cursor:pointer;font-weight:600">${u.name}</span><span class="role">${role}</span></div>`
+            :`<div class="memrow"><span class="ava" style="width:22px;height:22px;font-size:9px;background:#555">${id[0].toUpperCase()}</span>${id}<span class="role">${role}</span></div>`}).join(''))}
+        <div class="pf__acts">
+          <button class="btn btn--primary">Join</button>
+          <button class="btn">Request Invite</button>
+          <button class="btn" data-profile="${c.roster[0][0]}">Message Leader</button>
+        </div>
+      </div></div>`;
+  },
+
+  /* 5. CreateCrewModal — server/community creation pattern */
+  createCrew(){
+    return `<div class="modal">
+      <div class="dm__body">
+        <div class="dm__kicker">New crew</div>
+        <div class="dm__title">Create a crew</div>
+        <div class="field"><label>Crew name</label><input placeholder="e.g. Night Couriers"></div>
+        <div class="field"><label>Crew tag</label><input placeholder="3–4 letters, e.g. NCR" maxlength="4"></div>
+        <div class="field"><label>Crew emblem</label><div class="dm__img" style="height:64px">emblem upload placeholder</div></div>
+        <div class="field"><label>Crew banner</label><div class="dm__img" style="height:48px">banner upload placeholder</div></div>
+        <div class="field"><label>Visibility</label><select><option>Public</option><option>Private</option><option>Invite-only</option></select></div>
+        <div class="field"><label>Charter</label><textarea rows="3" placeholder="What this crew is about, rules, vibe…"></textarea></div>
+        <div class="set__card"><h4>Requirements</h4>
+          <p>Founding cost: <b>10,000 SEN</b> · Required level: <b>10</b> — you are level 14 ✓</p></div>
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Cancel</button>
+          <button class="btn btn--primary">Create Crew — 10,000 SEN</button>
+        </div></div></div>`;
+  },
+
+  /* 6. MarketListingModal */
+  listing(p){
+    const l=LISTINGS.find(x=>x.id===p.id)||{name:p.title||'New listing',rarity:'—',seller:'ned',
+      price:'—',escrow:'—',sales:[]};
+    const u=USERS[l.seller];
+    return `<div class="modal">
+      <div class="dm__body">
+        <div class="dm__kicker">Market listing · Blackmarket</div>
+        <div class="dm__title">${esc(l.name)} <span class="rarity">${l.rarity}</span></div>
+        <div class="dm__img">item image placeholder</div>
+        <div class="seller" data-profile="${l.seller}">${avaHtml(l.seller,30)}
+          <div><div style="font-weight:600">${u.name}${crewTag(l.seller)}</div>
+          <div style="font-size:12px;color:var(--txt-2)">${u.rep}</div></div>
+          <span style="margin-left:auto;font-weight:700">${l.price}</span></div>
+        ${sect('Recent sales',l.sales.length?l.sales.map(([t,v])=>row(t,v)).join(''):row('No sale history','—'))}
+        ${sect('Escrow',row('Status',l.escrow)+row('Protection','Funds held until delivery confirmed'))}
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Cancel</button>
+          <button class="btn">View Seller</button>
+          <button class="btn" data-room="dm-${l.seller}" data-close>Message Seller</button>
+          <button class="btn">Offer</button>
+          <button class="btn btn--primary">Buy — ${l.price}</button>
+        </div></div></div>`;
+  },
+
+  /* 7. StockModal */
+  stock(p){
+    const s=STOCKS.find(x=>x.tk===p.id)||STOCKS[0];
+    return `<div class="modal">
+      <div class="dm__body">
+        <div class="dm__kicker">Stock · Blackmarket exchange</div>
+        <div class="dm__title">${s.tk} <span style="font-weight:400;font-size:14px;color:var(--txt-2)">${s.co}</span></div>
+        ${sect('Price',row('Current',s.price+' SEN')+row('Change',`<span class="${s.up?'up':'down'}">${s.up?'▲':'▼'} ${s.chg}</span>`)+row('Volume',s.vol)+row('You own',s.owned+' shares'))}
+        ${sect('Trend (5 sessions)',s.trend.map((t,i)=>row('Session −'+(i+1),
+          `<span class="${t.startsWith('+')?'up':'down'}">${t}</span>`)).join(''))}
+        ${sect('Latest event',row(s.event,''))}
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Close</button>
+          <button class="btn">Watch</button>
+          <button class="btn btn--danger">Sell</button>
+          <button class="btn btn--primary">Buy</button>
+        </div></div></div>`;
+  },
+
+  /* 8. RunModal */
+  run(p){
+    const r=RUNS.find(x=>x.id===p.id)||RUNS[0];
+    return `<div class="modal">
+      <div class="pf__banner" style="background:${r.banner};height:80px"></div>
+      <div class="dm__body">
+        <div class="dm__kicker">Run</div>
+        <div class="dm__title">${r.title}</div>
+        ${sect('Briefing',row('Node / location',r.node)+row('Risk',r.risk)+row('Reward',r.reward)+row('Heat',r.heat)+row('Requirements',r.req))}
+        ${sect('Crew',row('Participants',r.part)+row('Status',r.crewStatus))}
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Close</button>
+          <button class="btn">Invite</button>
+          <button class="btn">Leave</button>
+          ${r.state==='claim'?'<button class="btn btn--primary">Claim reward</button>'
+            :'<button class="btn">Start</button><button class="btn btn--primary">Join</button>'}
+        </div></div></div>`;
+  },
+
+  /* 9. TradeModal */
+  trade(p){
+    const u=USERS[p.id]||USERS.marco;
+    return `<div class="modal" style="width:520px">
+      <div class="dm__body">
+        <div class="dm__kicker">Trade offer</div>
+        <div class="dm__title">Trade with ${u.name}</div>
+        <div class="tradecols">
+          <div><h4>You give</h4>
+            <div class="pf__row"><span>Signal Booster</span><span>×1</span></div>
+            <div class="pf__row"><span>SEN</span><span>0</span></div></div>
+          <div><h4>${u.name} gives</h4>
+            <div class="pf__row"><span>SEN</span><span>430</span></div></div>
+        </div>
+        ${sect('Escrow',row('Status','Auto — both sides held until accept'))}
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Decline</button>
+          <button class="btn">Counter</button>
+          <button class="btn btn--primary">Accept trade</button>
+        </div></div></div>`;
+  },
+
+  /* 10. HackConfirmModal */
+  hack(p){
+    const u=USERS[p.id]||USERS.vera;
+    return `<div class="modal">
+      <div class="dm__body">
+        <div class="dm__kicker" style="color:var(--danger)">Hack — confirmation required</div>
+        <div class="dm__title">Hack ${u.name}?</div>
+        <div class="set__card" style="border:1px solid var(--danger)">
+          <p>Hostile action. Failure raises your heat and may be publicly visible.</p></div>
+        ${sect('Assessment',row('Target defense','Moderate ICE')+row('Estimated heat','+3')+row('Trace risk','Medium')+row('Reputation risk','Visible if traced'))}
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Cancel</button>
+          <button class="btn btn--danger">Confirm hack</button>
+        </div></div></div>`;
+  },
+
+  /* 11. ItemModal */
+  item(p){
+    return `<div class="modal">
+      <div class="dm__body">
+        <div class="dm__kicker">Inventory item</div>
+        <div class="dm__title">${esc(p.title||'Signal Booster')} <span class="rarity">Common</span></div>
+        <div class="dm__img">item render placeholder</div>
+        ${sect('Stats',row('Slot','PORT')+row('Condition','94%')+row('Effect','+1 signal range'))}
+        <div class="dm__acts">
+          <button class="btn btn--ghost" data-close>Close</button>
+          <button class="btn">Sell</button>
+          <button class="btn btn--primary">Equip</button>
+        </div></div></div>`;
+  },
+
+  /* crew invite packet routes here */
+  crewinv(p){return MODALS.crew({id:p.id})}
+};
+
+/* kind → modal mapping for embeds/cards */
+function openByKind(kind,ref){
+  const map={listing:'listing',run:'run',stock:'stock',trade:'trade',hack:'hack',
+    item:'item',crewinv:'crew',crew:'crew',profile:'profile'};
+  openModal(map[kind]||'item',{id:ref,title:ref});
+}
+
+/* ================= composer: slash commands + packet menu ================= */
+let menuMode=null; // 'cmd' | 'packet'
+function renderCmdMenu(filter){
+  const items=COMMANDS.filter(([c])=>c.startsWith(filter||'/'));
+  if(!items.length)return hideMenu();
+  $('popmenu').innerHTML='<div class="popmenu__h">Commands</div>'+items.map(([c,a,d],i)=>
+    `<div class="cmd ${i===0?'is-sel':''}" data-cmd="${c}"><b>${c}</b><span class="args">${a}</span><span class="desc">${d}</span></div>`).join('');
+  $('popmenu').classList.add('is-vis');menuMode='cmd';
+}
+function renderPacketMenu(){
+  $('popmenu').innerHTML='<div class="popmenu__h">Insert activity packet</div>'+PACKETS.map(([lbl],i)=>
+    `<div class="cmd" data-packet="${i}"><b>${lbl}</b><span class="desc">insert into chat</span></div>`).join('');
+  $('popmenu').classList.add('is-vis');menuMode='packet';
+}
+function hideMenu(){$('popmenu').classList.remove('is-vis');$('popmenu').innerHTML='';menuMode=null}
+
+function runCommand(cmd){
+  hideMenu();$('composer-in').value='';
+  switch(cmd){
+    case '/sell':   openModal('listing',{title:'New listing — sell an item'});break;
+    case '/run':    openModal('run',{id:'east'});break;
+    case '/hack':   openModal('hack',{id:'vera'});break;
+    case '/trade':  openModal('trade',{id:'marco'});break;
+    case '/stock':  openModal('stock',{id:'RELAY'});break;
+    case '/crew':   openModal('createCrew',{});break;
+    case '/profile':openModal('profile',{id:'peggy'});break;
+    case '/item':   openModal('item',{});break;
+    case '/market': show('blackmarket');break;
+    case '/invite': insertPacket(E.run('east'));break;
+  }
+}
+function insertPacket(embed){
+  hideMenu();
+  (MSGS[state.chan]||(MSGS[state.chan]=[])).push({who:'ned',t:'now',embed});
+  renderFeed();
+}
+
+function send(){
+  const inp=$('composer-in');const txt=inp.value.trim();
+  if(!txt)return;
+  if(txt.startsWith('/')){runCommand(txt.split(' ')[0]);return}
+  inp.value='';hideMenu();
+  MSGS[state.chan].push({who:'ned',t:'now',text:txt});
+  renderFeed();
+  if(['dm-peggy','global'].includes(state.chan)){
+    const ty=$('typing');
+    setTimeout(()=>{ty.textContent='Peggy Woo is typing…';ty.classList.add('is-vis')},500);
+    setTimeout(()=>{ty.classList.remove('is-vis');
+      MSGS[state.chan].push({who:'peggy',t:'now',text:'Noted.'});renderFeed()},1700);
+  }
+}
+
+/* ================= events ================= */
+document.addEventListener('click',e=>{
+  const t=e.target;
+
+  // modal-internal triggers first (so they work inside scrim)
+  const sp=t.closest('[data-set-page]');
+  if(sp){openModal('settings',{page:sp.dataset.setPage});return}
+  if(t.closest('[data-close]')){
+    const room=t.closest('[data-room]');
+    closeModal();
+    if(room)openRoom(room.dataset.room);
+    return;
+  }
+  const crew=t.closest('[data-crew]');
+  if(crew){openModal('crew',{id:crew.dataset.crew});return}
+  const crewOpen=t.closest('[data-crew-open]');
+  if(crewOpen){openModal('crew',{id:crewOpen.dataset.crewOpen});return}
+  // room wins when the data-room element is nested inside a data-profile row
+  const roomEl=t.closest('[data-room]');
+  const profEl=t.closest('[data-profile]');
+  if(roomEl&&(!profEl||profEl.contains(roomEl))){openRoom(roomEl.dataset.room);return}
+  if(profEl){openModal('profile',{id:profEl.dataset.profile});return}
+  const mod=t.closest('[data-modal]');
+  if(mod){openModal(mod.dataset.modal,{});return}
+  const ok=t.closest('[data-open-kind]');
+  if(ok){openByKind(ok.dataset.openKind,ok.dataset.openRef);return}
+
+  if(t.id==='scrim'){closeModal();return}
+
+  // nav
+  const nav=t.closest('[data-nav]');
+  if(nav){
+    const v=nav.dataset.nav;
+    if(v==='patron'){openModal('patron',{});return}
+    if(v==='home'&&state.view==='home'){return}
+    show(v==='home'?'home':v);return;
+  }
+  const rail=t.closest('[data-rail]');
+  if(rail){show('home');return}
+
+  if(t.closest('#burger')){$('chans').classList.toggle('is-open');return}
+  if(t.closest('#plus')){menuMode==='packet'?hideMenu():renderPacketMenu();return}
+  const cmd=t.closest('[data-cmd]');
+  if(cmd){runCommand(cmd.dataset.cmd);return}
+  const pk=t.closest('[data-packet]');
+  if(pk){insertPacket(PACKETS[+pk.dataset.packet][1]());return}
+  if(t.closest('#send')){send();return}
+
+  if(!t.closest('#popmenu')&&!t.closest('.composer'))hideMenu();
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){hideMenu();closeModal()}
+});
+$('composer-in').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const v=$('composer-in').value.trim();
+    if(menuMode==='cmd'&&v.startsWith('/')){
+      const first=COMMANDS.find(([c])=>c.startsWith(v.split(' ')[0]));
+      runCommand(first?first[0]:v.split(' ')[0]);
+    }else send();
+  }
+});
+$('composer-in').addEventListener('input',e=>{
+  const v=e.target.value;
+  if(v.startsWith('/'))renderCmdMenu(v.split(' ')[0]);
+  else if(menuMode==='cmd')hideMenu();
+});
+
+/* ================= boot ================= */
+renderNav();
+renderFeed();
+</script>
+</body>
+</html>
