@@ -52,7 +52,7 @@ State colors communicate what is happening to an object or process right now. Th
 
 ### C. Rarity Colors
 
-Rarity colors appear **only** inside rarity badges/pills and on the item card's rarity indicator. They never color entire card backgrounds.
+Rarity colors appear on rarity badges/pills and the item card's rarity indicator. **MYTH and MIL are exceptions** — they affect the entire card surface (see below).
 
 | Token | Hex | Rarity | Visual treatment |
 |-------|-----|--------|-----------------|
@@ -60,10 +60,22 @@ Rarity colors appear **only** inside rarity badges/pills and on the item card's 
 | `--clr-rar-com` | `#4FD645` (green) | COM | Green text |
 | `--clr-rar-tun` | `#BFEBDC` (mint) | TUN | Mint text |
 | `--clr-rar-rare` | `#F2DF4E` (yellow) | RARE | Yellow text + border |
-| `--clr-rar-leg` | `#B5A8F2` (violet) | LEG | Violet text + border |
+| `--clr-rar-leg` | `#B5A8F2` (violet) | LEG | Violet text + border + underplate shape |
 | `--clr-rar-epic` | `#79A8E6` (sky) | EPIC | Sky text + border |
-| `--clr-rar-mil` | `#F2472E` (red) | MIL | Red text + border + threat pulse |
-| `--clr-rar-myth` | multi-gradient | MYTH | Animated shimmer gradient |
+| `--clr-rar-mil` | `#F2472E` (red) | MIL | Red text + border + full-card threat pulse (own animation) |
+| `--clr-rar-myth` | multi-gradient | MYTH | Full-card multi-color shimmer gradient |
+
+**MYTH shimmer**: The entire card surface shimmers with an animated multi-gradient sweep. This is the only rarity that takes over the full card background. The gradient cycles through the category palette stops: lime → yellow → sky → violet → pink → lime. It is unmistakable and rare enough to be special (max 1 MYTH card on screen at any time).
+
+```css
+--clr-rar-myth-gradient: linear-gradient(
+  135deg,
+  #CDF263 0%, #F2DF4E 20%, #79A8E6 40%,
+  #B5A8F2 60%, #F2CCE3 80%, #CDF263 100%
+);
+```
+
+**MIL threat pulse**: The entire card border pulses red — not just the badge. MIL items carry danger and the card surface communicates it. This is a distinct animation from the ready shimmer.
 
 **Rule**: Rarity badge always includes a text label (BRK/COM/TUN/RARE/LEG/EPIC/MIL/MYTH). Color is never the only rarity signal.
 
@@ -133,7 +145,8 @@ This is the same hex as `--clr-state-blocked` and `--clr-rar-mil` — but each a
 1. **Same hex, different layer** is allowed: red can be `--clr-danger` (left border) AND `--clr-rar-mil` (rarity badge) on the same card, because they occupy different visual elements.
 2. **Same hex, same layer** is forbidden: a state chip cannot be green to mean both "ready" and "COM rarity" — pick the dominant meaning and use the other layer for the second.
 3. **Board color on item cards** is forbidden: board identity stays on headers and tabs only.
-4. **Rarity color as card background** is forbidden: rarity lives in badges. Card backgrounds are structural (paper/black/navy) or board headers.
+4. **Rarity color as card background**: forbidden for BRK–EPIC. **MYTH** is the exception — its shimmer gradient fills the entire card surface. **MIL** pulses the entire card border. These two rarities are rare enough and visually distinct enough to warrant full-card treatment.
+5. **MYTH card on screen limit**: Max 1 MYTH shimmer card visible at any time. If multiple MYTH items exist in a list, only the first shimmers; others show a static gradient snapshot.
 
 ## Theme Remapping
 

@@ -77,67 +77,84 @@ The card expands further in place, pushing siblings down. Player scrolls within 
 
 A bottom-sheet overlay. The board is visible but dimmed behind it. Used when the interaction requires focused attention, confirmation, or complex layout.
 
+**Shape**: All modals use `k-card--bite-top` as their signature shape. This is the consistent visual identifier for "you are in a modal". Additional shape modifiers can combine:
+- Confirmation: `k-card--bite-top` (standard)
+- Result with claim zone: `k-card--bite-top` + `k-card--perf` (perforation separates result from actions)
+- Trade/market: `k-card--bite-top` + `k-card--ticket` (bearer instrument feel)
+- Risk: `k-card--bite-top` + red top border
+
 **Shows:**
 - Handle bar (swipe down to close)
 - Title + context subtitle
 - Close button
 - Full content area (scrollable)
-- 3D stage (full size, 140px+)
+- 3D stage (full size, 140px+, square)
+- Corp branding zone (logo + name)
 - Compare side-by-side layouts
-- Result breakdowns with item list
+- Result breakdowns with item list + value
 - Confirmation warnings
 - Multiple action buttons
 
 **When to use — exhaustive list:**
 
-| Trigger | Sheet type | Why modal |
-|---------|-----------|-----------|
-| Risk action (MIL buy, high-heat equip) | Confirmation | Player must read warning |
-| Run complete/claim reward | Result | Shows multiple items + where they went |
-| Cache open/reveal | Result | 3D reveal animation, item inspection |
-| Item install/swap | Compare | Side-by-side current vs. new |
-| Market buy with consequences | Confirmation | Price + balance + heat impact |
-| Trade offer (chat) | Negotiation | Two-sided comparison |
-| Run prep with failures | Confirmation | Rig check results, proceed/abort |
+| Trigger | Sheet type | Shape | Why modal |
+|---------|-----------|-------|-----------|
+| Risk action (MIL buy, high-heat equip) | Confirmation | `bite-top` + risk border | Player must read warning |
+| Run complete/claim reward | Result | `bite-top` + `perf` | Shows multiple items + where they went |
+| Cache open/reveal | Result | `bite-top` + `perf` | 3D reveal animation, item inspection |
+| Item install/swap | Compare | `bite-top` | Side-by-side current vs. new |
+| Market buy with consequences | Confirmation | `bite-top` + `ticket` | Price + balance + heat impact |
+| Trade offer (chat) | Negotiation | `bite-top` + `ticket` | Two-sided comparison |
+| Run prep with failures | Confirmation | `bite-top` | Rig check results, proceed/abort |
 
 **When NOT to use:**
 - Simple claims (use expanded inline result state)
-- Viewing item stats (use expanded inline)
+- Viewing item stats (use inline inspector dropdown)
 - Starting a basic run (action bar button → prepping state)
 - Navigating between boards (tab bar)
 - Reading chat messages (inline)
 
-### Level 4: Item Inspector
+### Level 4: Item Inspector (Inline Dropdown)
 
-A specialized modal for deep item examination. Always accessible from any item reference via `[INSPECT]` button.
+An inline expansion that drops down from the item card. **Not a disconnected modal**. The inspector stays visually connected to the card it belongs to, maintaining spatial context. The card expands to reveal the inspector below, pushing siblings down.
+
+**Shape**: `k-card--bite-top` on the inspector panel, even when inline. This shape consistently means "you are inspecting something."
 
 **Layout (top to bottom):**
-1. 3D Object Stage (160px, interactive rotation if GLB loaded, placeholder if not)
-2. Item name (Gamja Flower, 22px)
-3. Rarity badge + category tag
-4. Stat table (key-value rows)
-5. Lore snippet (if available)
-6. Current location ("In inventory", "Installed in CORE slot", "Listed on Market")
-7. Available actions: Install · Sell · Compare · Uninstall · Close
+1. Item name + rarity badge
+2. Category tag + brand
+3. 3D Object Stage (160px square, interactive rotation if GLB loaded)
+4. Corp branding zone (48×48 logo square + corp name)
+5. Value (market value in SEN)
+6. Stat table (key-value rows)
+7. Lore snippet (if available)
+8. Current location ("In inventory", "Installed in CORE slot", "Listed on Market")
+9. Available actions: Install · Sell · Compare · Uninstall · Close
 
 **When to open:**
-- `[INSPECT]` button in result modal
-- `[INSPECT]` button in expanded item card
-- Tap item name in inventory list
-- Tap item reference in chat
+- `[INSPECT]` button in any context → expands inline from that card
+- Tap item name in inventory list → inline expand
+- `[INSPECT]` in result modal → inspector appears inside the modal
+- Tap item reference in chat → inline expand in chat context
+
+For cross-board inspection (e.g., inspecting an item from a notification), the same layout can appear inside a modal shell.
 
 ### Level 5: Result Modal
 
 A specialized modal shown after claim/open/complete actions.
 
-**Must answer five questions:**
+**Shape**: `k-card--bite-top` + `k-card--perf`. The perforation separates the result zone (what happened) from the action zone (what to do next).
+
+**Must answer seven questions:**
 1. What did I get? → Item name + rarity + 3D stage
 2. How rare is it? → Rarity badge
 3. What does it do? → Stat summary
-4. Where did it go? → Location label: "Added to Inventory" / "Installed to Rig" / "Sent to Market" / etc.
-5. What can I do now? → `[INSPECT]` · `[INSTALL]` · `[SELL]` · `[DONE]`
+4. What is it worth? → Market value in SEN
+5. Who made it? → Corp branding zone (logo + name)
+6. Where did it go? → Location label: "Added to Inventory" / "Installed to Rig" / "Sent to Market" / etc.
+7. What can I do now? → `[INSPECT]` · `[INSTALL]` · `[SELL]` · `[DONE]`
 
-**3D reveal:** If a new item is awarded, the 3D stage animates: dark → glow border → object fade-in. Reduced motion: instant appear with glow border.
+**3D reveal:** If a new item is awarded, the 3D stage animates: dark → glow border → object fade-in. MYTH items: full-card shimmer on the result modal. Reduced motion: instant appear with glow border.
 
 ## Decision Tree: Inline vs. Modal
 

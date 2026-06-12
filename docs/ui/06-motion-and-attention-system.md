@@ -6,16 +6,20 @@ Animation is a state signal, not decoration. Every motion communicates exactly o
 
 ## Motion Budget
 
+The budget ensures consistency without being overly restrictive. The key rule: animations must communicate state, and their visual grammar (timing, easing, stroke weight) must be uniform.
+
 | Rule | Limit | Rationale |
 |------|-------|-----------|
-| Max strong shimmer per screen | 1 | Only the highest-priority ready item |
-| Max quiet active glyphs per screen | 3 | Running/prepping items show dots |
-| Max progress bars animating | 2 | Active processes only |
+| Max strong shimmer (ready) per screen | 2 | Ready items can compete for attention |
+| Max rarity shimmer (MYTH) per screen | 1 | MYTH is singular — only one shimmers, others show static gradient |
+| Max rarity pulse (MIL) per screen | 2 | MIL threat must always be visible |
+| Max quiet active glyphs per screen | 5 | Running/prepping/cooling items show dots |
+| Max progress bars animating | 3 | Active processes |
 | Idle cards animate | Never | No motion = nothing happening |
 | Blocked cards shimmer | Never | Blocked means stopped |
 | Background decoration motion | Never | No ambient particles, waves, pulses |
 
-If more than 1 item is `ready_to_claim`, only the most recent one shimmers. Others show a static green dot.
+**Consistency rule**: All animations share the same visual grammar — 1.5px stroke weight on borders/outlines, consistent easing curves, matching pulse frequencies for same-priority signals. The system stays coherent because every animation looks like it belongs to the same family, not because animations are rare.
 
 ## Motion Types
 
@@ -165,27 +169,55 @@ If more than 1 item is `ready_to_claim`, only the most recent one shimmers. Othe
 }
 ```
 
-### 9. Rarity Pulse (MIL only)
+### 9. MIL Threat Pulse (full card)
 
-**Purpose**: Signal that an item is dangerous (MIL rarity).
-**Allowed on**: Rarity badge border on MIL items.
-**Visual**: Red border pulses (opacity 0.5 → 1 → 0.5).
-**Duration**: 3s.
+**Purpose**: Signal that an item is dangerous. MIL items carry real risk (heat, corp attention). The entire card must communicate this.
+**Allowed on**: The entire card border + rarity badge. MIL gets its own unique animation, distinct from ready shimmer.
+**Visual**: Card border: 1.5px red, pulses opacity AND a red box-shadow glow (0 → 6px → 0). Rarity badge text pulses in sync. The glow is red, not violet.
+**Duration**: 3s cycle.
 **Easing**: `ease-in-out`.
 **Loop**: Yes, while MIL item is visible.
-**Intensity**: Subtle — badge only, not entire card.
-**Reduced-motion**: Static red border, no pulse.
+**Intensity**: Medium — full card border, unmistakable. Feels like a warning light, not decoration.
+**Reduced-motion**: Static red border, no pulse, no glow.
 
-### 10. MYTH Shimmer (MYTH rarity)
+```css
+@keyframes mil-threat {
+  0%, 100% { box-shadow: 0 0 0 rgba(242,71,46,0); border-color: rgba(242,71,46,.5); }
+  50% { box-shadow: 0 0 6px rgba(242,71,46,.35); border-color: rgba(242,71,46,1); }
+}
+.k-card.rar-mil {
+  border: 1.5px solid var(--clr-rar-mil);
+  animation: mil-threat 3s ease-in-out infinite;
+}
+```
 
-**Purpose**: Signal maximum rarity.
-**Allowed on**: Rarity badge on MYTH items.
-**Visual**: Multi-color gradient shifts across the badge text.
-**Duration**: 4s.
+### 10. MYTH Shimmer (full card)
+
+**Purpose**: Signal maximum rarity. MYTH is the rarest tier — the entire card surface shimmers with a multi-gradient sweep. This is the most visually premium moment in the UI.
+**Allowed on**: The entire card background. MYTH is the only rarity that takes over the full card surface.
+**Visual**: Card background is the MYTH gradient (lime → yellow → sky → violet → pink → lime). The gradient `background-position` shifts continuously, creating a slow color sweep across the surface. Card text uses ink color for contrast.
+**Duration**: 6s cycle.
 **Easing**: `linear`.
 **Loop**: Yes.
-**Intensity**: Medium — the only multi-color element in the system.
-**Reduced-motion**: Static violet text with "MYTH" label.
+**Intensity**: High — full-card shimmer, unmistakable. Max 1 MYTH shimmer on screen.
+**Reduced-motion**: Static gradient snapshot (no animation), "MYTH" label visible.
+
+```css
+@keyframes myth-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.k-card.rar-myth {
+  background: linear-gradient(
+    135deg,
+    #CDF263 0%, #F2DF4E 16%, #79A8E6 33%,
+    #B5A8F2 50%, #F2CCE3 66%, #CDF263 83%, #F2DF4E 100%
+  );
+  background-size: 300% 100%;
+  animation: myth-shimmer 6s linear infinite;
+  color: var(--ink);
+}
+```
 
 ## Category → Motion Mapping (Detail/Decode Views)
 
@@ -208,8 +240,9 @@ These are **only used in detail/decode views** (item inspector, reward reveal). 
 
 When multiple items compete for attention on one screen:
 
-1. **MIL threat** (highest): red pulse on rarity badge
-2. **Ready to claim**: green border shimmer
+1. **MYTH shimmer** (highest visual): full-card gradient shimmer (max 1)
+2. **MIL threat** (highest priority): full-card red border pulse (max 2)
+3. **Ready to claim**: green border shimmer (max 2)
 3. **Running**: lime dot + progress bar
 4. **Prepping**: lime pulse dot
 5. **Idle**: no motion (lowest)

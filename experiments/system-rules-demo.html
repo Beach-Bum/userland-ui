@@ -353,6 +353,81 @@ body{
 .swatch.light-text span{color:#fff}
 
 /* ================================================================
+   MYTH FULL-CARD SHIMMER (doc 06)
+   ================================================================ */
+@keyframes myth-shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.rar-myth{
+  background:linear-gradient(135deg,#CDF263 0%,#F2DF4E 16%,#79A8E6 33%,
+    #B5A8F2 50%,#F2CCE3 66%,#CDF263 83%,#F2DF4E 100%);
+  background-size:300% 100%;animation:myth-shimmer 6s linear infinite;
+  color:var(--ink);
+}
+
+/* ================================================================
+   MIL FULL-CARD THREAT PULSE (doc 06)
+   ================================================================ */
+@keyframes mil-threat{
+  0%,100%{box-shadow:0 0 0 rgba(242,71,46,0);border-color:rgba(242,71,46,.5)}
+  50%{box-shadow:0 0 8px rgba(242,71,46,.35);border-color:rgba(242,71,46,1)}
+}
+.rar-mil{border:1.5px solid var(--clr-rar-mil);animation:mil-threat 3s ease-in-out infinite}
+
+/* ================================================================
+   CARD SHAPES (doc 09)
+   ================================================================ */
+/* bite-top — recessed top-right corner */
+.k-card--bite-top{position:relative;overflow:hidden}
+.k-card--bite-top>.k-bitefx{position:absolute;top:0;right:0;display:block;z-index:1}
+.k-bitefx path{fill:var(--shell,var(--clr-surface-page))}
+
+/* tab-top — plateau tab rising into gap */
+.k-card--tab-top{position:relative;margin-top:16px}
+.k-card--tab-top>.k-platop{position:absolute;top:-17px;left:var(--tabx,56%);display:block}
+.k-platop path{fill:var(--tabc,var(--paper))}
+
+/* ticket — split card with perforation */
+.k-card--ticket{border-radius:var(--r-bar);padding:0;overflow:visible}
+.k-ticket__top{padding:16px 20px 12px}
+.k-ticket__bottom{padding:12px 20px 16px}
+
+/* perforation tear line */
+.k-perf{position:relative;height:0;border-top:2px dotted rgba(18,19,16,.45);margin:0}
+.k-perf::before,.k-perf::after{content:'';position:absolute;top:-8px;
+  width:15px;height:15px;border-radius:50%;background:var(--shell,var(--clr-surface-page))}
+.k-perf::before{left:-8px}.k-perf::after{right:-8px}
+
+/* underplate — depth layer behind card */
+.k-card--underplate{position:relative;z-index:1}
+.k-card--underplate::after{content:'';position:absolute;inset:0;
+  border-radius:var(--r-card);background:var(--underplate-color,var(--clr-state-idle));
+  transform:translate(4px,4px);z-index:-1}
+
+/* notch-side — punch-card left edge */
+.k-card--notch-side{clip-path:polygon(
+  0 0,100% 0,100% 100%,0 100%,
+  0 75%,8px 75%,8px 71%,0 71%,
+  0 54%,8px 54%,8px 50%,0 50%,
+  0 33%,8px 33%,8px 29%,0 29%)}
+
+/* ================================================================
+   CORP BRANDING ZONE (doc 04)
+   ================================================================ */
+.k-corp{display:flex;align-items:center;gap:10px;padding:10px 0}
+.k-corp__logo{width:48px;height:48px;border-radius:var(--r-nested);
+  background:var(--clr-surface-stage);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:800;flex:none}
+.k-corp__name{font-size:11px;font-weight:700}
+.k-corp__div{font-size:9px;opacity:.5;margin-top:2px}
+.k-card--dark .k-corp__logo,.k-card--navy .k-corp__logo{background:var(--clr-surface-stage-dark)}
+
+/* ================================================================
+   INLINE INSPECTOR (doc 04)
+   ================================================================ */
+.k-inspector{margin-top:6px;border-radius:var(--r-card);padding:var(--pad);
+  background:var(--paper);position:relative}
+.k-inspector.k-card--bite-top{overflow:hidden}
+
+/* ================================================================
    REDUCED MOTION
    ================================================================ */
 @media(prefers-reduced-motion:reduce){
@@ -361,6 +436,8 @@ body{
   .k-sheet-overlay,.k-sheet{transition:none !important}
   .state-chip .dot,.board-dot,.k-rar--mil,.is-ready-card{animation:none !important}
   .k-progress.is-scan i{animation:none !important;width:100%;opacity:.3}
+  .rar-myth{animation:none !important;background-size:100% 100%}
+  .rar-mil{animation:none !important;border-color:var(--clr-rar-mil)}
 }
 </style>
 </head>
@@ -711,6 +788,197 @@ body{
         <span class="state-chip is-idle"><span class="dot"></span>IDLE</span>
       </div>
       <p class="t-micro t-dim" style="margin-top:4px">No motion — idle cards are static</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 8: MYTH & MIL FULL-CARD RARITY
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Rarity: MYTH & MIL</h2>
+  <p class="note">MYTH shimmers the entire card surface. MIL pulses the entire card border. These are the only rarities with full-card visual treatment. (doc 01, 06)</p>
+
+  <div class="card-stack">
+    <div class="k-card rar-myth" data-expand data-card-type="action" style="padding:16px">
+      <span class="k-xhint" style="color:var(--ink)">▾</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700">VOID RESONATOR</div>
+          <div class="t-micro" style="margin-top:2px;opacity:.7">CORE · NEXUS · Hack +42</div>
+        </div>
+        <span class="k-rar" style="font-weight:800;letter-spacing:.1em">MYTH</span>
+      </div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <div class="k-xd-sep" style="background:rgba(18,19,16,.2)"></div>
+        <div class="k-xd-stage" style="height:120px;margin-bottom:12px;border:2px solid var(--clr-reveal);box-shadow:0 0 20px rgba(181,168,242,.3)">
+          <div class="stage-icon">◈</div>
+          <span class="t-micro">3D · MYTH reveal</span>
+        </div>
+        <div class="k-corp">
+          <div class="k-corp__logo">NXS</div>
+          <div><div class="k-corp__name">NEXUS CORP</div><div class="k-corp__div">Deep Research Division</div></div>
+        </div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Value</span><span class="t-body"><b>12,400 SEN</b></span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Stat</span><span class="t-body">Hack +42</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Location</span><span class="t-body" style="color:var(--clr-fb-ok)">Inventory</span></div>
+        <div class="sc-row" style="margin-top:14px;gap:6px">
+          <button class="k-pill k-pill--sm act-primary" style="flex:1">INSTALL</button>
+          <button class="k-pill k-pill--sm k-pill--ghost" style="flex:1">INSPECT</button>
+        </div>
+      </div></div></div>
+    </div>
+
+    <div class="k-card rar-mil" data-expand data-card-type="risk" style="padding:16px">
+      <span class="k-xhint" style="color:var(--clr-danger)">▾</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700"><span class="k-risk-pip"></span>BLACK ICE WALL</div>
+          <div class="t-micro t-dim" style="margin-top:2px">ICE · FRNT · Block +40</div>
+        </div>
+        <span class="k-rar k-rar--mil">MIL</span>
+      </div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <div class="k-xd-sep"></div>
+        <div class="k-xd-stage" style="height:100px;margin-bottom:12px">
+          <div class="stage-icon">▣</div>
+          <span class="t-micro">3D preview</span>
+        </div>
+        <div class="k-corp">
+          <div class="k-corp__logo" style="background:rgba(242,71,46,.15);color:var(--clr-danger)">FRNT</div>
+          <div><div class="k-corp__name">FRONTIER DEFENSE</div><div class="k-corp__div">Military Contractor</div></div>
+        </div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Value</span><span class="t-body"><b>1,800 SEN</b></span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Heat on equip</span><span class="t-body" style="color:var(--clr-danger)">+22</span></div>
+        <div class="k-xd-result k-xd-result--fail" style="margin-top:8px">
+          <span class="t-label" style="color:var(--clr-fb-fail)">WARNING</span>
+          <span class="t-micro">MIL item — equipping raises corp heat</span>
+        </div>
+      </div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 9: CARD SHAPES
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Card Shapes</h2>
+  <p class="note">Six shape modifiers from a fixed vocabulary. Each shape identifies interaction type. (doc 09)</p>
+
+  <div class="card-stack">
+    <!-- BITE TOP — modal identity -->
+    <div class="k-card k-card--bite-top" style="padding:16px">
+      <svg class="k-bitefx" width="66" height="22" viewBox="0 0 66 22" aria-hidden="true"><path d="M0 0 H54 Q66 0 66 12 L66 22 H12 Q0 22 0 10 Z" fill="var(--clr-surface-page)"/></svg>
+      <div class="t-label" style="margin-bottom:4px">BITE-TOP</div>
+      <p class="t-micro t-dim" style="text-transform:none;letter-spacing:0;font-weight:400">Modals, inspector panels, premium surfaces. The signature Userland shape.</p>
+    </div>
+
+    <!-- TAB TOP — causal chain -->
+    <div class="k-card k-card--tab-top" style="padding:16px;--tabc:var(--clr-cat-bus)">
+      <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
+      <div class="t-label" style="margin-bottom:4px">TAB-TOP</div>
+      <p class="t-micro t-dim" style="text-transform:none;letter-spacing:0;font-weight:400">Causal chains: rig slots, run→reward→item sequences. "This follows from that."</p>
+    </div>
+
+    <!-- TICKET + PERF -->
+    <div class="k-card k-card--ticket" style="overflow:visible">
+      <div class="k-ticket__top">
+        <div class="sc-row" style="justify-content:space-between">
+          <div class="t-label">TICKET + PERF</div>
+          <span class="k-rar k-rar--rare">RARE</span>
+        </div>
+        <p class="t-micro t-dim" style="margin-top:4px;text-transform:none;letter-spacing:0;font-weight:400">Tradeable items, market listings, run entry passes.</p>
+      </div>
+      <div class="k-perf"></div>
+      <div class="k-ticket__bottom">
+        <div class="t-micro t-dim">SN: JDN-0482-LENS · GHOST LENS</div>
+      </div>
+    </div>
+
+    <!-- UNDERPLATE -->
+    <div class="k-card k-card--underplate" style="padding:16px;--underplate-color:var(--clr-rar-leg)">
+      <div class="t-label" style="margin-bottom:4px">UNDERPLATE</div>
+      <p class="t-micro t-dim" style="text-transform:none;letter-spacing:0;font-weight:400">Premium/high-rarity items. Depth layer behind card in rarity color. LEG shown here.</p>
+    </div>
+
+    <!-- NOTCH SIDE -->
+    <div class="k-card k-card--notch-side" style="padding:16px 16px 16px 20px">
+      <div class="t-label" style="margin-bottom:4px">NOTCH-SIDE</div>
+      <p class="t-micro t-dim" style="text-transform:none;letter-spacing:0;font-weight:400">Rig components. Punch-card notches = "this plugs into a system."</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 10: INLINE INSPECTOR WITH CORP BRANDING
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Inline Inspector</h2>
+  <p class="note">Inspector drops down from the item card, staying connected. Shows 3D stage (square), corp branding zone, value, stats, lore. Bite-top shape = "you are inspecting." (doc 04)</p>
+
+  <div class="card-stack">
+    <div class="k-card" data-expand data-card-type="action" style="padding:16px">
+      <span class="k-xhint">▾</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div class="sc-row" style="gap:8px">
+          <div class="k-ava" style="background:var(--clr-cat-lens);width:28px;height:28px;font-size:10px">◆</div>
+          <div>
+            <div class="t-body" style="font-weight:700">GHOST LENS</div>
+            <div class="t-micro t-dim" style="margin-top:1px">Rare · UOPT · 480 SEN</div>
+          </div>
+        </div>
+        <span class="k-rar k-rar--rare">RARE</span>
+      </div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:6px">
+        <!-- inline inspector panel with bite-top shape -->
+        <div class="k-inspector k-card--bite-top" style="margin-top:10px">
+          <svg class="k-bitefx" width="66" height="22" viewBox="0 0 66 22" aria-hidden="true"><path d="M0 0 H54 Q66 0 66 12 L66 22 H12 Q0 22 0 10 Z" fill="var(--clr-surface-page)"/></svg>
+          <div class="sc-row" style="justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div class="t-title">GHOST LENS</div>
+              <div class="sc-row" style="gap:6px;margin-top:2px">
+                <span class="t-micro" style="padding:2px 6px;border-radius:var(--r-pill);background:var(--clr-cat-lens);font-size:8px">LENS</span>
+                <span class="t-micro t-dim">UOPT</span>
+              </div>
+            </div>
+            <span class="k-rar k-rar--rare">RARE</span>
+          </div>
+
+          <!-- 3D stage (square) -->
+          <div class="k-xd-stage" style="height:160px;aspect-ratio:1;margin-bottom:14px">
+            <div class="stage-icon">◆</div>
+            <span class="t-micro">3D · drag to rotate</span>
+          </div>
+
+          <!-- corp branding zone -->
+          <div class="k-corp">
+            <div class="k-corp__logo" style="background:var(--clr-cat-lens)">UOPT</div>
+            <div><div class="k-corp__name">UOPT CORPORATION</div><div class="k-corp__div">Jadenet Division</div></div>
+          </div>
+
+          <div class="k-xd-sep" style="margin:8px 0"></div>
+
+          <div class="k-xd-stat"><span class="t-micro t-dim">Value</span><span class="t-body"><b>480 SEN</b></span></div>
+          <div class="k-xd-stat"><span class="t-micro t-dim">Category</span><span class="t-body">LENS</span></div>
+          <div class="k-xd-stat"><span class="t-micro t-dim">Slot</span><span class="t-body">LENS</span></div>
+          <div class="k-xd-stat"><span class="t-micro t-dim">Stat</span><span class="t-body">Scan +16</span></div>
+          <div class="k-xd-stat"><span class="t-micro t-dim">Location</span><span class="t-body" style="color:var(--clr-fb-ok)">Inventory</span></div>
+
+          <div class="k-xd-sep" style="margin:8px 0"></div>
+
+          <p class="t-micro t-dim" style="line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400">
+            Spectral scanner from the Jadenet surplus. Sees through standard firewalls.
+            Jadenet corp techs swear it can detect thermal signatures through three walls of ICE.
+          </p>
+
+          <div class="sc-row" style="margin-top:14px;gap:6px">
+            <button class="k-pill k-pill--sm act-primary" style="flex:1">INSTALL</button>
+            <button class="k-pill k-pill--sm k-pill--ghost" style="flex:1">SELL</button>
+            <button class="k-pill k-pill--sm k-pill--ghost" style="flex:1">CLOSE</button>
+          </div>
+        </div>
+      </div></div></div>
     </div>
   </div>
 </div>

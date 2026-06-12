@@ -26,7 +26,7 @@ The universal card container. Handles expand/collapse, state visualization, card
 
 | Property | Detail |
 |----------|--------|
-| **Props/assigns** | `card_type` (`:info \| :action \| :risk`), `state` (object state atom), `rarity` (atom), `category` (atom), `expandable` (boolean) |
+| **Props/assigns** | `card_type` (`:info \| :action \| :risk`), `state` (object state atom), `rarity` (atom), `category` (atom), `expandable` (boolean), `shape` (atom or list: `:plain \| :bite_top \| :tab_top \| :ticket \| :underplate \| :notch_side \| :perf`) |
 | **States** | All 12 object states via `.is-{state}` classes |
 | **Slots** | `collapsed` (always visible), `peek` (first expand content), `detail` (full expand), `result` (post-action state) |
 | **CSS class** | `.k-card` + color modifier + `[data-expand]` + `[data-card-type]` + `[data-state]` |
@@ -83,17 +83,18 @@ The bottom-sheet overlay container.
 
 ### ItemInspector
 
-Specialized modal for item examination. Built on ModalShell.
+Inline dropdown for deep item examination. Expands from the item card, staying spatially connected. Uses `k-card--bite-top` shape.
 
 | Property | Detail |
 |----------|--------|
-| **Props/assigns** | `item` (item struct with all fields from doc 04) |
-| **States** | ModalShell states |
+| **Props/assigns** | `item` (item struct with all fields from doc 04, including `value`, `brand_logo`) |
+| **States** | Expanded/collapsed (inline) or open/closed (when inside modal) |
 | **Slots** | N/A (structured layout) |
-| **CSS class** | `.k-sheet` + `.k-inspector` |
-| **Layout** | 3D stage → name → rarity + category → stats → lore → location → actions |
+| **CSS class** | `.k-inspector` + `.k-card--bite-top` |
+| **Layout** | Name + rarity → category + brand → 3D stage (square) → corp branding zone (logo square + name) → value → stats → lore → location → actions |
+| **Shape** | Always `k-card--bite-top` — consistent "inspection" identity |
 | **Use when** | `[INSPECT]` button tapped from any context |
-| **Don't use** | Quick item preview (use inline expand) |
+| **Don't use** | Quick item preview (use inline expand peek) |
 
 ### ResultModal
 
@@ -229,10 +230,33 @@ Applied alongside state classes to control animation budget:
 | Class | Visual | When applied |
 |-------|--------|--------------|
 | `.attn-none` | No animation | idle, claimed, expired |
-| `.attn-dot` | Quiet dot blink | prepping, running |
-| `.attn-shimmer` | Border glow pulse | ready_to_claim (max 1 per screen) |
-| `.attn-alert` | Red pulse | MIL threat, heat critical |
+| `.attn-dot` | Quiet dot blink | prepping, running, cooling |
+| `.attn-shimmer` | Border glow pulse | ready_to_claim (max 2 per screen) |
+| `.attn-alert` | Full-card red border pulse | MIL rarity, heat critical (max 2) |
+| `.attn-myth` | Full-card gradient shimmer | MYTH rarity (max 1 per screen) |
 | `.attn-sync` | Scan animation | syncing |
+
+## Rarity Classes
+
+Applied to BentoCard when rarity has visual card-level effects:
+
+| Class | Visual | Notes |
+|-------|--------|-------|
+| `.rar-mil` | Full-card red border + pulse animation | Own animation, distinct from ready shimmer |
+| `.rar-myth` | Full-card gradient shimmer background | Only rarity that takes over card surface |
+
+## Shape Classes (doc 09)
+
+Applied to BentoCard or ModalShell for structural shape identity:
+
+| Class | Visual | Meaning |
+|-------|--------|---------|
+| `.k-card--bite-top` | Recessed top-right corner (SVG fillet) | Modals, inspector, premium surfaces |
+| `.k-card--tab-top` | Plateau tab rising into gap above | Causal chain (run→reward→item) |
+| `.k-card--ticket` | Perforation splits card into top/bottom halves | Tradeable/bearer items |
+| `.k-card--underplate` | Second surface layer offset behind card | Premium/high-rarity items |
+| `.k-card--notch-side` | Rectangular notches cut into left edge | Installed rig components |
+| `.k-card--perf` | Horizontal tear line within card | Detachable/claim zone separator |
 
 ## Data Attributes
 
@@ -244,6 +268,7 @@ Applied alongside state classes to control animation budget:
 | `data-category` | Category enum | Item/rig category |
 | `data-action-state` | Action state enum | Current CTA state |
 | `data-card-type` | `info \| action \| risk` | Card interaction pattern |
+| `data-shape` | Shape class(es) | Card shape modifier |
 | `data-expand` | (presence) | Card is expandable |
 
 ## Implementation Rules
