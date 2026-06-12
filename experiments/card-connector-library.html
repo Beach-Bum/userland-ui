@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USERLAND — MONO ATOMIC SYSTEM</title>
+<style>
+/* ============================================================
+   USERLAND MONO ATOMIC SYSTEM
+   atoms → molecules → organisms → board templates
+   Grounded in docs 01–07 (userland_documentation_organization_v1)
+   One ink. One bone. One font. One weight. 1px keylines.
+   ============================================================ */
+
+/* ---------- 00 TOKENS (the only decisions) ---------- */
+:root{
+  --bone:#e8e5dc;          /* shell background */
+  --paper:#f5f4f0;         /* card surface */
+  --ink:#2a2a2a;           /* text + lines */
+  --black:#1a1a1a;         /* inverted surface */
+  --line:rgba(42,42,42,.16);   /* keyline 1px */
+  --line-soft:rgba(42,42,42,.08);
+  --ink2:rgba(42,42,42,.45);   /* secondary text */
+  --ink3:rgba(42,42,42,.28);   /* tertiary text */
+  --fill:rgba(42,42,42,.05);   /* recessed fill */
+  --u:4px;                 /* base unit */
+  --gap:6px;               /* phone gutter */
+  --pad:16px;              /* card padding (tightened from 20) */
+  --r:12px;                /* card radius */
+  --r2:8px;                /* nested radius */
+  --rp:999px;              /* pill */
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Space Mono',ui-monospace,monospace;font-weight:400}
+b,strong{font-weight:400}
+@font-face{font-family:'Space Mono';src:local('Space Mono'),local('SpaceMono-Regular')}
+body{background:var(--bone);color:var(--ink);padding:40px 24px 120px;-webkit-font-smoothing:antialiased}
+
+/* ---------- TYPE SCALE (6 sizes, one weight) ---------- */
+.t-num-xl{font-size:56px;line-height:.95;letter-spacing:-.03em}
+.t-num{font-size:36px;line-height:1;letter-spacing:-.02em}
+.t-num-s{font-size:22px;line-height:1;letter-spacing:-.01em}
+.t-body{font-size:13px;line-height:1.45}
+.t-label{font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.t-micro{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+
+/* ============================================================
+   01 ATOMS
+   ============================================================ */
+
+/* surface */
+.a-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:var(--pad)}
+.a-card--ink{background:var(--black);border-color:var(--black);color:var(--bone)}
+.a-card--ink .t-micro{color:rgba(232,229,220,.5)}
+.a-card--flat{background:transparent;border:1px solid var(--line)}
+.a-well{background:var(--fill);border-radius:var(--r2);padding:10px 12px}
+
+/* pill button: 3 variants only */
+.a-pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:var(--rp);
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:9px 18px;cursor:pointer;user-select:none;
+  border:1px solid var(--ink);background:transparent;color:var(--ink);white-space:nowrap}
+.a-pill--solid{background:var(--ink);color:var(--bone)}
+.a-pill--ghost{border-color:var(--line);color:var(--ink2)}
+.a-pill--sm{padding:5px 12px;font-size:9.5px}
+.a-pill:active{transform:translateY(1px)}
+
+/* round control (±, close, icon) */
+.a-rc{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer}
+.a-rc--solid{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+
+/* chip = state. one shape, inverted when active/alive */
+.a-chip{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:var(--rp);
+  padding:3px 9px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.a-chip--on{background:var(--ink);border-color:var(--ink);color:var(--bone)}
+
+/* tag = category/meta. square-ish, no border emphasis */
+.a-tag{display:inline-block;background:var(--fill);border-radius:4px;padding:2px 7px;
+  font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+
+/* dot = liveness */
+.a-dot{width:6px;height:6px;border-radius:50%;background:var(--ink);display:inline-block}
+.a-dot--pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.a-dot--off{background:var(--ink3)}
+
+/* toggle */
+.a-tog{width:38px;height:22px;border-radius:var(--rp);border:1px solid var(--line);position:relative;cursor:pointer;background:transparent;flex:none}
+.a-tog::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--ink3);transition:.15s}
+.a-tog--on{background:var(--ink);border-color:var(--ink)}
+.a-tog--on::after{left:19px;background:var(--bone)}
+
+/* progress bar */
+.a-bar{height:3px;background:var(--line-soft);border-radius:2px;overflow:hidden}
+.a-bar>i{display:block;height:100%;background:var(--ink);border-radius:2px}
+.a-bar--seg{display:flex;gap:3px;height:4px;background:none}
+.a-bar--seg>i{flex:1;background:var(--line-soft);border-radius:2px;height:100%}
+.a-bar--seg>i.on{background:var(--ink)}
+
+/* ring (SVG pattern, used by molecules) */
+.a-ring{transform:rotate(-90deg)}
+.a-ring circle{fill:none;stroke-width:2}
+.a-ring .bg{stroke:var(--line-soft)}
+.a-ring .fg{stroke:var(--ink);stroke-linecap:round}
+
+/* dotted leader */
+.a-lead{flex:1;border-bottom:1px dotted var(--ink3);margin:0 8px;transform:translateY(-3px)}
+
+/* rarity: text-only ladder. MIL inverts, MYTH outlines double. no color. */
+.a-rar{display:inline-block;border:1px solid var(--line);border-radius:4px;padding:2px 6px;font-size:9px;letter-spacing:.12em}
+.a-rar--brk{color:var(--ink3);border-style:dashed}
+.a-rar--mil{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+.a-rar--myth{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--line)}
+
+/* slot glyphs: 6 categories, pure geometry */
+.a-gl{width:18px;height:18px;flex:none;display:inline-block}
+.a-gl line,.a-gl circle,.a-gl rect,.a-gl path{stroke:currentColor;fill:none;stroke-width:1.2}
+
+/* divider */
+.a-sep{height:1px;background:var(--line-soft);margin:12px 0}
+
+/* ============================================================
+   02 MOLECULES
+   ============================================================ */
+
+/* key-value with dotted leader */
+.m-kv{display:flex;align-items:baseline;font-size:11px}
+.m-kv .k{color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;font-size:9.5px}
+.m-kv .v{white-space:nowrap}
+
+/* stat: label over number */
+.m-stat .t-micro{display:block;margin-bottom:4px}
+.m-stat .u{font-size:12px;color:var(--ink2);margin-left:2px}
+
+/* statline: pill row with ring percent (control-panel pattern) */
+.m-statline{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:var(--rp);padding:8px 12px 8px 16px}
+.m-statline .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;flex:1}
+.m-statline .pct{font-size:10px;color:var(--ink2)}
+
+/* list row: the workhorse. title+meta left, value/action right */
+.m-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.m-row:last-child{border-bottom:0}
+.m-row .tt{font-size:12px}
+.m-row .mt{font-size:9px;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+.m-row .val{margin-left:auto;text-align:right;font-size:12px;white-space:nowrap}
+.m-row .val .mt{margin-top:2px}
+
+/* meter: label + bar + value */
+.m-meter{display:flex;align-items:center;gap:10px}
+.m-meter .t-micro{width:42px;flex:none}
+.m-meter .a-bar{flex:1}
+.m-meter .v{font-size:10px;width:34px;text-align:right;flex:none}
+
+/* timer */
+.m-timer{display:flex;align-items:baseline;gap:8px}
+.m-timer .t-num-s{font-variant-numeric:tabular-nums}
+
+/* chat bubble */
+.m-bub{max-width:80%;border:1px solid var(--line);border-radius:14px;border-bottom-left-radius:4px;padding:8px 12px;font-size:12px;background:var(--paper)}
+.m-bub--me{margin-left:auto;background:var(--ink);color:var(--bone);border-color:var(--ink);border-radius:14px;border-bottom-right-radius:4px}
+.m-bub .who{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);margin-bottom:3px}
+.m-bub--me .who{color:rgba(232,229,220,.5)}
+
+/* embedded object card inside chat (item/run/profile link) */
+.m-embed{border:1px solid var(--line);border-radius:var(--r2);padding:8px 10px;margin-top:6px;background:var(--paper);color:var(--ink);display:flex;align-items:center;gap:8px}
+
+/* input */
+.m-input{display:flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:var(--rp);padding:4px 4px 4px 14px}
+.m-input input{flex:1;border:0;background:none;outline:none;font-size:12px;color:var(--ink)}
+
+/* alert / toast: always ink */
+.m-toast{background:var(--black);color:var(--bone);border-radius:var(--r);padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:11px}
+
+/* ring% composite */
+.m-ring{position:relative;width:34px;height:34px;flex:none}
+.m-ring .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8.5px}
+
+/* ============================================================
+   03 ORGANISMS
+   ============================================================ */
+
+/* top zone: global contract — identity + SEN/HEAT/RIG/CREW */
+.o-top{display:flex;flex-direction:column;gap:8px}
+.o-top .id{display:flex;align-items:center;gap:8px}
+.o-top .id .board{margin-left:auto}
+.o-strip{display:flex;border:1px solid var(--line);border-radius:var(--rp);overflow:hidden}
+.o-strip>div{flex:1;text-align:center;padding:7px 4px;border-right:1px solid var(--line-soft)}
+.o-strip>div:last-child{border-right:0}
+.o-strip .n{font-size:13px}
+.o-strip .t-micro{display:block;margin-top:1px;font-size:8px}
+
+/* bottom zone: action bar (max 3) + tabbar (6) */
+.o-actions{display:flex;gap:6px}
+.o-actions .a-pill{flex:1}
+.o-tabbar{display:flex;border:1px solid var(--line);border-radius:var(--rp);overflow:hidden;background:var(--paper)}
+.o-tabbar>div{flex:1;text-align:center;padding:9px 0;font-size:9px;letter-spacing:.1em;color:var(--ink2);cursor:pointer;border-right:1px solid var(--line-soft)}
+.o-tabbar>div:last-child{border-right:0}
+.o-tabbar .on{background:var(--ink);color:var(--bone)}
+
+/* card disclosure: collapsed → peek → expanded (doc 03 levels 0–2) */
+.o-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px var(--pad)}
+.o-card .head{display:flex;align-items:center;gap:8px}
+.o-card .head .a-chip{margin-left:auto}
+.o-card .peek{margin-top:10px}
+.o-card .more{margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft)}
+
+/* sheet/modal: flat top card, no shaped edges */
+.o-sheet{background:var(--paper);border:1px solid var(--line);border-radius:var(--r) var(--r) 0 0;padding:10px var(--pad) var(--pad)}
+.o-sheet .grab{width:32px;height:3px;border-radius:2px;background:var(--line);margin:0 auto 12px}
+.o-sheet .shead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.o-sheet .shead .x{margin-left:auto}
+
+/* rig stack: 6 slots */
+.o-rig .m-row{padding:9px 0}
+
+/* hero: big number + controls + context (thermostat pattern) */
+.o-hero{text-align:center;padding:20px var(--pad)}
+.o-hero .ctl{display:flex;align-items:center;justify-content:center;gap:20px;margin-top:12px}
+
+/* phone frame */
+.phone{width:360px;background:var(--bone);border:1px solid var(--line);border-radius:28px;padding:14px 10px 10px;display:flex;flex-direction:column;gap:var(--gap);min-height:680px}
+.phone .mid{flex:1;display:flex;flex-direction:column;gap:var(--gap);overflow:hidden}
+.phone .bot{display:flex;flex-direction:column;gap:var(--gap)}
+
+/* ---------- spec page chrome ---------- */
+.wrap{max-width:1240px;margin:0 auto}
+h1.spec{font-size:20px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.spec-sub{font-size:11px;color:var(--ink2);margin-bottom:36px;max-width:640px;line-height:1.6}
+h2.spec{font-size:11px;letter-spacing:.16em;text-transform:uppercase;border-top:1px solid var(--line);padding-top:14px;margin:48px 0 4px}
+.answers{font-size:9px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px}
+.grid{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.cell{display:flex;flex-direction:column;gap:8px}
+.cell>.t-micro{margin-bottom:2px}
+.swatch{width:72px;height:48px;border-radius:var(--r2);border:1px solid var(--line)}
+.boards{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1 class="spec">USERLAND / MONO ATOMIC SYSTEM</h1>
+<p class="spec-sub">One ink, one bone, one font, one weight. 13 atoms compose 10 molecules compose 8 organisms compose 6 boards. Every component answers a line in docs 01–07. Nothing decorative survives. State = inversion. Hierarchy = size + spacing. Liveness = one pulsing dot.</p>
+
+<!-- ================= 01 ATOMS ================= -->
+<h2 class="spec">01 — Atoms</h2>
+<div class="answers">answers: 05 type contract (mono port) · 05 shape language · 02 rarity ladder · 02 slots</div>
+
+<div class="grid">
+  <div class="cell"><span class="t-micro">surface</span>
+    <div class="grid">
+      <div class="cell"><div class="swatch" style="background:var(--bone)"></div><span class="t-micro">bone E8E5DC</span></div>
+      <div class="cell"><div class="swatch" style="background:var(--paper)"></div><span class="t-micro">paper F5F4F0</span></div>
+      <div class="cell"><div class="swatch" style="background:var(--ink)"></div><span class="t-micro">ink 2A2A2A</span></div>
+      <div class="cell"><div class="swatch" style="background:var(--black)"></div><span class="t-micro">black 1A1A1A</span></div>
+    </div>
+  </div>
+  <div class="cell" style="min-width:300px"><span class="t-micro">type — space mono 400 only</span>
+    <div class="t-num-xl">2,418</div>
+    <div class="t-num">68.2</div>
+    <div class="t-num-s">03:42</div>
+    <div class="t-body">Body copy reads at thirteen pixels.</div>
+    <div class="t-label">Label eleven caps</div>
+    <div class="t-micro">Micro nine caps secondary</div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:24px">
+  <div class="cell"><span class="t-micro">pill ×3</span>
+    <div style="display:flex;gap:6px">
+      <button class="a-pill a-pill--solid">Run</button>
+      <button class="a-pill">Prep</button>
+      <button class="a-pill a-pill--ghost">Cancel</button>
+    </div>
+  </div>
+  <div class="cell"><span class="t-micro">round control</span>
+    <div style="display:flex;gap:6px">
+      <button class="a-rc">−</button><button class="a-rc a-rc--solid">+</button><button class="a-rc">✕</button>
+    </div>
+  </div>
+  <div class="cell"><span class="t-micro">chip = state</span>
+    <div style="display:flex;gap:6px">
+      <span class="a-chip">idle</span>
+      <span class="a-chip a-chip--on"><span class="a-dot a-dot--pulse" style="background:var(--bone)"></span>running</span>
+      <span class="a-chip">ready</span>
+    </div>
+  </div>
+  <div class="cell"><span class="t-micro">tag = meta</span>
+    <div style="display:flex;gap:6px"><span class="a-tag">core</span><span class="a-tag">jadenet</span><span class="a-tag">zone-7</span></div>
+  </div>
+  <div class="cell"><span class="t-micro">toggle</span>
+    <div style="display:flex;gap:6px"><button class="a-tog"></button><button class="a-tog a-tog--on"></button></div>
+  </div>
+  <div class="cell"><span class="t-micro">dot</span>
+    <div style="display:flex;gap:10px;align-items:center"><span class="a-dot a-dot--pulse"></span><span class="a-dot"></span><span class="a-dot a-dot--off"></span></div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:24px">
+  <div class="cell" style="width:220px"><span class="t-micro">bar / segments</span>
+    <div class="a-bar"><i style="width:64%"></i></div>
+    <div class="a-bar--seg a-bar"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+  </div>
+  <div class="cell"><span class="t-micro">rarity ladder — MIL inverts, MYTH double-ring, BRK dashed</span>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">
+      <span class="a-rar a-rar--brk">BRK</span><span class="a-rar">COM</span><span class="a-rar">TUN</span><span class="a-rar">RARE</span>
+      <span class="a-rar">LEG</span><span class="a-rar">EPIC</span><span class="a-rar a-rar--mil">MIL</span><span class="a-rar a-rar--myth">MYTH</span>
+    </div>
+  </div>
+  <div class="cell"><span class="t-micro">slot glyphs core·lens·port·bus·ice·skin</span>
+    <div style="display:flex;gap:10px">
+      <svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><circle cx="9" cy="9" r="2"/></svg>
+      <svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><line x1="9" y1="3" x2="9" y2="15"/></svg>
+      <svg class="a-gl" viewBox="0 0 18 18"><rect x="4" y="4" width="10" height="10" rx="2"/><line x1="14" y1="9" x2="18" y2="9"/></svg>
+      <svg class="a-gl" viewBox="0 0 18 18"><path d="M3 13 L8 13 L8 5 L15 5"/><circle cx="3" cy="13" r="1.5"/><circle cx="15" cy="5" r="1.5"/></svg>
+      <svg class="a-gl" viewBox="0 0 18 18"><path d="M9 2 L15 5 L15 11 L9 16 L3 11 L3 5 Z"/></svg>
+      <svg class="a-gl" viewBox="0 0 18 18"><path d="M2 12 Q6 6 9 9 Q12 12 16 6"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 02 MOLECULES ================= -->
+<h2 class="spec">02 — Molecules</h2>
+<div class="answers">answers: 04 must-show lists · 03 journeys 2–6 · 05 dotted leaders</div>
+
+<div class="grid">
+  <div class="a-card" style="width:300px">
+    <span class="t-micro">m-kv dotted leader</span>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:7px">
+      <div class="m-kv"><span class="k">slot</span><span class="a-lead"></span><span class="v">CORE</span></div>
+      <div class="m-kv"><span class="k">corp</span><span class="a-lead"></span><span class="v">Paradise Systems</span></div>
+      <div class="m-kv"><span class="k">stat</span><span class="a-lead"></span><span class="v">+14 breach</span></div>
+      <div class="m-kv"><span class="k">risk</span><span class="a-lead"></span><span class="v">heat +6</span></div>
+    </div>
+  </div>
+
+  <div class="a-card" style="width:300px">
+    <span class="t-micro">m-statline ring%</span>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+      <div class="m-statline"><span class="lbl">Rig integrity</span><span class="pct">92%</span>
+        <span class="m-ring"><svg class="a-ring" width="34" height="34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="7"/></svg></span></div>
+      <div class="m-statline"><span class="lbl">Heat</span><span class="pct">31%</span>
+        <span class="m-ring"><svg class="a-ring" width="34" height="34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="61"/></svg></span></div>
+      <div class="m-statline"><span class="lbl">Trace</span><span class="pct">8%</span>
+        <span class="m-ring"><svg class="a-ring" width="34" height="34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="81"/></svg></span></div>
+    </div>
+  </div>
+
+  <div class="a-card" style="width:320px">
+    <span class="t-micro">m-row item / market / schedule variants</span>
+    <div class="m-row">
+      <svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><line x1="9" y1="3" x2="9" y2="15"/></svg>
+      <div><div class="tt">Jade Optic v3</div><div class="mt">lens · jadenet</div></div>
+      <div class="val">1,800 <div class="mt">sen</div></div>
+      <span class="a-rar">RARE</span>
+    </div>
+    <div class="m-row">
+      <span class="a-dot a-dot--pulse"></span>
+      <div><div class="tt">PSYS</div><div class="mt">paradise systems</div></div>
+      <div class="val">142.6 <div class="mt">▲ 4.2%</div></div>
+    </div>
+    <div class="m-row">
+      <div><div class="tt">Night sweep</div><div class="mt">23:00 – 04:00 · auto</div></div>
+      <button class="a-tog a-tog--on" style="margin-left:auto"></button>
+    </div>
+  </div>
+
+  <div class="a-card" style="width:300px">
+    <span class="t-micro">m-meter</span>
+    <div style="margin-top:10px;display:flex;flex-direction:column;gap:9px">
+      <div class="m-meter"><span class="t-micro">heat</span><div class="a-bar"><i style="width:31%"></i></div><span class="v">31</span></div>
+      <div class="m-meter"><span class="t-micro">trace</span><div class="a-bar"><i style="width:8%"></i></div><span class="v">08</span></div>
+      <div class="m-meter"><span class="t-micro">aura</span><div class="a-bar"><i style="width:74%"></i></div><span class="v">74</span></div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:300px"><span class="t-micro">m-bub + m-embed (NET chat, item link)</span>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="m-bub"><div class="who">vexa_9</div>selling this before the sweep
+        <div class="m-embed"><svg class="a-gl" viewBox="0 0 18 18"><path d="M9 2 L15 5 L15 11 L9 16 L3 11 L3 5 Z"/></svg>
+          <div style="flex:1"><div style="font-size:11px">Null Hex ICE</div><div class="t-micro">ice · 950 sen</div></div>
+          <span class="a-rar">TUN</span></div>
+      </div>
+      <div class="m-bub m-bub--me">hold it. claiming my run payout now</div>
+      <div class="m-input"><input placeholder="message crew…"><button class="a-rc a-rc--solid" style="width:30px;height:30px">→</button></div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:300px"><span class="t-micro">m-toast (alert)</span>
+    <div class="m-toast"><span class="a-dot a-dot--pulse" style="background:var(--bone)"></span>Cache decrypted — Zone 7<button class="a-pill a-pill--sm" style="margin-left:auto;border-color:rgba(232,229,220,.4);color:var(--bone)">View</button></div>
+  </div>
+</div>
+
+<!-- ================= 03 ORGANISMS ================= -->
+<h2 class="spec">03 — Organisms</h2>
+<div class="answers">answers: 04 three-zone contract · 03 card disclosure L0–L2 · 04 modals · 01 rig system</div>
+
+<div class="grid">
+  <div class="cell" style="width:340px"><span class="t-micro">o-top — global top zone (every board)</span>
+    <div class="a-card" style="padding:12px var(--pad)">
+      <div class="o-top">
+        <div class="id">
+          <span class="a-dot a-dot--pulse"></span>
+          <span class="t-body">0xBONE</span>
+          <span class="t-micro">ghost build</span>
+          <span class="a-tag board">NOW</span>
+        </div>
+        <div class="o-strip">
+          <div><div class="n">2,418</div><span class="t-micro">sen</span></div>
+          <div><div class="n">31</div><span class="t-micro">heat</span></div>
+          <div><div class="n">92%</div><span class="t-micro">rig</span></div>
+          <div><div class="n">4</div><span class="t-micro">crew</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:340px"><span class="t-micro">o-actionbar + o-tabbar — global bottom zone</span>
+    <div class="o-actions">
+      <button class="a-pill a-pill--solid">Run</button>
+      <button class="a-pill">Claim</button>
+      <button class="a-pill a-pill--ghost">View</button>
+    </div>
+    <div class="o-tabbar">
+      <div class="on">NOW</div><div>MAP</div><div>RUNS</div><div>SOUL</div><div>MKT</div><div>NET</div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:340px"><span class="t-micro">o-card — L0 collapsed → L1 peek → L2 expanded</span>
+    <div class="o-card">
+      <div class="head"><div class="tt t-body">Backdoor sweep</div><span class="a-chip">ready</span></div>
+    </div>
+    <div class="o-card" style="margin-top:6px">
+      <div class="head"><div class="tt t-body">Crystal Palace probe</div><span class="a-chip a-chip--on"><span class="a-dot a-dot--pulse" style="background:var(--bone)"></span>running</span></div>
+      <div class="peek">
+        <div class="m-timer"><span class="t-num-s">03:42</span><span class="t-micro">remaining</span></div>
+        <div class="a-bar" style="margin-top:8px"><i style="width:64%"></i></div>
+      </div>
+    </div>
+    <div class="o-card" style="margin-top:6px">
+      <div class="head"><div class="tt t-body">GIL deep run</div><span class="a-chip">locked</span></div>
+      <div class="peek t-micro">requires breach 40 — current 34</div>
+      <div class="more">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="m-kv"><span class="k">reward</span><span class="a-lead"></span><span class="v">2,400 sen + cache</span></div>
+          <div class="m-kv"><span class="k">heat</span><span class="a-lead"></span><span class="v">+18</span></div>
+          <div class="m-kv"><span class="k">duration</span><span class="a-lead"></span><span class="v">45 min</span></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <button class="a-pill a-pill--sm a-pill--solid">Prep</button>
+          <button class="a-pill a-pill--sm a-pill--ghost">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:340px"><span class="t-micro">o-rig — 6 slots, install state</span>
+    <div class="a-card o-rig">
+      <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><circle cx="9" cy="9" r="2"/></svg><div><div class="tt">Hexcore 9</div><div class="mt">core</div></div><span class="a-rar" style="margin-left:auto">LEG</span></div>
+      <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><line x1="9" y1="3" x2="9" y2="15"/></svg><div><div class="tt">Jade Optic v3</div><div class="mt">lens</div></div><span class="a-rar" style="margin-left:auto">RARE</span></div>
+      <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><rect x="4" y="4" width="10" height="10" rx="2"/><line x1="14" y1="9" x2="18" y2="9"/></svg><div><div class="tt">Duplex Port</div><div class="mt">port</div></div><span class="a-rar" style="margin-left:auto">COM</span></div>
+      <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M3 13 L8 13 L8 5 L15 5"/><circle cx="3" cy="13" r="1.5"/><circle cx="15" cy="5" r="1.5"/></svg><div><div class="tt">Spine Bus</div><div class="mt">bus</div></div><span class="a-rar" style="margin-left:auto">TUN</span></div>
+      <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M9 2 L15 5 L15 11 L9 16 L3 11 L3 5 Z"/></svg><div><div class="tt">Null Hex</div><div class="mt">ice</div></div><span class="a-rar a-rar--mil" style="margin-left:auto">MIL</span></div>
+      <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M2 12 Q6 6 9 9 Q12 12 16 6"/></svg><div><div class="tt">— empty —</div><div class="mt">skin</div></div><button class="a-pill a-pill--sm" style="margin-left:auto">Install</button></div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:340px"><span class="t-micro">o-sheet — result modal (7 answers, doc 03 L5)</span>
+    <div class="o-sheet" style="border-radius:var(--r)">
+      <div class="grab"></div>
+      <div class="shead"><div><div class="t-body">Run complete</div><div class="t-micro">crystal palace probe</div></div><button class="a-rc x" style="width:28px;height:28px">✕</button></div>
+      <div class="a-sep"></div>
+      <div style="text-align:center;padding:8px 0 4px">
+        <div class="t-num">+1,240</div><span class="t-micro">sen</span>
+      </div>
+      <div class="a-well" style="margin-top:10px;display:flex;align-items:center;gap:8px">
+        <svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><line x1="9" y1="3" x2="9" y2="15"/></svg>
+        <div style="flex:1"><div style="font-size:12px">Prism Shard Lens</div><div class="t-micro">lens · paradise systems · → inventory</div></div>
+        <span class="a-rar">EPIC</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+        <div class="m-kv"><span class="k">heat</span><span class="a-lead"></span><span class="v">+9 → 31</span></div>
+        <div class="m-kv"><span class="k">lore</span><span class="a-lead"></span><span class="v">USER Project fragment 3/9</span></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:14px">
+        <button class="a-pill a-pill--solid" style="flex:1">Claim all</button>
+        <button class="a-pill" style="flex:1">Inspect</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cell" style="width:340px"><span class="t-micro">o-hero — primary object (thermostat pattern)</span>
+    <div class="a-card o-hero">
+      <span class="t-micro">rig heat</span>
+      <div class="t-num-xl" style="margin-top:6px">31<span style="font-size:20px;color:var(--ink2)">°</span></div>
+      <div class="t-micro" style="margin-top:4px">safe band 0–45</div>
+      <div class="ctl">
+        <button class="a-rc">−</button>
+        <span class="m-ring" style="width:44px;height:44px"><svg class="a-ring" width="44" height="44"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18" stroke-dasharray="113" stroke-dashoffset="78"/></svg><span class="n">31%</span></span>
+        <button class="a-rc a-rc--solid">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 04 BOARD TEMPLATES ================= -->
+<h2 class="spec">04 — Board Templates (three-zone contract)</h2>
+<div class="answers">answers: 04 all six boards · 03 journeys 1–7 · top zone / middle zone / bottom zone (max 3 actions + tabbar)</div>
+
+<div class="boards">
+
+  <!-- NOW -->
+  <div class="cell"><span class="t-micro">NOW — command center · journey 1+2</span>
+  <div class="phone">
+    <div class="a-card" style="padding:12px var(--pad)"><div class="o-top">
+      <div class="id"><span class="a-dot a-dot--pulse"></span><span class="t-body">0xBONE</span><span class="t-micro">ghost build</span><span class="a-tag board">NOW</span></div>
+      <div class="o-strip"><div><div class="n">2,418</div><span class="t-micro">sen</span></div><div><div class="n">31</div><span class="t-micro">heat</span></div><div><div class="n">92%</div><span class="t-micro">rig</span></div><div><div class="n">4</div><span class="t-micro">crew</span></div></div>
+    </div></div>
+    <div class="mid">
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">Zone 7 cache</div><span class="a-chip a-chip--on">ready</span></div>
+        <div class="peek t-micro">decrypted while you were away</div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">Crystal Palace probe</div><span class="a-chip a-chip--on"><span class="a-dot a-dot--pulse" style="background:var(--bone)"></span>running</span></div>
+        <div class="peek"><div class="m-timer"><span class="t-num-s">03:42</span><span class="t-micro">remaining</span></div><div class="a-bar" style="margin-top:8px"><i style="width:64%"></i></div></div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">Install Prism Shard</div><span class="a-chip">suggest</span></div>
+        <div class="peek t-micro">lens slot · +9 breach over current</div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">Jade Optic v3 dipped 12%</div><span class="a-chip">market</span></div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">vexa_9 → crew</div><span class="a-chip">2 new</span></div>
+      </div>
+    </div>
+    <div class="bot">
+      <div class="o-actions"><button class="a-pill a-pill--solid">Claim</button><button class="a-pill">Run</button><button class="a-pill a-pill--ghost">View</button></div>
+      <div class="o-tabbar"><div class="on">NOW</div><div>MAP</div><div>RUNS</div><div>SOUL</div><div>MKT</div><div>NET</div></div>
+    </div>
+  </div></div>
+
+  <!-- RUNS -->
+  <div class="cell"><span class="t-micro">RUNS — jobs · journey 4</span>
+  <div class="phone">
+    <div class="a-card" style="padding:12px var(--pad)"><div class="o-top">
+      <div class="id"><span class="a-dot a-dot--pulse"></span><span class="t-body">0xBONE</span><span class="t-micro">ghost build</span><span class="a-tag board">RUNS</span></div>
+      <div class="o-strip"><div><div class="n">2,418</div><span class="t-micro">sen</span></div><div><div class="n">31</div><span class="t-micro">heat</span></div><div><div class="n">92%</div><span class="t-micro">rig</span></div><div><div class="n">4</div><span class="t-micro">crew</span></div></div>
+    </div></div>
+    <div class="mid">
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">Crystal Palace probe</div><span class="a-chip a-chip--on"><span class="a-dot a-dot--pulse" style="background:var(--bone)"></span>running</span></div>
+        <div class="peek"><div class="m-timer"><span class="t-num-s">03:42</span><span class="t-micro">remaining</span></div><div class="a-bar" style="margin-top:8px"><i style="width:64%"></i></div></div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">Backdoor sweep</div><span class="a-tag">quick</span><span class="a-chip">ready</span></div>
+        <div class="more" style="border-top:0;padding-top:0;margin-top:8px">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div class="m-kv"><span class="k">reward</span><span class="a-lead"></span><span class="v">450 sen</span></div>
+            <div class="m-kv"><span class="k">heat</span><span class="a-lead"></span><span class="v">+4</span></div>
+            <div class="m-kv"><span class="k">time</span><span class="a-lead"></span><span class="v">10 min</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">GIL deep run</div><span class="a-tag">deep</span><span class="a-chip">locked</span></div>
+        <div class="peek t-micro">requires breach 40 — current 34</div>
+      </div>
+      <div class="o-card">
+        <div class="head"><div class="tt t-body">JADENET contract</div><span class="a-tag">corp</span><span class="a-chip">ready</span></div>
+        <div class="peek t-micro">2,400 sen + cache · heat +18 · 45 min</div>
+      </div>
+    </div>
+    <div class="bot">
+      <div class="o-actions"><button class="a-pill a-pill--solid">Start</button><button class="a-pill">Prep</button><button class="a-pill a-pill--ghost">Abort</button></div>
+      <div class="o-tabbar"><div>NOW</div><div>MAP</div><div class="on">RUNS</div><div>SOUL</div><div>MKT</div><div>NET</div></div>
+    </div>
+  </div></div>
+
+  <!-- MARKET -->
+  <div class="cell"><span class="t-micro">MARKET — economy · journey 5</span>
+  <div class="phone">
+    <div class="a-card" style="padding:12px var(--pad)"><div class="o-top">
+      <div class="id"><span class="a-dot a-dot--pulse"></span><span class="t-body">0xBONE</span><span class="t-micro">ghost build</span><span class="a-tag board">MKT</span></div>
+      <div class="o-strip"><div><div class="n">2,418</div><span class="t-micro">sen</span></div><div><div class="n">31</div><span class="t-micro">heat</span></div><div><div class="n">92%</div><span class="t-micro">rig</span></div><div><div class="n">4</div><span class="t-micro">crew</span></div></div>
+    </div></div>
+    <div class="mid">
+      <div style="display:flex;gap:6px">
+        <span class="a-chip a-chip--on">parts</span><span class="a-chip">stocks</span><span class="a-chip">auction</span><span class="a-chip">alerts</span>
+      </div>
+      <div class="a-card" style="flex:1;overflow:hidden">
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><line x1="9" y1="3" x2="9" y2="15"/></svg><div><div class="tt">Jade Optic v3</div><div class="mt">lens · jadenet</div></div><div class="val">1,800<div class="mt">sen</div></div><span class="a-rar">RARE</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><circle cx="9" cy="9" r="2"/></svg><div><div class="tt">Hexcore 9</div><div class="mt">core · psys</div></div><div class="val">5,200<div class="mt">sen</div></div><span class="a-rar">LEG</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M9 2 L15 5 L15 11 L9 16 L3 11 L3 5 Z"/></svg><div><div class="tt">Null Hex ICE</div><div class="mt">ice · gil seized</div></div><div class="val">950<div class="mt">sen</div></div><span class="a-rar a-rar--mil">MIL</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M2 12 Q6 6 9 9 Q12 12 16 6"/></svg><div><div class="tt">Ghost Weave</div><div class="mt">skin · duìshǒu</div></div><div class="val">12,000<div class="mt">bid</div></div><span class="a-rar a-rar--myth">MYTH</span></div>
+      </div>
+      <div class="a-card" style="padding:12px var(--pad)">
+        <div class="m-row" style="border:0;padding:0"><span class="a-dot a-dot--pulse"></span><div><div class="tt">PSYS</div><div class="mt">paradise systems</div></div><div class="val">142.6<div class="mt">▲ 4.2%</div></div></div>
+      </div>
+      <div class="m-toast"><span class="a-dot a-dot--pulse" style="background:var(--bone)"></span>Alert: lens prices −12% after sweep</div>
+    </div>
+    <div class="bot">
+      <div class="o-actions"><button class="a-pill a-pill--solid">Buy</button><button class="a-pill">Sell</button><button class="a-pill a-pill--ghost">Alert</button></div>
+      <div class="o-tabbar"><div>NOW</div><div>MAP</div><div>RUNS</div><div>SOUL</div><div class="on">MKT</div><div>NET</div></div>
+    </div>
+  </div></div>
+
+  <!-- MAP -->
+  <div class="cell"><span class="t-micro">MAP — world index · journey 7</span>
+  <div class="phone">
+    <div class="a-card" style="padding:12px var(--pad)"><div class="o-top">
+      <div class="id"><span class="a-dot a-dot--pulse"></span><span class="t-body">0xBONE</span><span class="t-micro">ghost build</span><span class="a-tag board">MAP</span></div>
+      <div class="o-strip"><div><div class="n">2,418</div><span class="t-micro">sen</span></div><div><div class="n">31</div><span class="t-micro">heat</span></div><div><div class="n">92%</div><span class="t-micro">rig</span></div><div><div class="n">4</div><span class="t-micro">crew</span></div></div>
+    </div></div>
+    <div class="mid">
+      <div class="a-card o-hero">
+        <span class="t-micro">current index</span>
+        <div class="t-num" style="margin-top:6px">ZONE 7</div>
+        <div class="t-micro" style="margin-top:4px">ha7 index · 9 nodes · 3 locked</div>
+        <div class="a-bar--seg a-bar" style="margin-top:14px"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="a-card" style="flex:1">
+        <div class="m-row"><span class="a-dot"></span><div><div class="tt">Mindscape relay</div><div class="mt">discovered · lore ×2</div></div><button class="a-pill a-pill--sm" style="margin-left:auto">Open</button></div>
+        <div class="m-row"><span class="a-dot a-dot--pulse"></span><div><div class="tt">Signal bloom</div><div class="mt">scan target · 70%</div></div><div class="val t-micro">scanning</div></div>
+        <div class="m-row"><span class="a-dot a-dot--off"></span><div><div class="tt">Crystal Palace gate</div><div class="mt">locked · access 2/5</div></div></div>
+        <div class="m-row"><span class="a-dot a-dot--off"></span><div><div class="tt">??? node</div><div class="mt">undiscovered</div></div></div>
+      </div>
+      <div class="a-well t-micro">“the natural world remembers what jadenet indexed” — fragment 3/9</div>
+    </div>
+    <div class="bot">
+      <div class="o-actions"><button class="a-pill a-pill--solid">Scan</button><button class="a-pill">Travel</button><button class="a-pill a-pill--ghost">Open</button></div>
+      <div class="o-tabbar"><div>NOW</div><div class="on">MAP</div><div>RUNS</div><div>SOUL</div><div>MKT</div><div>NET</div></div>
+    </div>
+  </div></div>
+
+  <!-- SOUL -->
+  <div class="cell"><span class="t-micro">SOUL — identity + rig · journey 3</span>
+  <div class="phone">
+    <div class="a-card" style="padding:12px var(--pad)"><div class="o-top">
+      <div class="id"><span class="a-dot a-dot--pulse"></span><span class="t-body">0xBONE</span><span class="t-micro">ghost build</span><span class="a-tag board">SOUL</span></div>
+      <div class="o-strip"><div><div class="n">2,418</div><span class="t-micro">sen</span></div><div><div class="n">31</div><span class="t-micro">heat</span></div><div><div class="n">92%</div><span class="t-micro">rig</span></div><div><div class="n">4</div><span class="t-micro">crew</span></div></div>
+    </div></div>
+    <div class="mid">
+      <div class="a-card" style="display:flex;align-items:center;gap:12px">
+        <span class="m-ring" style="width:44px;height:44px"><svg class="a-ring" width="44" height="44"><circle class="bg" cx="22" cy="22" r="18"/><circle class="fg" cx="22" cy="22" r="18" stroke-dasharray="113" stroke-dashoffset="34"/></svg><span class="n">L7</span></span>
+        <div style="flex:1"><div class="t-body">0xBONE</div><div class="t-micro">“null saint” · crew: glasshouse</div></div>
+        <button class="a-pill a-pill--sm">Title</button>
+      </div>
+      <div class="a-card o-rig" style="flex:1">
+        <div class="t-micro" style="margin-bottom:4px">rig — ghost build · <span style="color:var(--ink)">burn · script</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><circle cx="9" cy="9" r="2"/></svg><div><div class="tt">Hexcore 9</div><div class="mt">core</div></div><span class="a-rar" style="margin-left:auto">LEG</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"/><line x1="9" y1="3" x2="9" y2="15"/></svg><div><div class="tt">Jade Optic v3</div><div class="mt">lens</div></div><span class="a-rar" style="margin-left:auto">RARE</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M9 2 L15 5 L15 11 L9 16 L3 11 L3 5 Z"/></svg><div><div class="tt">Null Hex</div><div class="mt">ice</div></div><span class="a-rar a-rar--mil" style="margin-left:auto">MIL</span></div>
+        <div class="m-row"><svg class="a-gl" viewBox="0 0 18 18"><path d="M2 12 Q6 6 9 9 Q12 12 16 6"/></svg><div><div class="tt">— empty —</div><div class="mt">skin</div></div><button class="a-pill a-pill--sm" style="margin-left:auto">Install</button></div>
+      </div>
+      <div class="a-card" style="padding:12px var(--pad)">
+        <div class="m-kv"><span class="k">achievements</span><span class="a-lead"></span><span class="v">23/61</span></div>
+        <div class="m-kv" style="margin-top:6px"><span class="k">reputation</span><span class="a-lead"></span><span class="v">duìshǒu +2 · gil −1</span></div>
+      </div>
+    </div>
+    <div class="bot">
+      <div class="o-actions"><button class="a-pill a-pill--solid">View rig</button><button class="a-pill">Title</button><button class="a-pill a-pill--ghost">Settings</button></div>
+      <div class="o-tabbar"><div>NOW</div><div>MAP</div><div>RUNS</div><div class="on">SOUL</div><div>MKT</div><div>NET</div></div>
+    </div>
+  </div></div>
+
+  <!-- NET -->
+  <div class="cell"><span class="t-micro">NET — social · journey 6</span>
+  <div class="phone">
+    <div class="a-card" style="padding:12px var(--pad)"><div class="o-top">
+      <div class="id"><span class="a-dot a-dot--pulse"></span><span class="t-body">0xBONE</span><span class="t-micro">ghost build</span><span class="a-tag board">NET</span></div>
+      <div class="o-strip"><div><div class="n">2,418</div><span class="t-micro">sen</span></div><div><div class="n">31</div><span class="t-micro">heat</span></div><div><div class="n">92%</div><span class="t-micro">rig</span></div><div><div class="n">4</div><span class="t-micro">crew</span></div></div>
+    </div></div>
+    <div class="mid">
+      <div style="display:flex;gap:6px">
+        <span class="a-chip">global</span><span class="a-chip a-chip--on">crew · 2</span><span class="a-chip">dm</span><span class="a-chip">trade</span>
+      </div>
+      <div class="a-card" style="flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden">
+        <div class="m-bub"><div class="who">vexa_9</div>selling this before the sweep
+          <div class="m-embed"><svg class="a-gl" viewBox="0 0 18 18"><path d="M9 2 L15 5 L15 11 L9 16 L3 11 L3 5 Z"/></svg>
+            <div style="flex:1"><div style="font-size:11px">Null Hex ICE</div><div class="t-micro">ice · 950 sen</div></div><span class="a-rar">TUN</span></div></div>
+        <div class="m-bub"><div class="who">marrow</div>who's in for the GIL deep run tonight
+          <div class="m-embed"><span class="a-dot"></span><div style="flex:1"><div style="font-size:11px">GIL deep run</div><div class="t-micro">needs 3 · breach 40+</div></div><button class="a-pill a-pill--sm">Join</button></div></div>
+        <div class="m-bub m-bub--me">hold it. claiming my payout now</div>
+      </div>
+      <div class="m-input"><input placeholder="message crew…"><button class="a-rc a-rc--solid" style="width:30px;height:30px">→</button></div>
+    </div>
+    <div class="bot">
+      <div class="o-actions"><button class="a-pill a-pill--solid">Reply</button><button class="a-pill">Trade</button><button class="a-pill a-pill--ghost">Profile</button></div>
+      <div class="o-tabbar"><div>NOW</div><div>MAP</div><div>RUNS</div><div>SOUL</div><div>MKT</div><div class="on">NET</div></div>
+    </div>
+  </div></div>
+
+</div>
+
+<h2 class="spec">System rules</h2>
+<div class="answers">the surgical contract</div>
+<div class="a-card" style="max-width:640px">
+  <div class="t-body" style="line-height:1.8;font-size:12px">
+    1 · State is inversion: anything alive/active/selected is ink-on-bone flipped.<br>
+    2 · Liveness is one pulsing dot. No other ambient motion.<br>
+    3 · Hierarchy is size + spacing only. No weight, no color.<br>
+    4 · chip = state · tag = meta · pill = action. Never interchangeable.<br>
+    5 · Every board: top zone (identity + 4-stat strip) / middle / bottom (≤3 pills + tabbar).<br>
+    6 · m-row is the only list pattern. m-kv is the only spec pattern.<br>
+    7 · Modals are flat sheets. Disclosure beats navigation (L0→L1→L2 before any sheet).<br>
+    8 · Rarity is typographic: dashed BRK, inverted MIL, double-ring MYTH.<br>
+    9 · Nothing exists that doesn't answer a line in docs 01–07.
+  </div>
+</div>
+
+</div>
+</body>
+</html>

@@ -4,17 +4,19 @@
 
 Card shape is meaning. Every modal, sheet, and special card uses a consistent shape modifier from a fixed vocabulary. Shapes identify the type of interaction — a player learns to recognize a ticket card or a bite-corner modal the same way they recognize a button color. No freeform shapes. No one-off silhouettes.
 
+All sculpted junctions are single-path inline SVGs — no gradient fringes, no element seams, no multi-part constructions.
+
 ## Shape Vocabulary
 
-Six shape modifiers. Each is a CSS class applied to `.k-card` or `.k-sheet`. Multiple shapes can combine on the same element.
+Seven shape modifiers. Each is a CSS class applied to `.k-card` or `.k-sheet`, or a standalone SVG connector element. Multiple shapes can combine on the same element.
 
 ### 1. Bite Top (`k-card--bite-top`)
 
-A recessed notch in the top-right corner. The sci-fi "bitten" corner from the kit. Uses an SVG path child (`.k-bitefx`) for seamless fillets.
+A recessed notch in the top-right corner. The sci-fi "bitten" corner from the kit. Uses an SVG path child (`.k-bitefx`) for seamless fillets. Shell color shows through the recess.
 
 **Identity**: Modals, sheets, high-value surfaces. The signature Userland shape.
 
-**Visual**: 66×22px recessed corner, r10 entry + r12 inner fillets, shell color shows through.
+**Visual**: 76×34px recessed corner, r10 entry curve + r12 inner fillets. Single SVG path.
 
 **Use for**:
 - Modal sheets (confirmation, result, inspector)
@@ -28,8 +30,8 @@ A recessed notch in the top-right corner. The sci-fi "bitten" corner from the ki
 
 ```html
 <div class="k-card k-card--bite-top">
-  <svg class="k-bitefx" width="66" height="22" viewBox="0 0 66 22" aria-hidden="true">
-    <path d="M0 0 H54 Q66 0 66 12 L66 22 H12 Q0 22 0 10 Z" fill="var(--shell,var(--clr-surface-page))"/>
+  <svg class="k-bitefx" width="76" height="34" viewBox="0 0 76 34" aria-hidden="true">
+    <path d="M0 0 Q10 0 10 10 Q10 22 22 22 L64 22 Q76 22 76 34 L76 0 Z"/>
   </svg>
   <!-- content -->
 </div>
@@ -62,9 +64,42 @@ A plateau tab rising from the card's top edge into the gap above. Uses an SVG pa
 </div>
 ```
 
-### 3. Ticket (`k-card--ticket`)
+### 3. Pinch (`k-pinch`)
 
-A perforation line splits the card into two halves. 2px dotted tear line with 15px diamond notches cut into both edges. The top half is the label/identity zone; the bottom half is the detail/serial zone.
+A centered shell-colored blob that sits in the gap between two cards, notching into both. Bridges causally-linked pairs. Not a card modifier — it's a standalone SVG connector element placed between two cards in a stack.
+
+**Identity**: Cause → effect bridge. "This produced that."
+
+**Visual**: 84×30px blob, flares riding both card edges with r8 shoulders. Shell color. Negative margin (-18px auto) overlaps both cards.
+
+**Use for**:
+- Run complete → cache earned
+- Action → result pairs
+- Any two-card cause/effect bridge
+
+**Do not use for**:
+- Long chains (use tab-top for 3+ cards)
+- Independent cards
+- Modal internals
+
+```html
+<div class="k-stack">
+  <div class="k-card" style="background:var(--clr-state-active)">
+    <span class="t-label">Run complete</span>
+  </div>
+  <svg class="k-pinch" width="84" height="30" viewBox="0 0 84 30" aria-hidden="true">
+    <path d="M0 12 Q14 12 14 8 Q14 0 22 0 L62 0 Q70 0 70 8 Q70 12 84 12
+             L84 18 Q70 18 70 22 Q70 30 62 30 L22 30 Q14 30 14 22 Q14 18 0 18 Z"/>
+  </svg>
+  <div class="k-card" style="background:var(--clr-cat-drop)">
+    <span class="t-label">Cache earned</span>
+  </div>
+</div>
+```
+
+### 4. Ticket (`k-card--ticket`)
+
+A perforation line splits the card into two halves. 2px dotted tear line with 15px diamond notches (rotated 45°) cut into both edges. The top half is the label/identity zone; the bottom half is the detail/serial zone.
 
 **Identity**: Tradeable items, transferable objects, market listings. "This is a bearer instrument."
 
@@ -94,7 +129,7 @@ A perforation line splits the card into two halves. 2px dotted tear line with 15
 </div>
 ```
 
-### 4. Underplate (`k-card--underplate`)
+### 5. Underplate (`k-card--underplate`)
 
 A second surface layer visible beneath the main card, offset 4px down and 4px right. Creates depth without shadow. The underplate color communicates category or rarity.
 
@@ -119,13 +154,13 @@ A second surface layer visible beneath the main card, offset 4px down and 4px ri
 </div>
 ```
 
-### 5. Notch Side (`k-card--notch-side`)
+### 6. Notch Side (`k-card--notch-side`)
 
-Rectangular notches cut into the left or right edge. Like punch-card holes. Communicates "this card connects to a system" — it's a component, not standalone.
+Triangle cutouts along the left edge. Like punch-card alignment notches. Communicates "this card connects to a system" — it's a component, not standalone.
 
 **Identity**: Rig parts, installed components, system-connected elements.
 
-**Visual**: 2-3 small rectangular notches (8×4px, r2) cut into the left edge via clip-path. Shell color shows through.
+**Visual**: 3 small triangle notches cut into the left edge via clip-path. Each triangle is 10px deep with ~4% card height spacing. Shell color shows through.
 
 **Use for**:
 - Rig slot cards (installed parts)
@@ -143,13 +178,13 @@ Rectangular notches cut into the left or right edge. Like punch-card holes. Comm
 </div>
 ```
 
-### 6. Perforation (`k-card--perf`)
+### 7. Perforation (`k-perf`)
 
 A horizontal tear line (without the ticket split). Used as a visual separator within a card, not a shape modifier on the card itself. The perforation says "these two zones are related but separable."
 
 **Identity**: Detachable sections, claim zones, before/after splits.
 
-**Visual**: 2px dotted line + 15px diamond notches at both edges. Full-bleed across the card.
+**Visual**: 2px dotted line + 15px diamond notches (rotated 45°) at both edges. Full-bleed across the card.
 
 **Use for**:
 - Separating claim zone from detail zone within a card
@@ -181,6 +216,21 @@ Shapes can combine. Valid combinations:
 - `ticket` + `notch-side` — too many edge treatments
 - `underplate` + `notch-side` — clip-path kills the underplate pseudo-element
 
+## Connectors vs. Shapes
+
+Connectors are standalone SVG elements placed *between* cards. Shapes are modifiers *on* cards.
+
+| Element | Type | CSS class | Placement |
+|---------|------|-----------|-----------|
+| Pinch | Connector | `.k-pinch` | Between two cards in a stack |
+| Tab-top | Shape | `.k-card--tab-top` | On the lower card |
+| Bite-top | Shape | `.k-card--bite-top` | On the card itself |
+| Ticket/perf | Shape | `.k-card--ticket` / `.k-perf` | On/inside the card |
+
+**When to use pinch vs. tab-top:**
+- **Pinch**: Two-card pairs with a strong cause→effect relationship. The connector blob is the visual metaphor for "these two things are directly linked."
+- **Tab-top**: Chains of 3+ cards where each step follows from the previous. The plateau tab says "I grew from the card above."
+
 ## Shape-to-Context Mapping
 
 | Context | Default shape | Why |
@@ -194,6 +244,7 @@ Shapes can combine. Valid combinations:
 | Rig slot (empty) | `notch-side` | Plug point, nothing connected |
 | MYTH/LEG premium card | `underplate` | Depth = value |
 | Run entry | `ticket` | Pass/entry metaphor |
+| Run→cache result | `pinch` connector | Cause→effect bridge |
 | Achievement card | `tab-top` | Linked to achievement chain |
 | Cache (sealed) | plain | Simple container |
 | Cache (opened) | `perf` | Split open |
@@ -217,8 +268,15 @@ Shapes can combine. Valid combinations:
 }
 .k-platop path { fill: var(--tabc, var(--paper)); }
 
+/* ── PINCH CONNECTOR ── */
+.k-pinch {
+  display: block; position: relative; z-index: 2;
+  margin: -18px auto;
+}
+.k-pinch path { fill: var(--shell, var(--clr-surface-page)); }
+
 /* ── TICKET ── */
-.k-card--ticket { border-radius: var(--r-bar); padding: 0; overflow: hidden; }
+.k-card--ticket { border-radius: var(--r-bar); padding: 0; overflow: visible; }
 .k-ticket__top { padding: 16px 20px 12px; }
 .k-ticket__bottom { padding: 12px 20px 16px; }
 
@@ -226,15 +284,15 @@ Shapes can combine. Valid combinations:
 .k-perf {
   position: relative; height: 0;
   border-top: 2px dotted rgba(18,19,16,.45);
-  margin: 0 -20px;  /* bleed to card edges */
 }
 .k-perf::before, .k-perf::after {
-  content: ''; position: absolute; top: -8px;
-  width: 15px; height: 15px; border-radius: 50%;
+  content: ''; position: absolute; top: -8.5px;
+  width: 15px; height: 15px;
+  transform: rotate(45deg);
   background: var(--shell, var(--clr-surface-page));
 }
-.k-perf::before { left: -8px; }
-.k-perf::after  { right: -8px; }
+.k-perf::before { left: -8.5px; }
+.k-perf::after  { right: -8.5px; }
 
 /* ── UNDERPLATE ── */
 .k-card--underplate { position: relative; z-index: 1; }
@@ -250,9 +308,9 @@ Shapes can combine. Valid combinations:
 .k-card--notch-side {
   clip-path: polygon(
     0 0, 100% 0, 100% 100%, 0 100%,
-    0 75%, 8px 75%, 8px 71%, 0 71%,
-    0 54%, 8px 54%, 8px 50%, 0 50%,
-    0 33%, 8px 33%, 8px 29%, 0 29%
+    0 72%, 10px 68%, 0 64%,
+    0 52%, 10px 48%, 0 44%,
+    0 32%, 10px 28%, 0 24%
   );
 }
 ```
@@ -271,3 +329,11 @@ The `BentoCard` component accepts a `shape` prop:
 Valid values: `:plain`, `:bite_top`, `:tab_top`, `:ticket`, `:underplate`, `:notch_side`, `:perf`
 
 Multiple shapes via list: `shape={[:ticket, :underplate]}`
+
+The `pinch` connector is not a card shape — it's a separate element placed between cards:
+
+```elixir
+<.bento_card>...</.bento_card>
+<.pinch_connector />
+<.bento_card>...</.bento_card>
+```

@@ -251,12 +251,13 @@ Applied to BentoCard or ModalShell for structural shape identity:
 
 | Class | Visual | Meaning |
 |-------|--------|---------|
-| `.k-card--bite-top` | Recessed top-right corner (SVG fillet) | Modals, inspector, premium surfaces |
-| `.k-card--tab-top` | Plateau tab rising into gap above | Causal chain (run→reward→item) |
+| `.k-card--bite-top` | Recessed top-right corner (76×34 SVG, r10 entry + r12 fillets) | Modals, inspector, premium surfaces |
+| `.k-card--tab-top` | Plateau tab (112×18) rising into gap above | Causal chain (run→reward→item) |
+| `.k-pinch` | Centered shell blob (84×30) bridging two cards | Cause→effect connector (run→cache) |
 | `.k-card--ticket` | Perforation splits card into top/bottom halves | Tradeable/bearer items |
 | `.k-card--underplate` | Second surface layer offset behind card | Premium/high-rarity items |
-| `.k-card--notch-side` | Rectangular notches cut into left edge | Installed rig components |
-| `.k-card--perf` | Horizontal tear line within card | Detachable/claim zone separator |
+| `.k-card--notch-side` | Triangle cutouts on left edge | Installed rig components |
+| `.k-card--perf` | Horizontal tear line with 45° diamond notches | Detachable/claim zone separator |
 
 ## Data Attributes
 

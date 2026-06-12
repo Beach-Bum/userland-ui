@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USERLAND — /proto golden path</title>
+<link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ================================================================
+   USERLAND /proto — golden path (Bob script 2026-06-12)
+   boot decode → NOW (SEN 1,200 · AURA 42 · HEAT 07 · GHOST build)
+   → RUN JOB (Index Sweep) → result +180 SEN +1 HEAT CACHE FOUND
+   → OPEN CACHE → LENS/COM/Ghost Lens → INSTALL → RIG board,
+   scan +4 stealth +2 → MARKET buy BUS/TUN Jade Relay 300
+   → NET msg Peggy Woo → NOW next suggested action.
+   Rules: bone-only · semantic role-only · ONE MOTION = View
+   Transitions expand/contract · claim panels self-dismiss ·
+   pixel category icons. Boards for this proto: NOW/RIG/MARKET/NET.
+   ================================================================ */
+:root{
+  --gap:6px; --pad:18px; --key-w:1.5px;
+  --r-pill:999px; --r-card:8px; --r-nested:6px;
+  --ink:#121310; --bone:#edeae0; --bone-2:#e3dfd2;
+  --black:#0a0a0a; --navy:#1b2531; --navy-2:#141c26;
+  --c-run:#cdf263; --c-build:#bfebdc; --c-trade:#f2df4e; --c-social:#dcddf6;
+  --c-grow:#b5a8f2; --c-info:#79a8e6; --c-ok:#4fd645; --c-heat:#f2472e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:var(--ink);
+  font-size:13.5px;line-height:1.5;font-variant-numeric:tabular-nums;
+  display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 12px 80px}
+.t-num-s{font-size:36px;font-family:"Gamja Flower",cursive;line-height:.95}
+.t-title{font-size:22px;font-family:"Gamja Flower",cursive;line-height:1.02}
+.t-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.t-micro{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.t-dim{opacity:.6}
+.ok{color:#1d8f15}.bad{color:#b3300f}
+
+.k-card{position:relative;background:var(--bone);color:var(--ink);border-radius:var(--r-card);padding:var(--pad)}
+.k-card--ink{background:var(--black);color:#fff}
+.k-well{background:var(--bone-2);border-radius:var(--r-nested);padding:10px 12px}
+.k-dotline{border-bottom:2px dotted rgba(18,19,16,.45);padding-bottom:8px;margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.k-pill{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;
+  border-radius:var(--r-pill);border:var(--key-w) solid var(--ink);background:var(--bone);color:var(--ink);
+  font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.k-pill--sm{height:28px;padding:0 13px;font-size:10px;letter-spacing:.03em;text-transform:uppercase}
+.k-pill--ink{background:var(--ink);border-color:var(--ink);color:#fff}
+.k-pill--run{background:var(--c-run)}
+.k-pill--trade{background:var(--c-trade)}
+.k-pill--ghost{background:transparent;border-color:rgba(18,19,16,.35)}
+.k-pill:disabled,.k-pill.is-off{opacity:.4;cursor:not-allowed}
+.k-pill:active{transform:translateY(1px)}
+.k-tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 11px;border-radius:var(--r-pill);
+  border:var(--key-w) solid currentColor;font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;background:transparent;white-space:nowrap}
+.k-tag--heat{color:#b3300f}
+.k-ava{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;
+  border-radius:50%;background:var(--c-grow);border:var(--key-w) solid var(--ink);font-size:11px;font-weight:800}
+.k-rar{display:inline-flex;align-items:center;height:21px;padding:0 9px;border-radius:var(--r-pill);
+  background:var(--ink);color:#fff;font-size:9px;font-weight:800;letter-spacing:.12em;flex:none}
+.k-rar--com{background:#1d8f15}.k-rar--tun{background:#1f9d84}.k-rar--leg{background:#6a55d8}
+.k-st{display:inline-flex;align-items:center;height:21px;padding:0 9px;border-radius:var(--r-pill);
+  border:var(--key-w) solid currentColor;font-size:9px;font-weight:800;letter-spacing:.1em;flex:none;
+  text-transform:uppercase;background:transparent}
+.k-st--ready{color:#1d8f15}.k-st--running{color:#121310}.k-st--done{opacity:.45}
+.k-st--claim{background:var(--c-run);border-color:var(--ink);color:var(--ink)}
+
+/* one motion: expandable line */
+.xl{background:var(--bone);border-radius:var(--r-card);overflow:hidden}
+.xl__line{display:flex;align-items:center;gap:11px;min-height:52px;padding:8px 14px;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.xl__main{flex:1;min-width:0}
+.xl__name{font-size:13px;font-weight:700;line-height:1.2}
+.xl__sub{font-size:9.5px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;opacity:.6;margin-top:2px}
+.xl__caret{flex:none;font-size:10px;opacity:.45;transition:transform .15s}
+.xl.is-open .xl__caret{transform:rotate(180deg)}
+.xl__body{display:none;padding:2px 14px 14px}
+.xl.is-open .xl__body{display:block}
+.xl.is-open{box-shadow:inset 0 0 0 var(--key-w) rgba(18,19,16,.35)}
+.attn-ready{animation:readysh 2.5s ease-in-out infinite}
+@keyframes readysh{0%,100%{box-shadow:0 0 0 rgba(79,214,69,0)}50%{box-shadow:0 0 9px rgba(79,214,69,.4)}}
+@media (prefers-reduced-motion:reduce){.attn-ready{animation:none;box-shadow:0 0 0 1.5px rgba(79,214,69,.6)}}
+.k-live__bar{height:4px;border-radius:var(--r-pill);background:rgba(18,19,16,.16);overflow:hidden;margin-top:10px}
+.k-live__bar i{display:block;height:100%;width:0;background:var(--ink);border-radius:var(--r-pill);transition:width .5s linear}
+
+/* pixel icons */
+.px{display:inline-flex;flex:none;width:26px;height:26px;color:var(--ink)}
+.px svg{width:100%;height:100%;shape-rendering:crispEdges}
+.px--dim{opacity:.35}
+
+.stage{background:var(--bone-2);border-radius:var(--r-nested);height:126px;margin:10px 0;
+  display:flex;align-items:center;justify-content:center;overflow:hidden}
+.stage.revealing{box-shadow:inset 0 0 0 2px var(--c-grow)}
+.stage .ph{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.4}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:5px 0;
+  border-bottom:1px dotted rgba(18,19,16,.3)}
+.kv:last-child{border-bottom:0}
+.kv span:first-child{opacity:.55;text-transform:uppercase;font-size:9.5px;font-weight:700;letter-spacing:.08em}
+.delta{color:#1d8f15;font-weight:800}
+
+.k-bubble{max-width:86%;border-radius:var(--r-card);padding:11px 13px;background:var(--bone)}
+.k-bubble .who{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:4px}
+
+.k-phone{width:410px;max-width:100%;flex:none;background:#10151b;border-radius:44px;padding:10px;
+  box-shadow:0 24px 60px rgba(10,12,16,.35)}
+.k-screen{position:relative;background:var(--navy);border-radius:32px;padding:8px;
+  display:flex;flex-direction:column;gap:var(--gap);height:780px;overflow:hidden}
+.board{flex:1;display:none;flex-direction:column;gap:var(--gap);overflow-y:auto;scrollbar-width:none}
+.board::-webkit-scrollbar{display:none}
+.board.is-on{display:flex}
+
+.k-headcard{padding:12px var(--pad) 14px;flex:none}
+.k-strip{display:flex;gap:6px;margin-top:10px}
+.k-strip__cell{flex:1;background:var(--bone-2);padding:7px 10px;border-radius:var(--r-nested)}
+.k-strip__cell .v{font-size:14px;font-weight:800;margin-top:1px;white-space:nowrap}
+.k-tabbar{display:flex;align-items:center;justify-content:space-around;gap:4px;height:56px;
+  border-radius:10px;background:var(--navy-2);color:rgba(255,255,255,.55);padding:0 14px;flex:none}
+.k-tabbar a{position:relative;color:inherit;text-decoration:none;font-size:9.5px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;padding:6px 2px;cursor:pointer}
+.k-tabbar a.is-on{color:var(--c-run)}
+.k-tabbar a .bdot{position:absolute;top:-2px;right:-7px;width:6px;height:6px;border-radius:50%;display:none;background:var(--c-ok)}
+.k-tabbar a.has-new .bdot{display:block}
+
+.toast{position:absolute;left:14px;right:14px;bottom:74px;background:var(--black);color:var(--bone);
+  border-radius:10px;padding:11px 14px;font-size:11px;font-weight:700;display:none;align-items:center;
+  gap:9px;z-index:40}
+.toast.is-vis{display:flex;animation:toastin .25s ease-out}
+@keyframes toastin{from{opacity:0;transform:translateY(8px)}}
+.toast .dot{width:7px;height:7px;border-radius:50%;background:var(--c-ok);flex:none}
+
+/* boot decode overlay */
+.boot{position:absolute;inset:0;z-index:60;background:var(--black);border-radius:32px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--bone)}
+.boot .logo{font-family:"Gamja Flower",cursive;font-size:34px;letter-spacing:.04em}
+.boot .ln{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.75;min-height:15px}
+.boot .bar{width:140px;height:3px;border-radius:999px;background:rgba(237,234,224,.18);overflow:hidden}
+.boot .bar i{display:block;height:100%;width:0;background:var(--c-run);transition:width .3s linear}
+.boot.gone{display:none}
+
+.sc-note{max-width:410px;font-size:11px;opacity:.65;line-height:1.6;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+::view-transition-group(*){animation-duration:.22s}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
+</style>
+</head>
+<body>
+
+<div class="t-title" style="font-size:28px">USERLAND · /proto</div>
+<p class="sc-note">golden path: boot → NOW → RUN JOB → result → OPEN CACHE → INSTALL →
+RIG → MARKET buy → NET signal → back to NOW with next suggested action.</p>
+
+<div class="k-phone"><div class="k-screen" id="screen">
+
+  <!-- BOOT DECODE -->
+  <div class="boot" id="boot">
+    <div class="logo" id="boot-logo">█████████</div>
+    <div class="ln" id="boot-ln"></div>
+    <div class="bar"><i id="boot-bar"></i></div>
+  </div>
+
+  <!-- TOP ZONE -->
+  <div class="k-card k-headcard">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="k-ava">N</span>
+      <div style="flex:1"><div class="t-label">ned</div>
+        <div class="t-micro t-dim" id="hud-build">rig: GHOST build</div></div>
+      <span class="k-tag" id="board-tag">NOW</span>
+    </div>
+    <div class="k-strip">
+      <div class="k-strip__cell"><div class="t-micro t-dim">SEN</div><div class="v" id="hud-sen">1,200</div></div>
+      <div class="k-strip__cell"><div class="t-micro t-dim">AURA</div><div class="v" id="hud-aura">42</div></div>
+      <div class="k-strip__cell"><div class="t-micro t-dim">HEAT</div><div class="v" id="hud-heat">07</div></div>
+      <div class="k-strip__cell"><div class="t-micro t-dim">RIG</div><div class="v" id="hud-rig">2/6</div></div>
+    </div>
+  </div>
+
+  <!-- ================= NOW ================= -->
+  <div class="board is-on" id="b-now">
+
+    <!-- next suggested action -->
+    <div class="k-card" style="padding:12px 18px">
+      <div class="t-micro t-dim">NEXT</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+        <div style="flex:1;font-size:12.5px;font-weight:700" id="next-txt">Run Index Sweep — quick SEN, low heat</div>
+        <button class="k-pill k-pill--sm k-pill--ink" id="next-btn" onclick="nextAction()">GO</button>
+      </div>
+    </div>
+
+    <!-- available run: Index Sweep -->
+    <div class="xl attn-ready" id="xl-job" style="view-transition-name:xl-job">
+      <div class="xl__line" onclick="xtoggle('xl-job')">
+        <i class="px" data-px="bus"></i>
+        <div class="xl__main"><div class="xl__name">INDEX SWEEP</div>
+          <div class="xl__sub">available run · ha7 index · 01:30</div></div>
+        <span class="k-st k-st--ready" id="job-st">READY</span><span class="xl__caret">▾</span>
+      </div>
+      <div class="xl__body">
+        <div style="display:flex;gap:6px;margin:6px 0 4px">
+          <span class="k-tag">+180 SEN</span><span class="k-tag k-tag--heat">HEAT +1</span><span class="k-tag">CACHE CHANCE</span>
+        </div>
+        <div class="k-live__bar"><i id="job-bar"></i></div>
+        <div id="job-act" style="margin-top:10px">
+          <button class="k-pill k-pill--run" style="width:100%" onclick="runJob(event)">RUN JOB</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- run result (appears, self-dismisses after claim chain) -->
+    <div class="xl" id="xl-result" style="display:none;view-transition-name:xl-result">
+      <div class="xl__line" onclick="xtoggle('xl-result')">
+        <i class="px" data-px="core"></i>
+        <div class="xl__main"><div class="xl__name">SWEEP RESULT</div>
+          <div class="xl__sub">index sweep · complete</div></div>
+        <span class="k-st k-st--claim">CACHE</span><span class="xl__caret">▾</span>
+      </div>
+      <div class="xl__body" id="result-body">
+        <div class="kv"><span>sen</span><span class="ok">+180</span></div>
+        <div class="kv"><span>heat</span><span class="bad">+1</span></div>
+        <div class="kv"><span>found</span><span>CACHE FOUND — encrypted</span></div>
+        <button class="k-pill k-pill--ink" style="width:100%;margin-top:10px" onclick="openCache(event)">OPEN CACHE</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= RIG ================= -->
+  <div class="board" id="b-rig">
+    <div class="k-card">
+      <div class="k-dotline"><span class="t-label">Rig — ghost build</span>
+        <span class="t-micro t-dim" id="rig-count">2/6 slots</span></div>
+      <div id="rig-list"></div>
+    </div>
+    <div class="k-card">
+      <div class="k-dotline"><span class="t-label">Stats</span><span class="t-micro t-dim">ghost build</span></div>
+      <div class="kv"><span>scan</span><span id="st-scan">12</span></div>
+      <div class="kv"><span>stealth</span><span id="st-stealth">8</span></div>
+      <div class="kv"><span>break</span><span id="st-break">4</span></div>
+      <div class="kv"><span>cycle</span><span id="st-cycle">10</span></div>
+    </div>
+    <div class="k-card" id="rig-inv-card" style="display:none">
+      <div class="k-dotline"><span class="t-label">Inventory</span><span class="t-micro t-dim" id="rig-inv-count">1 item</span></div>
+      <div class="xl" id="xl-relay" style="background:var(--bone-2);view-transition-name:xl-relay">
+        <div class="xl__line" onclick="xtoggle('xl-relay')">
+          <i class="px" data-px="bus"></i>
+          <div class="xl__main"><div class="xl__name">Jade Relay</div><div class="xl__sub">bus · jadenet</div></div>
+          <span class="k-rar k-rar--tun">TUN</span><span class="xl__caret">▾</span>
+        </div>
+        <div class="xl__body">
+          <div class="stage" id="relay-stage"></div>
+          <div class="kv"><span>slot</span><span>BUS</span></div>
+          <div class="kv"><span>stat</span><span>Cycle +6</span></div>
+          <button class="k-pill k-pill--ink" style="width:100%;margin-top:10px" onclick="installRelay(event)">INSTALL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MARKET ================= -->
+  <div class="board" id="b-mkt">
+    <div class="k-card k-card--ink">
+      <div class="t-micro" style="opacity:.6">BALANCE</div>
+      <div class="t-num-s" id="mkt-sen">1,200 SEN</div>
+    </div>
+    <div class="xl" id="xl-mkrelay" style="view-transition-name:xl-mkrelay">
+      <div class="xl__line" onclick="xtoggle('xl-mkrelay')">
+        <i class="px" data-px="bus"></i>
+        <div class="xl__main"><div class="xl__name">Jade Relay</div><div class="xl__sub">bus · jadenet · 300 sen</div></div>
+        <span class="k-rar k-rar--tun">TUN</span><span class="xl__caret">▾</span>
+      </div>
+      <div class="xl__body">
+        <div class="stage" id="mkrelay-stage"></div>
+        <div class="kv"><span>slot</span><span>BUS</span></div>
+        <div class="kv"><span>stat</span><span>Cycle +6</span></div>
+        <div class="kv"><span>balance after</span><span id="relay-after">—</span></div>
+        <button class="k-pill k-pill--trade" style="width:100%;margin-top:10px" id="relay-buy" onclick="buyRelay(this,event)">BUY 300</button>
+      </div>
+    </div>
+    <div class="xl" id="xl-mklens2" style="view-transition-name:xl-mklens2">
+      <div class="xl__line" onclick="xtoggle('xl-mklens2')">
+        <i class="px" data-px="lens"></i>
+        <div class="xl__main"><div class="xl__name">Prism Lens</div><div class="xl__sub">lens · uopt · 740 sen</div></div>
+        <span class="k-rar k-rar--leg">LEG</span><span class="xl__caret">▾</span>
+      </div>
+      <div class="xl__body">
+        <div class="kv"><span>slot</span><span>LENS</span></div>
+        <div class="kv"><span>stat</span><span>Scan +11</span></div>
+        <button class="k-pill k-pill--ghost" style="width:100%;margin-top:10px" onclick="toast('bid placed: 700 SEN')">BID 700</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= NET ================= -->
+  <div class="board" id="b-net">
+    <div class="k-card" style="flex:1;display:flex;flex-direction:column;gap:8px;overflow-y:auto">
+      <div class="k-bubble"><div class="who">system</div>session restored. ha7 index nominal.</div>
+      <div class="k-bubble" id="bub-woo" style="display:none">
+        <div class="who">dr_peggy_woo</div>
+        Your signal changed. Don't let the Index notice.
+      </div>
+      <div class="t-micro t-dim" id="net-empty" style="text-align:center;padding:8px 0">no new signals</div>
+    </div>
+    <div style="display:flex;gap:6px;flex:none">
+      <input style="flex:1;border:1.5px solid rgba(18,19,16,.3);border-radius:999px;background:var(--bone);
+        padding:0 14px;height:38px;font-family:inherit;font-size:12px;outline:none" placeholder="reply…">
+      <button class="k-pill k-pill--ink" style="width:38px;padding:0" onclick="toast('sent')">→</button>
+    </div>
+  </div>
+
+  <!-- TABBAR -->
+  <nav class="k-tabbar">
+    <a id="t-now" class="is-on" onclick="go('now')">Now<span class="bdot"></span></a>
+    <a id="t-rig" onclick="go('rig')">Rig<span class="bdot"></span></a>
+    <a id="t-mkt" onclick="go('mkt')">Market<span class="bdot"></span></a>
+    <a id="t-net" onclick="go('net')">Net<span class="bdot"></span></a>
+  </nav>
+
+  <div class="toast" id="toast"><span class="dot"></span><span id="toast-txt"></span></div>
+</div></div>
+
+<p class="sc-note">/proto maps to a single LiveView route later: boot = mount + decode hook ·
+RUN JOB = run:start/run:result · OPEN CACHE = cache:reveal · INSTALL = rig:install ·
+BUY = trade:buy · NET push = PubSub message.</p>
+
+<script>
+/* ---------- state ---------- */
+const S={sen:1200,aura:42,heat:7,slots:2,lens:false,relayInv:false,relayInstalled:false,
+  job:'ready',step:'run'};
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('en-US');
+const pad2=n=>String(n).padStart(2,'0');
+
+function vt(fn){
+  if(document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    document.startViewTransition(fn);
+  }else{fn()}
+}
+function xtoggle(id,force){
+  const el=$(id);if(!el)return;
+  const open=force!==undefined?force:!el.classList.contains('is-open');
+  vt(()=>{
+    if(open){const b=el.closest('.board');
+      if(b)b.querySelectorAll('.xl.is-open').forEach(o=>{if(o!==el)o.classList.remove('is-open')})}
+    el.classList.toggle('is-open',open);
+    if(open&&el.style.display==='none')el.style.display='';
+  });
+}
+function stopEv(e){if(e)e.stopPropagation()}
+
+/* pixel icons */
+const PX={
+ core:['...##...','..####..','.######.','########','########','.######.','..####..','...##...'],
+ lens:['..####..','.#....#.','#......#','#..##..#','#..##..#','#......#','.#....#.','..####..'],
+ port:['..#..#..','..#..#..','.######.','.######.','.######.','..####..','...##...','...##...'],
+ bus: ['........','########','........','###..###','........','########','........','........'],
+ ice: ['...#....','...##...','..###...','..####..','.#####..','.####...','..##....','..#.....'],
+ skin:['#.#.#.#.','.#.#.#.#','#.#.#.#.','.#.#.#.#','#.#.#.#.','.#.#.#.#','#.#.#.#.','.#.#.#.#']};
+function pxSVG(cat){
+  const g=PX[cat]||PX.core;let r='';
+  g.forEach((row,y)=>{[...row].forEach((c,x)=>{if(c==='#')r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`})});
+  return `<svg viewBox="0 0 8 8" fill="currentColor">${r}</svg>`;
+}
+document.querySelectorAll('.px[data-px]').forEach(el=>el.innerHTML=pxSVG(el.dataset.px));
+
+const objSVG=tint=>`<svg width="76" height="76" viewBox="0 0 90 90">
+  <g stroke="#121310" stroke-width="1.5" fill="none">
+    <path d="M45 8 L78 27 L78 63 L45 82 L12 63 L12 27 Z"/>
+    <path d="M45 8 L45 45 L78 27 M45 45 L12 27 M45 45 L45 82"/>
+    <circle cx="45" cy="45" r="7" fill="${tint}" stroke="none" opacity=".75"/>
+  </g></svg>`;
+$('relay-stage').innerHTML=objSVG('#1f9d84');
+$('mkrelay-stage').innerHTML=objSVG('#1f9d84');
+
+/* ---------- chrome ---------- */
+function hud(){
+  $('hud-sen').textContent=fmt(S.sen);
+  $('hud-aura').textContent=S.aura;
+  $('hud-heat').textContent=pad2(S.heat);
+  $('hud-rig').textContent=S.slots+'/6';
+  $('rig-count').textContent=S.slots+'/6 slots';
+  $('mkt-sen').textContent=fmt(S.sen)+' SEN';
+  $('relay-after').textContent=S.sen>=300?fmt(S.sen-300)+' SEN':'INSUFFICIENT';
+  renderRig();
+}
+function toast(msg){
+  $('toast-txt').textContent=msg;$('toast').classList.add('is-vis');
+  clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('is-vis'),2600);
+}
+function go(b){
+  vt(()=>{
+    document.querySelectorAll('.board').forEach(x=>x.classList.remove('is-on'));
+    document.querySelectorAll('.k-tabbar a').forEach(x=>x.classList.remove('is-on'));
+    $('b-'+b).classList.add('is-on');$('t-'+b).classList.add('is-on');
+    $('board-tag').textContent=b==='mkt'?'MARKET':b.toUpperCase();
+    if(b==='net')$('t-net').classList.remove('has-new');
+  });
+}
+
+/* ---------- boot decode ---------- */
+const BOOT_LINES=['linking ha7 index','restoring session: ned','rig check: GHOST build','decrypting userland os'];
+const CHARS='█▓▒░<>/\\|+=*#';
+function decodeTo(el,target,dur){
+  const start=performance.now();
+  (function f(t){
+    const k=Math.min(1,(t-start)/dur);
+    const n=Math.floor(target.length*k);
+    el.textContent=target.slice(0,n)+[...target.slice(n)].map(c=>c===' '?' ':CHARS[Math.random()*CHARS.length|0]).join('');
+    if(k<1)requestAnimationFrame(f);else el.textContent=target;
+  })(start);
+}
+function boot(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){$('boot').classList.add('gone');return}
+  decodeTo($('boot-logo'),'USERLAND',900);
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i<BOOT_LINES.length){decodeTo($('boot-ln'),BOOT_LINES[i],260);$('boot-bar').style.width=((i+1)/BOOT_LINES.length*100)+'%';i++}
+    else{clearInterval(iv);setTimeout(()=>vt(()=>$('boot').classList.add('gone')),300)}
+  },420);
+}
+boot();
+
+/* ---------- step 4–5: RUN JOB → result ---------- */
+function runJob(e){
+  stopEv(e);
+  if(S.job!=='ready')return;
+  S.job='running';
+  vt(()=>{
+    $('job-st').textContent='RUNNING';$('job-st').className='k-st k-st--running';
+    $('job-act').innerHTML='<div class="t-micro t-dim" style="padding:6px 0">sweeping the index…</div>';
+    $('xl-job').classList.remove('attn-ready');
+  });
+  let p=0;const iv=setInterval(()=>{p+=20;$('job-bar').style.width=p+'%';
+    if(p>=100){clearInterval(iv);
+      S.job='done';S.sen+=180;S.heat+=1;hud();
+      vt(()=>{
+        $('job-st').textContent='DONE';$('job-st').className='k-st k-st--done';
+        $('xl-job').classList.remove('is-open');
+        $('job-act').innerHTML='<div class="t-micro t-dim" style="padding:4px 0">cooling down · 04:00</div>';
+        $('xl-result').style.display='';
+        $('xl-result').classList.add('is-open','attn-ready');
+      });
+      setNext('Open the cache you found','openCacheNext');
+      toast('+180 SEN · heat +1 · CACHE FOUND');
+    }},450);
+}
+
+/* ---------- step 6–7: OPEN CACHE → reveal ---------- */
+function openCache(e){
+  stopEv(e);
+  const body=$('result-body');
+  vt(()=>{body.innerHTML='<div class="stage revealing"><span class="ph">DECRYPTING…</span></div>'});
+  setTimeout(()=>vt(()=>{
+    body.innerHTML=`
+      <div class="stage">${objSVG('#1d8f15')}</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="px">${pxSVG('lens')}</i>
+        <div style="flex:1"><div style="font-weight:700">GHOST LENS</div>
+          <div class="t-micro t-dim">lens · uopt</div></div>
+        <span class="k-rar k-rar--com">COM</span>
+      </div>
+      <div class="kv" style="margin-top:6px"><span>slot</span><span>LENS</span></div>
+      <div class="kv"><span>stats</span><span>scan +4 · stealth +2</span></div>
+      <button class="k-pill k-pill--ink" style="width:100%;margin-top:10px" onclick="installLens(event)">INSTALL</button>`;
+  }),900);
+}
+
+/* ---------- step 8–10: INSTALL → RIG board, stats update ---------- */
+function installLens(e){
+  stopEv(e);
+  if(S.lens)return;
+  S.lens=true;S.slots++;hud();
+  vt(()=>{
+    /* claim panel self-dismisses */
+    $('xl-result').classList.remove('is-open','attn-ready');
+    $('xl-result').style.display='none';
+    /* stats update with delta */
+    $('st-scan').innerHTML='16 <span class="delta">+4</span>';
+    $('st-stealth').innerHTML='10 <span class="delta">+2</span>';
+  });
+  go('rig');
+  setNext('Buy a BUS part — market','goMkt');
+  /* step 14: signal change noticed */
+  setTimeout(()=>{
+    vt(()=>{$('bub-woo').style.display='';$('net-empty').style.display='none'});
+    $('t-net').classList.add('has-new');
+    toast('new signal · dr_peggy_woo');
+  },2200);
+  toast('GHOST LENS installed — RIG · LENS slot');
+}
+
+/* ---------- step 11–12: MARKET buy Jade Relay ---------- */
+function buyRelay(btn,e){
+  stopEv(e);
+  if(S.relayInv||S.relayInstalled)return;
+  if(S.sen<300){toast('insufficient SEN');return}
+  S.sen-=300;S.relayInv=true;hud();
+  vt(()=>{
+    btn.textContent='OWNED';btn.classList.add('is-off');btn.disabled=true;
+    $('xl-mkrelay').classList.remove('is-open');
+    $('rig-inv-card').style.display='';
+  });
+  setNext('Install Jade Relay — rig','goRig');
+  toast('JADE RELAY purchased · added to inventory');
+}
+function installRelay(e){
+  stopEv(e);
+  if(!S.relayInv)return;
+  S.relayInv=false;S.relayInstalled=true;S.slots++;hud();
+  vt(()=>{
+    $('xl-relay').classList.remove('is-open');
+    $('rig-inv-card').style.display='none';
+    $('st-cycle').innerHTML='16 <span class="delta">+6</span>';
+  });
+  setNext('Answer the signal — net','goNet');
+  toast('JADE RELAY installed — RIG · BUS slot');
+}
+
+/* ---------- step 15–16: next suggested action ---------- */
+const NEXTS={
+  run:()=>{xtoggle('xl-job',true)},
+  openCacheNext:()=>{xtoggle('xl-result',true)},
+  goMkt:()=>{go('mkt');xtoggle('xl-mkrelay',true)},
+  goRig:()=>{go('rig');xtoggle('xl-relay',true)},
+  goNet:()=>{go('net')},
+  cool:()=>{toast('index sweep cooling · 04:00')}
+};
+let nextKey='run';
+function setNext(txt,key){nextKey=key;$('next-txt').textContent=txt}
+function nextAction(){go('now');(NEXTS[nextKey]||NEXTS.cool)()}
+
+/* ---------- rig render ---------- */
+const SLOTS=[['CORE','Hexcore 9','k-rar--leg','core'],['LENS',null,null,'lens'],['PORT',null,null,'port'],
+  ['BUS',null,null,'bus'],['ICE',null,null,'ice'],['SKIN','Drift Skin','k-rar--com','skin']];
+function renderRig(){
+  $('rig-list').innerHTML=SLOTS.map(([slot,name,rar,px])=>{
+    let n=name,r=rar;
+    if(slot==='LENS'&&S.lens){n='Ghost Lens';r='k-rar--com'}
+    if(slot==='BUS'&&S.relayInstalled){n='Jade Relay';r='k-rar--tun'}
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dotted rgba(18,19,16,.25)">
+      <i class="px ${n?'':'px--dim'}" style="width:20px;height:20px">${pxSVG(px)}</i>
+      <span class="t-micro t-dim" style="width:36px">${slot}</span>
+      <span style="flex:1;font-size:12.5px;font-weight:700;${n?'':'opacity:.4'}">${n||'— empty —'}</span>
+      ${r?`<span class="k-rar ${r}">${r.split('--')[1].toUpperCase()}</span>`:''}</div>`;
+  }).join('');
+}
+hud();
+</script>
+</body>
+</html>
