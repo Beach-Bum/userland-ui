@@ -573,55 +573,93 @@ body{
 footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-height:1.7}
 
 /* ================================================================
-   EXPAND / CONTRACT — FLIP-lite card-to-detail, touch-first
-   Tap an expandable card → clone animates from card rect to center
-   → hidden .k-xd detail content revealed → tap backdrop to close
+   INLINE EXPAND — tap card → expand in place, push siblings
+   grid-template-rows: 0fr → 1fr for smooth measured height.
+   Only one card open at a time. Tap another → previous collapses.
+   Board never navigates away for normal actions.
    ================================================================ */
-.k-expandable{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
-  user-select:none;position:relative}
-.k-expandable::after{content:"";position:absolute;inset:-4px;z-index:1}
+[data-expand]{cursor:pointer;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;user-select:none;position:relative}
 
-.k-expand-backdrop{
-  position:fixed;inset:0;z-index:900;
-  background:rgba(10,12,16,.55);
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  opacity:0;pointer-events:none;
-  transition:opacity .32s ease;
-}
-.k-expand-backdrop.is-open{opacity:1;pointer-events:auto}
+/* chevron hint — rotates when open */
+.k-xhint{position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;
+  opacity:.45;pointer-events:none;transition:transform .3s ease}
+[data-expand].is-open .k-xhint{transform:rotate(180deg);opacity:.7}
+.k-card--black .k-xhint,.k-card--navy .k-xhint,.r-mil .k-xhint{color:#fff}
 
-.k-expand-panel{
-  position:fixed;z-index:901;
-  overflow:hidden;overflow-y:auto;overscroll-behavior:contain;
-  -webkit-overflow-scrolling:touch;
-  box-shadow:0 24px 80px rgba(0,0,0,.45);
-  transition:left .44s cubic-bezier(.4,0,.12,1),
-             top .44s cubic-bezier(.4,0,.12,1),
-             width .44s cubic-bezier(.4,0,.12,1),
-             height .44s cubic-bezier(.4,0,.12,1),
-             border-radius .34s ease,
-             opacity .2s ease;
-}
-.k-expand-panel.is-closing{pointer-events:none}
+/* collapsible wrapper: 0fr → 1fr */
+.k-xd{display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .4s cubic-bezier(.4,0,.15,1)}
+.k-xd>div{overflow:hidden}
+[data-expand].is-open .k-xd{grid-template-rows:1fr}
 
-/* detail content hidden in compact, shown when expanded */
-.k-xd{display:none}
-.k-expand-panel .k-xd{display:block;animation:xdIn .3s .18s ease both}
-@keyframes xdIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* inner content fades in after height starts */
+.k-xd__in{opacity:0;transform:translateY(4px);
+  transition:opacity .25s .1s ease,transform .25s .1s ease}
+[data-expand].is-open .k-xd__in{opacity:1;transform:none}
 
-/* close strip inside expanded panel */
-.k-expand-close{display:none;justify-content:flex-end;padding:6px 6px 0}
-.k-expand-panel .k-expand-close{display:flex}
+/* separator */
+.k-xd-sep{height:1px;background:rgba(18,19,16,.15);margin:12px 0}
+.k-card--black .k-xd-sep,.k-card--navy .k-xd-sep{background:rgba(255,255,255,.15)}
 
-/* pulse hint on expandable cards */
-.k-expandable .k-expand-hint{position:absolute;top:8px;right:8px;width:22px;height:22px;
-  border-radius:50%;background:rgba(18,19,16,.12);display:flex;align-items:center;
-  justify-content:center;font-size:10px;font-weight:800;opacity:.5;z-index:2;pointer-events:none}
-.k-card--black .k-expand-hint,.k-card--navy .k-expand-hint{background:rgba(255,255,255,.15);color:#fff}
+/* 3D stage placeholder (for ToonHolo lightbox slot) */
+.k-xd-stage{border-radius:var(--r-nested);min-height:120px;
+  background:rgba(18,19,16,.06);display:flex;align-items:center;
+  justify-content:center;position:relative;overflow:hidden}
+.k-card--black .k-xd-stage,.k-card--navy .k-xd-stage{background:rgba(255,255,255,.08)}
+.k-xd-stage .t-micro{position:absolute;bottom:6px;left:0;right:0;text-align:center;opacity:.35}
+
+/* stat row inside expanded content */
+.k-xd-stat{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+
+/* ── CARD TYPES ── */
+/* info: read-only, no actions */
+[data-card-type="info"] .k-xhint{color:var(--c-info,var(--sky))}
+
+/* action: one safe compact action visible in collapsed state */
+[data-card-type="action"] .k-xhint{color:var(--c-run,var(--lime))}
+
+/* risk: MUST expand before acting — collapsed shows warning pip */
+[data-card-type="risk"]{border-left:3px solid var(--c-heat,var(--red))}
+[data-card-type="risk"] .k-xhint{color:var(--c-heat,var(--red))}
+.k-risk-pip{display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--c-heat,var(--red));margin-right:6px;vertical-align:middle}
+
+/* ── RESULT STATE (stays in expanded panel after action) ── */
+.k-xd-result{padding:12px;border-radius:var(--r-nested);margin-top:10px;text-align:center}
+.k-xd-result--ok{background:rgba(79,214,69,.12);border:1px solid rgba(79,214,69,.3)}
+.k-xd-result--fail{background:rgba(242,71,46,.1);border:1px solid rgba(242,71,46,.3)}
+.k-xd-result .t-label{display:block;margin-bottom:4px}
+.k-xd-result .t-micro{opacity:.7}
+
+/* ── MODAL / SHEET OVERLAY ── */
+.k-sheet-overlay{position:fixed;inset:0;background:rgba(10,10,10,.6);
+  z-index:900;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s ease}
+.k-sheet-overlay.is-vis{opacity:1;pointer-events:auto}
+.k-sheet{width:100%;max-width:420px;max-height:85vh;overflow-y:auto;
+  background:var(--paper);border-radius:var(--r-bar) var(--r-bar) 0 0;
+  padding:0 20px 28px;transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.4,0,.15,1)}
+.k-sheet-overlay.is-vis .k-sheet{transform:none}
+.k-sheet__handle{width:44px;height:5px;border-radius:999px;
+  background:rgba(18,19,16,.2);margin:12px auto 16px}
+.k-sheet__head{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:16px}
+.k-sheet__close{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink);
+  background:none;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;font-weight:800}
+.k-sheet--risk{border-top:3px solid var(--c-heat,var(--red))}
+.k-sheet--dark{background:var(--ink);color:var(--paper)}
+.k-sheet--dark .k-sheet__handle{background:rgba(255,255,255,.25)}
+.k-sheet--dark .k-sheet__close{border-color:var(--paper);color:var(--paper)}
+.k-sheet--dark .k-xd-sep{background:rgba(255,255,255,.15)}
+.k-sheet--dark .k-xd-stage{background:rgba(255,255,255,.08)}
 
 @media(prefers-reduced-motion:reduce){
-  .k-expand-backdrop,.k-expand-panel{transition:none !important}
-  .k-expand-panel .k-xd{animation:none !important}
+  .k-xd,.k-xhint{transition:none !important}
+  .k-xd__in{transition:none !important;opacity:1;transform:none}
+  .k-sheet-overlay,.k-sheet{transition:none !important}
 }
 </style>
 </head>
@@ -1152,77 +1190,47 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-card k-card--black k-tab-t k-go" data-expand style="--tabc:var(--black);--p:100">
-            <span class="k-expand-hint">↗</span>
+            <span class="k-xhint">▾</span>
             <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="k-dotline"><span class="t-label">Quick hack · ready</span><span class="k-rar k-rar--com blink">LIVE</span></div>
-            <div class="t-title" style="font-size:28px">OLD HOSPITAL<br>NODE</div>
-            <div class="sc-row" style="margin-top:10px;gap:6px">
-              <span class="k-tag">Reward +120 SEN</span><span class="k-tag" style="color:var(--red)">Heat +6</span>
+            <div class="t-title" style="font-size:28px">OLD HOSPITAL NODE</div>
+            <div class="sc-row" style="margin-top:8px;gap:6px">
+              <span class="k-tag">+120 SEN</span><span class="k-tag" style="color:var(--red)">Heat +6</span>
             </div>
-            <div class="k-live is-ready"><i class="k-live__dot"></i><span class="k-live__lbl">Node live · ready to run</span><span class="k-pct"></span></div>
-            <div class="k-live__bar"><i></i></div>
-            <div class="k-xd" style="margin-top:16px">
-              <div class="k-perf" style="margin:0 -20px 14px;--shell:var(--black)"></div>
-              <div class="t-label" style="margin-bottom:10px">Run detail</div>
-              <div class="sc-row" style="justify-content:space-between">
-                <span class="t-micro t-dim">Corp</span>
-                <span class="t-body" style="color:#fff">JADENET</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Zone</span>
-                <span class="t-body" style="color:#fff">03 · Old Hospital</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Duration</span>
-                <span class="t-body" style="color:#fff">02:00</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Scan req</span>
-                <span class="t-body" style="color:#fff">12/12 <span class="k-rar k-rar--com">OK</span></span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Trace risk</span>
-                <span class="t-body" style="color:#fff">Low <span class="k-rar k-rar--com">OK</span></span>
-              </div>
-              <p class="t-micro" style="margin-top:14px;line-height:1.7;opacity:.7">Reward includes chance for
-              <span style="color:var(--pink)">SIGNAL CACHE</span> drop (COM rarity).</p>
-            </div>
-            <button class="k-pill k-pill--lg k-pill--lime" style="margin-top:14px;width:100%">RUN — 02:00</button>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Corp</span><span class="t-body" style="color:#fff">JADENET</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Zone</span><span class="t-body" style="color:#fff">03 · Old Hospital</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Duration</span><span class="t-body" style="color:#fff">02:00</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Scan req</span><span class="t-body" style="color:#fff">12/12 <span class="k-rar k-rar--com">OK</span></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Trace risk</span><span class="t-body" style="color:#fff">Low <span class="k-rar k-rar--com">OK</span></span></div>
+              <p class="t-micro" style="margin-top:10px;line-height:1.7;opacity:.7">Cache drop chance: <span style="color:var(--pink)">SIGNAL CACHE</span> (COM)</p>
+              <button class="k-pill k-pill--lg k-pill--lime" style="margin-top:12px;width:100%">RUN — 02:00</button>
+            </div></div></div>
           </div>
 
           <div class="k-card k-card--mint" data-expand>
-            <span class="k-expand-hint">↗</span>
+            <span class="k-xhint">▾</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Install part</span>
                 <div class="t-title">GHOST LENS</div>
                 <span class="t-micro t-dim">Rare · UOPT · Scan +16</span></div>
               <div class="m-lens" style="width:48px;height:48px"><i></i></div>
             </div>
-            <div class="k-xd" style="margin-top:14px">
-              <div class="k-perf" style="margin:0 -20px 14px;--shell:var(--mint)"></div>
-              <div class="k-device__stage" style="height:120px;margin-bottom:14px;border-radius:6px;background:rgba(18,19,16,.06)">
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stage" style="margin-bottom:12px">
                 <div class="m-lens" style="width:64px;height:64px"><i></i></div>
+                <span class="t-micro">3D model slot</span>
               </div>
-              <div class="sc-row" style="justify-content:space-between">
-                <span class="t-micro t-dim">Scan</span>
-                <span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com" style="margin-left:4px">+4</span></span>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Scan</span><span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com">+4</span></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Trace</span><span class="t-body">−02 → <b>−03</b> <span class="k-rar k-rar--com">OK</span></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Corp</span><span class="t-body">UOPT</span></div>
+              <div class="sc-row" style="margin-top:12px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Install</button>
+                <button class="k-pill k-pill--sm" style="flex:1">Compare</button>
               </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Trace</span>
-                <span class="t-body">−02 → <b>−03</b> <span class="k-rar k-rar--com" style="margin-left:4px">OK</span></span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Corp</span>
-                <span class="t-body">UOPT</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Motion</span>
-                <span class="t-body">Radar sweep</span>
-              </div>
-            </div>
-            <div class="sc-row" style="margin-top:12px;gap:6px">
-              <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Install</button>
-              <button class="k-pill k-pill--sm" style="flex:1">Compare</button>
+            </div></div></div>
             </div>
           </div>
 
@@ -1292,41 +1300,24 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-card" data-expand style="padding:14px 16px">
-            <span class="k-expand-hint">↗</span>
+            <span class="k-xhint">▾</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Discovered</span>
                 <div class="k-row__name">OLD HOSPITAL NODE</div>
                 <span class="t-micro t-dim">JDN · Quick hack available</span></div>
               <span class="k-chip k-chip--ink">→</span>
             </div>
-            <div class="k-xd" style="margin-top:14px">
-              <div style="height:1px;background:rgba(18,19,16,.15);margin:0 0 12px"></div>
-              <pre class="k-glyphs" style="font-size:9px;line-height:1.5;opacity:.35;margin-bottom:12px;letter-spacing:2px">  ┌──────────────┐
-  │  ▣ NODE  ▣   │
-  │  OLD HOSP    │
-  │  Z03 · JDN   │
-  └──────────────┘</pre>
-              <div class="sc-row" style="justify-content:space-between">
-                <span class="t-micro t-dim">Corp</span>
-                <span class="t-body">JADENET</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Zone</span>
-                <span class="t-body">03</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Runs available</span>
-                <span class="t-body">2 (Quick hack, Sweep)</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Lore fragments</span>
-                <span class="t-body">1/3 collected</span>
-              </div>
-              <div class="sc-row" style="margin-top:14px;gap:6px">
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:10px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Corp</span><span class="t-body">JADENET</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Zone</span><span class="t-body">03</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Runs</span><span class="t-body">2 (Quick hack, Sweep)</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Lore</span><span class="t-body">1/3 collected</span></div>
+              <div class="sc-row" style="margin-top:12px;gap:6px">
                 <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Travel</button>
                 <button class="k-pill k-pill--sm" style="flex:1">Scan</button>
               </div>
-            </div>
+            </div></div></div>
           </div>
 
           <div class="k-card k-card--lime k-tab-t" style="padding:14px 16px;--tabc:var(--lime)">
@@ -1388,7 +1379,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-card k-card--black k-go" data-expand style="--p:72">
-            <span class="k-expand-hint">↗</span>
+            <span class="k-xhint">▾</span>
             <div class="k-dotline"><span class="t-label">Active · quick hack</span><span class="k-rar k-rar--com blink">LIVE</span></div>
             <div class="t-title" style="font-size:24px">OLD HOSPITAL NODE</div>
             <div class="sc-row" style="margin-top:8px;gap:6px">
@@ -1398,30 +1389,15 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
             <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl">Running · trace clean</span><span class="k-pct"></span></div>
             <div class="k-live__bar"><i></i></div>
-            <div class="k-xd" style="margin-top:16px">
-              <div class="k-perf" style="margin:0 -20px 14px;--shell:var(--black)"></div>
-              <div class="t-num-xl" style="font-size:44px;text-align:center;margin:8px 0">00:01:24</div>
-              <div class="sc-row" style="justify-content:center;gap:16px;margin-bottom:14px">
-                <span class="t-micro t-dim">H&nbsp;&nbsp;&nbsp;&nbsp;M&nbsp;&nbsp;&nbsp;&nbsp;S</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between">
-                <span class="t-micro t-dim">Corp</span>
-                <span class="t-body" style="color:#fff">JADENET</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Zone</span>
-                <span class="t-body" style="color:#fff">03 · Old Hospital</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Trace status</span>
-                <span class="t-body" style="color:#fff">Clean <span class="k-rar k-rar--com">OK</span></span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Cache chance</span>
-                <span class="t-body" style="color:var(--pink)">22%</span>
-              </div>
-              <button class="k-pill k-pill--red" style="margin-top:14px;width:100%;color:#fff">ABORT RUN</button>
-            </div>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="t-num" style="text-align:center;margin:6px 0">00:01:24</div>
+              <div class="sc-row" style="justify-content:center;margin-bottom:10px"><span class="t-micro t-dim">H&nbsp;&nbsp;&nbsp;&nbsp;M&nbsp;&nbsp;&nbsp;&nbsp;S</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Corp</span><span class="t-body" style="color:#fff">JADENET</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Trace</span><span class="t-body" style="color:#fff">Clean <span class="k-rar k-rar--com">OK</span></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Cache</span><span class="t-body" style="color:var(--pink)">22%</span></div>
+              <button class="k-pill k-pill--red" style="margin-top:12px;width:100%;color:#fff">ABORT RUN</button>
+            </div></div></div>
           </div>
 
           <div class="k-row" style="background:var(--mint)">
@@ -1463,7 +1439,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-card k-go" data-expand style="--p:100;padding:14px 16px;background:var(--c-drop)">
-            <span class="k-expand-hint">↗</span>
+            <span class="k-xhint">▾</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Last result</span>
                 <div class="k-row__name">FIELD SWEEP · Z02</div></div>
@@ -1474,34 +1450,21 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
               <span class="k-tag">TUNED CORE</span>
               <span class="k-tag">Heat +3</span>
             </div>
-            <div class="k-xd" style="margin-top:14px">
-              <div style="height:1px;background:rgba(18,19,16,.3);margin:0 0 12px"></div>
-              <div class="t-label" style="margin-bottom:10px">Loot breakdown</div>
-              <div class="sc-row" style="justify-content:space-between">
-                <span class="t-micro t-dim">SEN earned</span>
-                <span class="t-body"><b>+80</b></span>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:10px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stage" style="min-height:100px;margin-bottom:10px">
+                <div class="m-core" style="width:56px;height:56px"><i></i></div>
+                <span class="t-micro">TUNED CORE · 3D slot</span>
               </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Part drop</span>
-                <span class="t-body">TUNED CORE <span class="k-rar k-rar--tun">TUN</span></span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Heat gained</span>
-                <span class="t-body">+3 (24 total)</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Trace</span>
-                <span class="t-body">Clean <span class="k-rar k-rar--com">OK</span></span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Duration</span>
-                <span class="t-body">04:58 actual</span>
-              </div>
-              <div class="sc-row" style="margin-top:14px;gap:6px">
+              <div class="k-xd-stat"><span class="t-micro t-dim">SEN</span><span class="t-body"><b>+80</b></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Part</span><span class="t-body">TUNED CORE <span class="k-rar k-rar--tun">TUN</span></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Heat</span><span class="t-body">+3 (24 total)</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Trace</span><span class="t-body">Clean <span class="k-rar k-rar--com">OK</span></span></div>
+              <div class="sc-row" style="margin-top:12px;gap:6px">
                 <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Install core</button>
                 <button class="k-pill k-pill--sm" style="flex:1">Sell</button>
               </div>
-            </div>
+            </div></div></div>
           </div>
 
           <div class="k-actionbar">
@@ -1652,41 +1615,88 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-row" data-expand>
+            <span class="k-xhint">▾</span>
             <span class="k-ava" style="background:var(--yellow)">◆</span>
             <div class="k-row__main"><div class="k-row__name">GHOST LENS</div>
               <div class="k-row__sub">Rare · UOPT · Scan +16</div></div>
             <span class="t-title">480</span>
             <button class="k-pill k-pill--sm k-pill--ink">Bid</button>
-            <div class="k-xd" style="width:100%;margin-top:12px">
-              <div style="height:1px;background:rgba(18,19,16,.15);margin:0 0 12px"></div>
-              <div class="k-device__stage" style="height:100px;border-radius:6px;background:rgba(18,19,16,.06);margin-bottom:12px">
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stage" style="height:100px;margin-bottom:12px">
                 <div class="m-lens" style="width:56px;height:56px"><i></i></div>
+                <span class="t-micro">3D preview</span>
               </div>
-              <div class="sc-row" style="justify-content:space-between">
-                <span class="t-micro t-dim">Seller</span>
-                <span class="t-body">vex_11</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Price</span>
-                <span class="t-body"><b>480 SEN</b></span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Rarity</span>
-                <span class="k-rar k-rar--rare">RARE</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Stat</span>
-                <span class="t-body">Scan +16</span>
-              </div>
-              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
-                <span class="t-micro t-dim">Expires</span>
-                <span class="t-body" style="color:var(--red)">12 min</span>
-              </div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Seller</span><span class="t-body">vex_11</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Price</span><span class="t-body"><b>480 SEN</b></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--rare">RARE</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Stat</span><span class="t-body">Scan +16</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Expires</span><span class="t-body" style="color:var(--red)">12 min</span></div>
               <div class="sc-row" style="margin-top:14px;gap:6px">
                 <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Bid 480</button>
                 <button class="k-pill k-pill--sm" style="flex:1">Offer</button>
               </div>
-            </div>
+            </div></div></div>
+          </div>
+
+          <!-- additional market listings -->
+          <div class="k-row" data-expand data-card-type="action">
+            <span class="k-xhint">▾</span>
+            <span class="k-ava" style="background:var(--mint)">●</span>
+            <div class="k-row__main"><div class="k-row__name">COOLER BUS v2</div>
+              <div class="k-row__sub">Tun · BSYS · Heat −8</div></div>
+            <span class="t-title">220</span>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stage" style="height:100px;margin-bottom:12px">
+                <span class="t-micro">3D preview</span>
+              </div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Seller</span><span class="t-body">runner_404</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Price</span><span class="t-body"><b>220 SEN</b></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--tun">TUN</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Slot</span><span class="t-body">BUS</span></div>
+              <div class="sc-row" style="margin-top:14px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Buy 220</button>
+                <button class="k-pill k-pill--sm" style="flex:1">Offer</button>
+              </div>
+            </div></div></div>
+          </div>
+
+          <div class="k-row" data-expand data-card-type="risk">
+            <span class="k-xhint">▾</span>
+            <span class="k-ava" style="background:var(--red)">▲</span>
+            <div class="k-row__main"><div class="k-row__name">BLACK ICE WALL</div>
+              <div class="k-row__sub"><span class="k-risk-pip"></span>Mil · FRNT · Block +40</div></div>
+            <span class="t-title">1800</span>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stage" style="height:100px;margin-bottom:12px">
+                <span class="t-micro">3D preview</span>
+              </div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Seller</span><span class="t-body">ghost_null</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Price</span><span class="t-body"><b>1800 SEN</b></span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--mil">MIL</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Heat</span><span class="t-body" style="color:var(--red)">+22 on equip</span></div>
+              <p class="t-micro" style="color:var(--red);margin-top:8px">MIL item — equipping raises corp heat. Confirm in sheet.</p>
+              <div class="sc-row" style="margin-top:14px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1" onclick="openSheet('sheet-buy-confirm')">Buy 1800</button>
+                <button class="k-pill k-pill--sm" style="flex:1">Report</button>
+              </div>
+            </div></div></div>
+          </div>
+
+          <div class="k-row" data-expand data-card-type="info">
+            <span class="k-xhint">▾</span>
+            <span class="k-ava" style="background:var(--gray)">▬</span>
+            <div class="k-row__main"><div class="k-row__name">BASIC SCANNER</div>
+              <div class="k-row__sub">Brk · UOPT · Scan +2</div></div>
+            <span class="t-title" style="opacity:.4">—</span>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Status</span><span class="t-body">Delisted</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--brk">BRK</span></div>
+              <p class="t-micro t-dim" style="margin-top:8px">This item is no longer available on the market.</p>
+            </div></div></div>
           </div>
 
           <div class="k-ticker">
@@ -1797,27 +1807,73 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-card k-card--mint" style="padding:16px">
+          <!-- achievement: expandable action card -->
+          <div class="k-card k-card--mint" data-expand data-card-type="action" style="padding:16px">
+            <span class="k-xhint">▾</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><div class="k-row__name">100 Quick Hacks</div><span class="t-micro t-dim">Runner</span></div>
               <span class="t-title">64/100</span>
             </div>
             <div class="k-progress" style="margin-top:10px"><i style="width:64%"></i></div>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Reward</span><span class="t-body">Runner badge + 500 SEN</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Next tier</span><span class="t-body">250 Quick Hacks</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Unlocks</span><span class="t-body">Quick Hack III runs</span></div>
+              <button class="k-pill k-pill--sm k-pill--ink" style="margin-top:12px;width:100%">Start Quick Hack</button>
+            </div></div></div>
           </div>
           <svg class="k-pinch" width="84" height="30" viewBox="0 0 84 30" aria-hidden="true"><path d="M0 12 Q14 12 14 8 Q14 0 22 0 L62 0 Q70 0 70 8 Q70 12 84 12 L84 18 Q70 18 70 22 Q70 30 62 30 L22 30 Q14 30 14 22 Q14 18 0 18 Z"/></svg>
-          <div class="k-card k-card--lime" style="padding:16px">
+          <div class="k-card k-card--lime" data-expand data-card-type="info" style="padding:16px">
+            <span class="k-xhint">▾</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><div class="k-row__name">First Corp Breach</div><span class="t-micro t-dim">Corp Breaker</span></div>
               <span class="k-rar k-rar--com">CLAIMED ✓</span>
             </div>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Completed</span><span class="t-body">2026-06-08</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Reward</span><span class="t-body">Corp Breaker badge</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Next</span><span class="t-body">Breach 5 corps</span></div>
+            </div></div></div>
           </div>
           <svg class="k-pinch" width="84" height="30" viewBox="0 0 84 30" aria-hidden="true"><path d="M0 12 Q14 12 14 8 Q14 0 22 0 L62 0 Q70 0 70 8 Q70 12 84 12 L84 18 Q70 18 70 22 Q70 30 62 30 L22 30 Q14 30 14 22 Q14 18 0 18 Z"/></svg>
-          <div class="k-card" style="padding:16px">
+          <div class="k-card" data-expand data-card-type="action" style="padding:16px">
+            <span class="k-xhint">▾</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><div class="k-row__name">Market Maker</div><span class="t-micro t-dim">Economist</span></div>
               <span class="t-title">12/50</span>
             </div>
             <div class="k-progress" style="margin-top:10px"><i style="width:24%"></i></div>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Reward</span><span class="t-body">Economist badge + market fee −5%</span></div>
+              <div class="k-xd-stat"><span class="t-micro t-dim">Requirement</span><span class="t-body">50 trades on MARKET</span></div>
+              <button class="k-pill k-pill--sm" style="margin-top:12px;width:100%">Go to Market</button>
+            </div></div></div>
+          </div>
+
+          <!-- rig slot: expandable with 3D stage -->
+          <div class="k-card k-card--navy" data-expand data-card-type="action" style="padding:16px">
+            <span class="k-xhint">▾</span>
+            <div class="sc-row" style="justify-content:space-between">
+              <div><div class="k-row__name" style="color:#fff">CORE · Quick Hack</div>
+                <span class="t-micro" style="color:rgba(255,255,255,.5)">COM · FRNT · Hack +8</span></div>
+              <span class="k-rar k-rar--com">COM</span>
+            </div>
+            <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+              <div class="k-xd-sep"></div>
+              <div class="k-xd-stage" style="height:120px;margin-bottom:12px">
+                <span class="t-micro">3D rig part</span>
+              </div>
+              <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Slot</span><span class="t-body" style="color:#fff">CORE</span></div>
+              <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Stat</span><span class="t-body" style="color:#fff">Hack +8</span></div>
+              <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Equipped</span><span class="t-body" style="color:#fff">2026-06-10</span></div>
+              <div class="sc-row" style="margin-top:14px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1;border-color:#fff;color:#fff" onclick="openSheet('sheet-install')">Swap</button>
+                <button class="k-pill k-pill--sm" style="flex:1;border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.7)">Sell</button>
+              </div>
+            </div></div></div>
           </div>
 
           <div class="k-card k-card--black">
@@ -1832,6 +1888,11 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <span class="k-toggle k-toggle--on"><i></i></span>
           </div>
 
+          <div class="k-actionbar">
+            <button class="k-pill k-pill--ink">EDIT RIG</button>
+            <button class="k-pill">THEMES</button>
+            <button class="k-pill">LOG OUT</button>
+          </div>
           <nav class="k-tabbar">
             <a>Now</a><a>Map</a><a>Runs</a><a class="is-on">Soul</a><a>Market</a><a>Net</a>
           </nav>
@@ -2103,7 +2164,200 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
   </div>
 </section>
 
-<footer class="sc-foot">
+<!-- ============================================================
+     07 · MODAL / SHEET EXAMPLES
+     ============================================================ -->
+<section class=”sc-sec” id=”s07”>
+  <h2>07 · Modal sheets — confirmation &amp; result states</h2>
+  <p class=”sc-note”>Sheets slide from bottom on phone. Used for confirmations (risk actions),
+  results (claim, reveal), and compare flows. The board never navigates away — the sheet overlays
+  the current board, shows the outcome, and returns the player to exactly where they were.
+  Click any button below to preview.</p>
+
+  <div class=”sc-bench” style=”gap:8px;flex-wrap:wrap”>
+    <button class=”k-pill k-pill--ink” onclick=”openSheet('sheet-run-prep')”>Run Prep</button>
+    <button class=”k-pill k-pill--ink” onclick=”openSheet('sheet-run-complete')”>Run Complete</button>
+    <button class=”k-pill k-pill--ink” onclick=”openSheet('sheet-install')”>Item Install</button>
+    <button class=”k-pill k-pill--ink” onclick=”openSheet('sheet-buy-confirm')”>Market Buy</button>
+    <button class=”k-pill k-pill--ink” onclick=”openSheet('sheet-cache')”>Cache Reveal</button>
+    <button class=”k-pill k-pill--ink” onclick=”openSheet('sheet-trade')”>Trade Offer</button>
+  </div>
+</section>
+
+<!-- ── SHEET 1: RUN PREP ── -->
+<div class=”k-sheet-overlay” id=”sheet-run-prep” onclick=”closeSheet(this)”>
+  <div class=”k-sheet” onclick=”event.stopPropagation()”>
+    <div class=”k-sheet__handle”></div>
+    <div class=”k-sheet__head”>
+      <div><div class=”t-title”>Prep Run</div><span class=”t-micro t-dim”>Quick Hack · Old Hospital</span></div>
+      <button class=”k-sheet__close” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>✕</button>
+    </div>
+    <div class=”k-xd-sep”></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Rig check</span><span class=”t-body” style=”color:var(--c-ok)”>CORE ✓ LENS ✓ PORT ✓</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Heat cost</span><span class=”t-body”>+6</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Current heat</span><span class=”t-body”>21%</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Est. reward</span><span class=”t-body”>120 SEN</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Duration</span><span class=”t-body”>~4 min</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>BUS slot</span><span class=”t-body” style=”color:var(--c-heat)”>EMPTY — stealth −20</span></div>
+    <div class=”sc-row” style=”margin-top:20px;gap:6px”>
+      <button class=”k-pill k-pill--ink” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>START RUN</button>
+      <button class=”k-pill” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHEET 2: RUN COMPLETE / CLAIM ── -->
+<div class=”k-sheet-overlay” id=”sheet-run-complete” onclick=”closeSheet(this)”>
+  <div class=”k-sheet k-sheet--dark” onclick=”event.stopPropagation()”>
+    <div class=”k-sheet__handle”></div>
+    <div class=”k-sheet__head”>
+      <div><div class=”t-title” style=”color:var(--c-ok)”>Run Complete</div>
+        <span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Quick Hack · Old Hospital</span></div>
+      <button class=”k-sheet__close” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>✕</button>
+    </div>
+    <div class=”k-xd-sep”></div>
+    <div class=”k-xd-result k-xd-result--ok”>
+      <span class=”t-label” style=”color:var(--c-ok)”>SUCCESS</span>
+      <span class=”t-micro” style=”color:#fff”>+120 SEN · +6 Heat · 1 cache dropped</span>
+    </div>
+    <div style=”margin-top:14px”>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>SEN earned</span><span class=”t-body” style=”color:#fff”>+120</span></div>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Heat added</span><span class=”t-body” style=”color:var(--c-heat)”>+6 → 27%</span></div>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Cache</span><span class=”t-body” style=”color:var(--c-drop)”>1× JADENET CACHE</span></div>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Achievement</span><span class=”t-body” style=”color:#fff”>65/100 Quick Hacks</span></div>
+    </div>
+    <div class=”sc-row” style=”margin-top:20px;gap:6px”>
+      <button class=”k-pill k-pill--sm k-pill--ink” style=”flex:1;border-color:#fff;color:#fff” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>CLAIM ALL</button>
+      <button class=”k-pill k-pill--sm” style=”flex:1;border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.7)” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Details</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHEET 3: ITEM INSTALL COMPARE ── -->
+<div class=”k-sheet-overlay” id=”sheet-install” onclick=”closeSheet(this)”>
+  <div class=”k-sheet” onclick=”event.stopPropagation()”>
+    <div class=”k-sheet__handle”></div>
+    <div class=”k-sheet__head”>
+      <div><div class=”t-title”>Install Part</div><span class=”t-micro t-dim”>LENS slot</span></div>
+      <button class=”k-sheet__close” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>✕</button>
+    </div>
+    <div class=”k-xd-sep”></div>
+    <div class=”sc-row” style=”gap:10px;margin-bottom:14px”>
+      <div style=”flex:1;text-align:center;padding:12px;border-radius:var(--r-nested);background:rgba(18,19,16,.06)”>
+        <span class=”t-micro t-dim”>Current</span>
+        <div class=”t-body” style=”margin-top:6px”><b>BASIC OPTIC</b></div>
+        <span class=”k-rar k-rar--brk”>BRK</span>
+        <div class=”t-micro” style=”margin-top:6px”>Scan +2</div>
+      </div>
+      <div style=”font-size:18px;align-self:center”>→</div>
+      <div style=”flex:1;text-align:center;padding:12px;border-radius:var(--r-nested);background:rgba(205,242,99,.15);border:1.5px solid var(--c-run)”>
+        <span class=”t-micro t-dim”>New</span>
+        <div class=”t-body” style=”margin-top:6px”><b>GHOST LENS</b></div>
+        <span class=”k-rar k-rar--rare”>RARE</span>
+        <div class=”t-micro” style=”margin-top:6px;color:var(--c-ok)”>Scan +16 (+14)</div>
+      </div>
+    </div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Net change</span><span class=”t-body” style=”color:var(--c-ok)”>Scan +14</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Old part</span><span class=”t-body”>→ inventory</span></div>
+    <div class=”sc-row” style=”margin-top:20px;gap:6px”>
+      <button class=”k-pill k-pill--ink” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>INSTALL</button>
+      <button class=”k-pill” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHEET 4: MARKET BUY CONFIRM (risk) ── -->
+<div class=”k-sheet-overlay” id=”sheet-buy-confirm” onclick=”closeSheet(this)”>
+  <div class=”k-sheet k-sheet--risk” onclick=”event.stopPropagation()”>
+    <div class=”k-sheet__handle”></div>
+    <div class=”k-sheet__head”>
+      <div><div class=”t-title”><span class=”k-risk-pip”></span>Confirm Purchase</div>
+        <span class=”t-micro t-dim”>MIL item — read warning</span></div>
+      <button class=”k-sheet__close” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>✕</button>
+    </div>
+    <div class=”k-xd-sep”></div>
+    <div class=”k-xd-stage” style=”height:100px;margin-bottom:14px”>
+      <span class=”t-micro”>3D preview</span>
+    </div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Item</span><span class=”t-body”><b>BLACK ICE WALL</b></span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Rarity</span><span class=”k-rar k-rar--mil”>MIL</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Price</span><span class=”t-body”><b>1800 SEN</b></span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Balance after</span><span class=”t-body”>220 SEN</span></div>
+    <div class=”k-xd-result k-xd-result--fail” style=”margin-top:12px”>
+      <span class=”t-label” style=”color:var(--c-heat)”>WARNING</span>
+      <span class=”t-micro”>Equipping MIL items adds +22 corp heat. Your heat will reach 43%.</span>
+    </div>
+    <div class=”sc-row” style=”margin-top:20px;gap:6px”>
+      <button class=”k-pill k-pill--sm k-pill--ink” style=”flex:1;background:var(--c-heat);border-color:var(--c-heat);color:#fff” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>BUY 1800</button>
+      <button class=”k-pill k-pill--sm” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHEET 5: CACHE REVEAL ── -->
+<div class=”k-sheet-overlay” id=”sheet-cache” onclick=”closeSheet(this)”>
+  <div class=”k-sheet k-sheet--dark” onclick=”event.stopPropagation()”>
+    <div class=”k-sheet__handle”></div>
+    <div class=”k-sheet__head”>
+      <div><div class=”t-title” style=”color:var(--c-drop)”>Cache Reveal</div>
+        <span class=”t-micro” style=”color:rgba(255,255,255,.5)”>JADENET CACHE · drop</span></div>
+      <button class=”k-sheet__close” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>✕</button>
+    </div>
+    <div class=”k-xd-sep”></div>
+    <div class=”k-xd-stage” style=”height:140px;margin-bottom:14px;border:1.5px solid var(--c-drop)”>
+      <span class=”t-micro”>3D cache model</span>
+    </div>
+    <div class=”k-xd-result k-xd-result--ok”>
+      <span class=”t-label” style=”color:var(--c-drop)”>OPENED</span>
+      <span class=”t-micro” style=”color:#fff”>1× GHOST LENS (RARE)</span>
+    </div>
+    <div style=”margin-top:14px”>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Item</span><span class=”t-body” style=”color:#fff”>GHOST LENS</span></div>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Rarity</span><span class=”k-rar k-rar--rare”>RARE</span></div>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Stat</span><span class=”t-body” style=”color:#fff”>Scan +16</span></div>
+      <div class=”k-xd-stat”><span class=”t-micro” style=”color:rgba(255,255,255,.5)”>Next</span><span class=”t-body” style=”color:rgba(255,255,255,.7)”>Install or sell on Market</span></div>
+    </div>
+    <div class=”sc-row” style=”margin-top:20px;gap:6px”>
+      <button class=”k-pill k-pill--sm k-pill--ink” style=”flex:1;border-color:#fff;color:#fff” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>INSTALL</button>
+      <button class=”k-pill k-pill--sm” style=”flex:1;border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.7)” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>SELL</button>
+      <button class=”k-pill k-pill--sm” style=”flex:1;border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.7)” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Keep</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SHEET 6: CHAT TRADE OFFER ── -->
+<div class=”k-sheet-overlay” id=”sheet-trade” onclick=”closeSheet(this)”>
+  <div class=”k-sheet” onclick=”event.stopPropagation()”>
+    <div class=”k-sheet__handle”></div>
+    <div class=”k-sheet__head”>
+      <div><div class=”t-title”>Trade Offer</div><span class=”t-micro t-dim”>from Null Saint</span></div>
+      <button class=”k-sheet__close” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>✕</button>
+    </div>
+    <div class=”k-xd-sep”></div>
+    <div class=”sc-row” style=”gap:10px;margin-bottom:14px”>
+      <div style=”flex:1;text-align:center;padding:12px;border-radius:var(--r-nested);background:rgba(242,223,78,.1);border:1px solid var(--c-trade)”>
+        <span class=”t-micro t-dim”>They offer</span>
+        <div class=”t-body” style=”margin-top:6px”><b>480 SEN</b></div>
+      </div>
+      <div style=”font-size:18px;align-self:center”>⇄</div>
+      <div style=”flex:1;text-align:center;padding:12px;border-radius:var(--r-nested);background:rgba(18,19,16,.06)”>
+        <span class=”t-micro t-dim”>You give</span>
+        <div class=”t-body” style=”margin-top:6px”><b>GHOST LENS</b></div>
+        <span class=”k-rar k-rar--rare”>RARE</span>
+      </div>
+    </div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Market price</span><span class=”t-body”>~500 SEN</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Difference</span><span class=”t-body” style=”color:var(--c-heat)”>−20 SEN below market</span></div>
+    <div class=”k-xd-stat”><span class=”t-micro t-dim”>Trader rep</span><span class=”t-body”>4.2 ★</span></div>
+    <div class=”sc-row” style=”margin-top:20px;gap:6px”>
+      <button class=”k-pill k-pill--ink” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>ACCEPT</button>
+      <button class=”k-pill” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Counter</button>
+      <button class=”k-pill” style=”flex:1” onclick=”closeSheet(this.closest('.k-sheet-overlay'))”>Decline</button>
+    </div>
+  </div>
+</div>
+
+<footer class=”sc-foot”>
   USERLAND · KIT-B “BENTO KEYLINE” · experiments/bento-keyline-kit.html · standalone, no toolchain ·
   content sourced from the 96-item gear catalogue and the 3D-sync brief · 2026-06-12
 </footer>
@@ -2112,137 +2366,83 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
 <script>
 /* ================================================================
-   EXPAND / CONTRACT — FLIP-lite, touch-first, reduced-motion safe
+   INLINE EXPAND — one card open at a time, push siblings
+   Tap [data-expand] → toggle .is-open → grid-template-rows animates
+   Tap another → previous closes first. Escape closes active.
+   View Transitions API used when available; CSS fallback otherwise.
    ================================================================ */
 (function(){
   'use strict';
-  var backdrop=document.createElement('div');
-  backdrop.className='k-expand-backdrop';
-  document.body.appendChild(backdrop);
+  var active=null;
 
-  var panel=null,src=null,srcRect=null,locked=false;
-  var reducedMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function close(el){
+    if(!el)return;
+    el.classList.remove('is-open');
+    if(el===active)active=null;
+  }
+
+  function open(el){
+    if(active&&active!==el)close(active);
+    el.classList.add('is-open');
+    active=el;
+    // scroll expanded card into view
+    requestAnimationFrame(function(){
+      el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    });
+  }
+
+  function toggle(el){
+    if(el.classList.contains('is-open')){close(el)}
+    else{
+      // use View Transitions API if available
+      if(document.startViewTransition){
+        document.startViewTransition(function(){open(el)});
+      }else{open(el)}
+    }
+  }
 
   document.querySelectorAll('[data-expand]').forEach(function(el){
-    el.classList.add('k-expandable');
     el.addEventListener('click',function(e){
-      // don't expand if user tapped a button/link inside
-      if(e.target.closest('button,a,[data-close]'))return;
+      if(e.target.closest('button,a'))return;
       e.stopPropagation();
-      expand(el);
-    },{passive:false});
+      toggle(el);
+    });
   });
 
-  function expand(el){
-    if(locked||panel)return;
-    locked=true;src=el;
-    srcRect=el.getBoundingClientRect();
+  // Escape closes active
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&active)close(active);
+  });
 
-    // clone card into panel
-    var p=document.createElement('div');
-    p.className='k-expand-panel';
-
-    // close button
-    var cls=document.createElement('div');
-    cls.className='k-expand-close';
-    cls.innerHTML='<button class="k-chip k-chip--ink" data-close style="width:30px;height:30px;font-size:12px">✕</button>';
-    p.appendChild(cls);
-
-    // clone content
-    var inner=document.createElement('div');
-    inner.style.padding='0 '+getComputedStyle(el).paddingLeft;
-    inner.innerHTML=el.innerHTML;
-    p.appendChild(inner);
-
-    // copy background
-    var bg=getComputedStyle(el).backgroundColor;
-    var br=getComputedStyle(el).borderRadius;
-    var color=getComputedStyle(el).color;
-    p.style.background=bg;p.style.color=color;
-
-    // FLIP: set to source rect
-    p.style.left=srcRect.left+'px';
-    p.style.top=srcRect.top+'px';
-    p.style.width=srcRect.width+'px';
-    p.style.height=srcRect.height+'px';
-    p.style.borderRadius=br;
-
-    document.body.appendChild(p);
-    panel=p;
-
-    // force layout
-    p.offsetHeight;
-
-    // FLIP: animate to center
-    var vw=window.innerWidth,vh=window.innerHeight;
-    var pw=Math.min(vw-24,400),ph=Math.min(vh-80,560);
-    if(reducedMotion){p.style.transition='none';backdrop.style.transition='none'}
-
-    requestAnimationFrame(function(){
-      p.style.left=((vw-pw)/2)+'px';
-      p.style.top=((vh-ph)/2)+'px';
-      p.style.width=pw+'px';
-      p.style.height=ph+'px';
-      p.style.borderRadius='12px';
-      backdrop.classList.add('is-open');
-      el.style.opacity='0';
-      el.style.transition='opacity .15s';
-      locked=false;
-    });
-
-    cls.querySelector('[data-close]').addEventListener('click',contract);
-    backdrop.addEventListener('click',contract);
-  }
-
-  function contract(){
-    if(!panel||!src||locked)return;
-    locked=true;
-    panel.classList.add('is-closing');
-
-    // re-measure in case of scroll
-    var r=src.getBoundingClientRect();
-    var br=getComputedStyle(src).borderRadius;
-
-    panel.style.left=r.left+'px';
-    panel.style.top=r.top+'px';
-    panel.style.width=r.width+'px';
-    panel.style.height=r.height+'px';
-    panel.style.borderRadius=br;
-    panel.style.overflow='hidden';
-    backdrop.classList.remove('is-open');
-
-    var p=panel,s=src;
-    function cleanup(){
-      if(p.parentNode)p.remove();
-      s.style.opacity='';s.style.transition='';
-      panel=null;src=null;srcRect=null;locked=false;
-      backdrop.removeEventListener('click',contract);
-    }
-
-    if(reducedMotion){cleanup();return}
-
-    p.addEventListener('transitionend',function handler(e){
-      if(e.propertyName!=='left'&&e.propertyName!=='width')return;
-      p.removeEventListener('transitionend',handler);
-      cleanup();
-    });
-    // safety fallback
-    setTimeout(cleanup,600);
-  }
-
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')contract()});
-
-  // swipe-down to close on touch
-  var touchY=0;
+  // swipe-down on expanded card closes it
+  var ty=0,tel=null;
   document.addEventListener('touchstart',function(e){
-    if(panel)touchY=e.touches[0].clientY;
+    var ex=e.target.closest('[data-expand].is-open');
+    if(ex){ty=e.touches[0].clientY;tel=ex}
   },{passive:true});
   document.addEventListener('touchend',function(e){
-    if(!panel)return;
-    var dy=e.changedTouches[0].clientY-touchY;
-    if(dy>60)contract();
+    if(!tel)return;
+    if(e.changedTouches[0].clientY-ty>50)close(tel);
+    tel=null;
   },{passive:true});
 })();
+
+/* ================================================================
+   MODAL SHEETS — open/close overlay sheets
+   ================================================================ */
+function openSheet(id){
+  var el=document.getElementById(id);
+  if(el)el.classList.add('is-vis');
+}
+function closeSheet(overlay){
+  if(overlay)overlay.classList.remove('is-vis');
+}
+// Escape closes any open sheet
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.querySelectorAll('.k-sheet-overlay.is-vis').forEach(function(o){o.classList.remove('is-vis')});
+  }
+});
 </script>
 </body>
 </html>
