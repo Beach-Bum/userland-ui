@@ -3,24 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>USERLAND — PLAYABLE LOOP v2 (expand-in-place)</title>
+<title>USERLAND — PLAYABLE GAME PROTOTYPE v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 /* ================================================================
-   USERLAND PLAYABLE LOOP v2 — refined against docs v1 (00–07)
-   Rulings (Bob 2026-06-12):
-   · ONE MOTION: View Transitions API expand/contract in place.
-     No bottom sheets. Every object is a compact line that expands
-     to show its actions in minimal space. (VT maps cleanly to
-     LiveView DOM patches later.)
-   · claim panels self-dismiss after CLAIM
-   · pixel icon system for the 6 categories CORE/LENS/PORT/BUS/ICE/SKIN
-   · profile tap (top zone identity) → SOUL account/profile page
-   · bone-only surfaces, semantic color role-only, no white
-   · naming/actions per docs: NOW(RUN CLAIM INSTALL VIEW),
-     MAP(SCAN TRAVEL OPEN NODE), RUNS(START PREP ABORT),
-     SOUL(VIEW RIG · EQUIP TITLE · SETTINGS),
-     MARKET(BUY SELL BID SET ALERT), NET(REPLY TRADE JOIN PROFILE)
+   SECTION 1 — TOKENS
+   USERLAND PLAYABLE v3 — full six-board prototype.
+   Rulings: bone-only surfaces, semantic color role-only, no white.
+   ONE MOTION: View Transitions expand/contract in place (.xl).
+   Level 3 = single-purpose flat bone sheet (no nesting).
+   Notification glyphs: · idle ∴ active ✦ ready ⌁ syncing ▴ blocked ■ failed
    ================================================================ */
 :root{
   --u:4px; --gap:6px; --pad:18px;
@@ -43,7 +35,7 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
   font-size:13.5px;line-height:1.5;font-variant-numeric:tabular-nums;
   display:flex;flex-direction:column;align-items:center;gap:14px;padding:30px 12px 80px}
 
-/* type */
+/* ===== SECTION 2 — BASE LAYOUT / TYPE ===== */
 .t-num-s{font-size:36px;font-family:"Gamja Flower",cursive;line-height:.95}
 .t-title{font-size:22px;font-family:"Gamja Flower",cursive;line-height:1.02}
 .t-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
@@ -51,14 +43,13 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .t-dim{opacity:.6}
 .ok{color:#1d8f15}.bad{color:#b3300f}
 
-/* cards / wells */
 .k-card{position:relative;background:var(--bone);color:var(--ink);border-radius:var(--r-card);padding:var(--pad)}
 .k-card--ink{background:var(--black);color:#fff}
 .k-well{background:var(--bone-2);border-radius:var(--r-nested);padding:10px 12px}
-.k-dotline{border-bottom:2px dotted rgba(18,19,16,.45);padding-bottom:8px;margin-bottom:12px;
+.k-dotline{border-bottom:2px dotted rgba(18,19,16,.45);padding-bottom:8px;margin-bottom:10px;
   display:flex;align-items:center;justify-content:space-between;gap:8px}
 
-/* pills */
+/* ===== SECTION 3 — COMPONENTS ===== */
 .k-pill{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 18px;
   border-radius:var(--r-pill);border:var(--key-w) solid var(--ink);background:var(--bone);color:var(--ink);
   font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
@@ -71,8 +62,8 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .k-pill:disabled,.k-pill.is-off{opacity:.4;cursor:not-allowed}
 .k-pill:active{transform:translateY(1px)}
 .k-pill.armed{background:var(--c-heat);border-color:var(--ink);color:#fff}
+.k-pill.is-pending{opacity:.55;pointer-events:none}
 
-/* tags / chips */
 .k-tag{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 11px;border-radius:var(--r-pill);
   border:var(--key-w) solid currentColor;font-size:9.5px;font-weight:700;letter-spacing:.1em;
   text-transform:uppercase;background:transparent;white-space:nowrap}
@@ -80,7 +71,6 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .k-ava{display:inline-flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;
   border-radius:50%;background:var(--c-grow);border:var(--key-w) solid var(--ink);font-size:11px;font-weight:800}
 
-/* rarity pills (constant role colors) */
 .k-rar{display:inline-flex;align-items:center;height:21px;padding:0 9px;border-radius:var(--r-pill);
   background:var(--ink);color:#fff;font-size:9px;font-weight:800;letter-spacing:.12em;flex:none}
 .k-rar--brk{background:#8a877c}.k-rar--com{background:#1d8f15}.k-rar--tun{background:#1f9d84}
@@ -88,16 +78,17 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .k-rar--mil{background:#c41f08}
 .k-rar--myth{background:linear-gradient(100deg,#6a55d8,#2f6fc2,#1f9d84,#a8961a);color:#fff}
 
-/* state chip (object states, doc 02) */
 .k-st{display:inline-flex;align-items:center;height:21px;padding:0 9px;border-radius:var(--r-pill);
   border:var(--key-w) solid currentColor;font-size:9px;font-weight:800;letter-spacing:.1em;flex:none;
   text-transform:uppercase;background:transparent}
 .k-st--ready{color:#1d8f15}.k-st--running{color:#121310}.k-st--locked{color:#b3300f}
-.k-st--claim{color:#1d8f15;background:var(--c-run);border-color:var(--ink);color:var(--ink)}
+.k-st--claim{background:var(--c-run);border-color:var(--ink);color:var(--ink)}
 .k-st--done{opacity:.45}
+.k-st--failed{background:var(--c-heat);border-color:var(--ink);color:#fff}
+.k-st--prep{color:#2f6fc2}
+.k-st--blocked{color:#b3300f;opacity:.7}
 
-/* ============ THE ONE MOTION: expandable line (.xl) ============ */
-/* collapsed = 52px line · tap = View Transition expand in place   */
+/* THE ONE MOTION: expandable line (.xl) */
 .xl{background:var(--bone);border-radius:var(--r-card);overflow:hidden}
 .xl__line{display:flex;align-items:center;gap:11px;min-height:52px;padding:8px 14px;cursor:pointer;
   -webkit-tap-highlight-color:transparent}
@@ -109,25 +100,24 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .xl__body{display:none;padding:2px 14px 14px}
 .xl.is-open .xl__body{display:block}
 .xl.is-open{box-shadow:inset 0 0 0 var(--key-w) rgba(18,19,16,.35)}
+.xl.is-dim{opacity:.55}
 
-/* live progress */
 .k-live__bar{height:4px;border-radius:var(--r-pill);background:rgba(18,19,16,.16);overflow:hidden;margin-top:10px}
 .k-live__bar i{display:block;height:100%;width:0;background:var(--ink);border-radius:var(--r-pill);transition:width .5s linear}
 .dotpulse{width:8px;height:8px;border-radius:50%;background:var(--c-ok);flex:none}
 @media (prefers-reduced-motion:no-preference){.dotpulse{animation:livepulse 1.8s ease-out infinite}}
 @keyframes livepulse{0%{box-shadow:0 0 0 0 rgba(79,214,69,.45)}70%,100%{box-shadow:0 0 0 7px rgba(79,214,69,0)}}
 
-/* ready shimmer — attention role, max 2/screen */
+/* ready shimmer — max ONE strong shimmer per screen */
 .attn-ready{animation:readysh 2.5s ease-in-out infinite}
 @keyframes readysh{0%,100%{box-shadow:0 0 0 rgba(79,214,69,0)}50%{box-shadow:0 0 9px rgba(79,214,69,.4)}}
 @media (prefers-reduced-motion:reduce){.attn-ready{animation:none;box-shadow:0 0 0 1.5px rgba(79,214,69,.6)}}
 
-/* ============ PIXEL ICON SYSTEM (8×8 grid, crisp) ============ */
+/* PIXEL ICON SYSTEM (8×8 grid, crisp) */
 .px{display:inline-flex;flex:none;width:26px;height:26px;color:var(--ink)}
 .px svg{width:100%;height:100%;shape-rendering:crispEdges}
 .px--dim{opacity:.35}
 
-/* market category strip */
 .catstrip{display:flex;gap:5px;flex:none}
 .cat{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 7px;
   border-radius:var(--r-nested);background:var(--bone);cursor:pointer;border:var(--key-w) solid transparent}
@@ -135,33 +125,22 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .cat.is-on{border-color:var(--ink);background:var(--bone-2)}
 
 /* object stage (3D placeholder, ToonHolo in prod) */
-.stage{background:var(--bone-2);border-radius:var(--r-nested);height:132px;margin:10px 0;
+.stage{background:var(--bone-2);border-radius:var(--r-nested);height:128px;margin:10px 0;
   display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-.stage.revealing{box-shadow:inset 0 0 0 2px var(--c-grow)}
-.stage .ph{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.4}
+.stage .ph{position:absolute;bottom:6px;right:10px;font-size:8px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;opacity:.35}
 
-/* kv rows */
 .kv{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:5px 0;
   border-bottom:1px dotted rgba(18,19,16,.3)}
 .kv:last-child{border-bottom:0}
 .kv span:first-child{opacity:.55;text-transform:uppercase;font-size:9.5px;font-weight:700;letter-spacing:.08em}
 
-/* chat */
 .k-bubble{max-width:86%;border-radius:var(--r-card);padding:11px 13px;background:var(--bone)}
 .k-bubble--out{background:var(--c-run);margin-left:auto}
-.k-bubble .who{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.6;
-  margin-bottom:4px;cursor:pointer}
-.k-bubble .pro{display:none;margin-top:8px}
-.k-bubble.pro-open .pro{display:block}
+.k-bubble--sys{background:var(--bone-2);max-width:100%;font-size:11px}
+.k-bubble .who{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.6;margin-bottom:4px}
 
-/* toggle */
-.k-toggle{position:relative;display:inline-block;width:44px;height:26px;border-radius:var(--r-pill);
-  border:var(--key-w) solid var(--ink);background:var(--bone-2);cursor:pointer;flex:none}
-.k-toggle i{position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:var(--ink)}
-.k-toggle.is-on{background:var(--c-ok)}
-.k-toggle.is-on i{left:auto;right:3px}
-
-/* phone */
+/* ===== SECTION 4 — BOARDS / PHONE ===== */
 .k-phone{width:410px;max-width:100%;flex:none;background:#10151b;border-radius:44px;padding:10px;
   box-shadow:0 24px 60px rgba(10,12,16,.35)}
 .k-screen{position:relative;background:var(--navy);border-radius:32px;padding:8px;
@@ -170,24 +149,32 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 .board::-webkit-scrollbar{display:none}
 .board.is-on{display:flex}
 
-/* head (top zone — every board) */
 .k-headcard{padding:12px var(--pad) 14px;flex:none}
 .k-head-id{display:flex;align-items:center;gap:8px;cursor:pointer;border-radius:var(--r-nested)}
 .k-strip{display:flex;gap:6px;margin-top:10px}
 .k-strip__cell{flex:1;background:var(--bone-2);padding:7px 10px;border-radius:var(--r-nested)}
 .k-strip__cell .v{font-size:14px;font-weight:800;margin-top:1px;white-space:nowrap}
+.delta{font-size:9px;font-weight:800;color:#1d8f15}
+.delta.bad{color:#b3300f}
 
-/* tabbar */
 .k-tabbar{display:flex;align-items:center;justify-content:space-between;gap:4px;height:56px;
-  border-radius:10px;background:var(--navy-2);color:rgba(255,255,255,.55);padding:0 14px;flex:none}
+  border-radius:10px;background:var(--navy-2);color:rgba(255,255,255,.55);padding:0 12px;flex:none}
 .k-tabbar a{position:relative;color:inherit;text-decoration:none;font-size:9.5px;font-weight:700;
-  letter-spacing:.05em;text-transform:uppercase;padding:6px 2px;cursor:pointer}
+  letter-spacing:.05em;text-transform:uppercase;padding:6px 2px;cursor:pointer;text-align:center}
 .k-tabbar a.is-on{color:var(--c-run)}
-.k-tabbar a .bdot{position:absolute;top:-2px;right:-5px;width:6px;height:6px;border-radius:50%;display:none}
-.k-tabbar a.has-ready .bdot{display:block;background:var(--c-ok)}
-.k-tabbar a.has-run .bdot{display:block;background:var(--c-run)}
+.k-tabbar a .gl{display:block;font-size:10px;line-height:1;height:11px;font-style:normal;opacity:.9}
+.k-tabbar a .gl.g-ready{color:var(--c-ok)}
+.k-tabbar a .gl.g-warn{color:var(--c-heat)}
+.k-tabbar a .gl.g-active{color:var(--c-run)}
 
-/* toast */
+/* ===== SECTION 5 — SHEET LAYER (level 3, single purpose, flat bone) ===== */
+.scrim{position:absolute;inset:0;background:rgba(10,10,10,.45);z-index:30;display:none;border-radius:32px}
+.scrim.is-vis{display:block}
+.sheet{position:absolute;left:8px;right:8px;bottom:8px;z-index:31;background:var(--bone);
+  border-radius:var(--r-card);padding:var(--pad);display:none;max-height:82%;overflow-y:auto;scrollbar-width:none}
+.sheet.is-vis{display:block}
+.sheet::-webkit-scrollbar{display:none}
+
 .toast{position:absolute;left:14px;right:14px;bottom:74px;background:var(--black);color:var(--bone);
   border-radius:10px;padding:11px 14px;font-size:11px;font-weight:700;display:none;align-items:center;
   gap:9px;z-index:40}
@@ -195,452 +182,146 @@ body{font-family:"Space Mono",ui-monospace,monospace;background:#cfccc2;color:va
 @keyframes toastin{from{opacity:0;transform:translateY(8px)}}
 .toast .dot{width:7px;height:7px;border-radius:50%;background:var(--c-ok);flex:none}
 
+.actrow{display:flex;gap:6px;margin-top:10px}
+.actrow .k-pill{flex:1}
+
 .sc-note{max-width:410px;font-size:11px;opacity:.65;line-height:1.6;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* View Transitions: snappy */
 ::view-transition-group(*){animation-duration:.22s}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.18s}
 </style>
 </head>
 <body>
 
-<div class="t-title" style="font-size:28px">USERLAND · PLAYABLE LOOP v2</div>
-<p class="sc-note">one motion: View-Transition expand/contract in place — no sheets.
-Lines open to act, claim panels self-dismiss, pixel icons mark the 6 categories.
-Tap your name to open SOUL (account &amp; profile).</p>
+<div class="t-title" style="font-size:28px">USERLAND · PLAYABLE v3</div>
+<p class="sc-note">six boards, shared state, one motion. claim → install → scan → prep → run →
+claim → trade → net reaction → back to NOW. every action names its server event.</p>
 
 <div class="k-phone"><div class="k-screen" id="screen">
 
-  <!-- TOP ZONE (identity/status — every board, doc 04) -->
+  <!-- HEADER / HUD (every board) -->
   <div class="k-card k-headcard">
-    <div class="k-head-id" onclick="go('soul')" title="open profile">
+    <div class="k-head-id" data-act="soul:open" title="open profile">
       <span class="k-ava">N</span>
       <div style="flex:1"><div class="t-label">ned <span class="t-micro t-dim">· ghost operator</span></div>
         <div class="t-micro t-dim">null saints · ghost build</div></div>
       <span class="k-tag" id="board-tag">NOW</span>
     </div>
-    <div class="k-strip">
-      <div class="k-strip__cell"><div class="t-micro t-dim">SEN</div><div class="v" id="hud-sen">2,410</div></div>
-      <div class="k-strip__cell"><div class="t-micro t-dim">HEAT</div><div class="v" id="hud-heat">21</div></div>
-      <div class="k-strip__cell"><div class="t-micro t-dim">RIG</div><div class="v" id="hud-rig">3/6</div></div>
-      <div class="k-strip__cell"><div class="t-micro t-dim">CREW</div><div class="v">4</div></div>
-    </div>
+    <div class="k-strip" id="hud"></div>
   </div>
 
-  <!-- ================= NOW — command center ================= -->
-  <div class="board is-on" id="b-now">
+  <!-- BOARDS (rendered from state) -->
+  <div class="board is-on" id="b-now"></div>
+  <div class="board" id="b-map"></div>
+  <div class="board" id="b-runs"></div>
+  <div class="board" id="b-soul"></div>
+  <div class="board" id="b-market"></div>
+  <div class="board" id="b-net"></div>
 
-    <!-- ready drop / cache (Journey 1·2) -->
-    <div class="xl attn-ready" id="xl-cache" style="view-transition-name:xl-cache">
-      <div class="xl__line" onclick="xtoggle('xl-cache')">
-        <i class="px" data-px="core"></i>
-        <div class="xl__main"><div class="xl__name">SIGNAL CACHE</div>
-          <div class="xl__sub">today's drop · the natural world · 41 min</div></div>
-        <span class="k-st k-st--ready" id="cache-st">READY</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body" id="cache-body">
-        <div style="display:flex;gap:6px;margin:6px 0 10px">
-          <span class="k-tag">+120 SEN</span><span class="k-tag k-tag--heat">HEAT +4</span><span class="k-tag">LENS PART</span>
-        </div>
-        <button class="k-pill k-pill--ink" style="width:100%" id="cache-btn" onclick="claimCache(event)">CLAIM</button>
-      </div>
-    </div>
-
-    <!-- item / install suggestion (hidden until claimed) -->
-    <div class="xl" id="xl-lens" style="display:none;view-transition-name:xl-lens">
-      <div class="xl__line" onclick="xtoggle('xl-lens')">
-        <i class="px" data-px="lens"></i>
-        <div class="xl__main"><div class="xl__name">GHOST LENS</div>
-          <div class="xl__sub" id="lens-sub">in inventory · install to unlock jadenet gate</div></div>
-        <span class="k-rar k-rar--rare">RARE</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="stage" id="lens-stage"></div>
-        <div class="kv"><span>slot</span><span>LENS</span></div>
-        <div class="kv"><span>corp</span><span>UOPT</span></div>
-        <div class="kv"><span>stat</span><span>Scan +16</span></div>
-        <div class="kv"><span>value</span><span>480 SEN</span></div>
-        <div class="kv"><span>location</span><span id="lens-loc">Inventory</span></div>
-        <p style="font-size:11px;opacity:.7;margin:8px 0">Jadenet surplus optic. The coating remembers what it has scanned.</p>
-        <div style="display:flex;gap:6px">
-          <button class="k-pill k-pill--ink" style="flex:1" id="lens-install" onclick="installLens(event)">INSTALL</button>
-          <button class="k-pill k-pill--ghost" style="flex:1" id="lens-sell" onclick="go('mkt');xtoggle('xl-mklens',true)">SELL</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- recommended run (Journey 4) -->
-    <div class="xl" id="xl-nq" style="view-transition-name:xl-nq">
-      <div class="xl__line" onclick="xtoggle('xl-nq')">
-        <i class="px" data-px="bus"></i>
-        <div class="xl__main"><div class="xl__name">OLD HOSPITAL NODE</div>
-          <div class="xl__sub">recommended · quick run · 02:00</div></div>
-        <span class="k-st k-st--ready" id="nq-st">READY</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div style="display:flex;gap:6px;margin:6px 0 4px">
-          <span class="k-tag">+120 SEN</span><span class="k-tag k-tag--heat">HEAT +6</span><span class="k-tag">TRACE LOW</span>
-        </div>
-        <div class="k-live__bar"><i id="nq-bar"></i></div>
-        <div id="nq-act" style="margin-top:10px">
-          <button class="k-pill k-pill--run" style="width:100%" onclick="startRun('quick',event)">RUN</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- crew notification → NET -->
-    <div class="xl">
-      <div class="xl__line" onclick="go('net')">
-        <span class="k-ava">NS</span>
-        <div class="xl__main"><div class="xl__name">Crew · 2 messages</div>
-          <div class="xl__sub">null saints · gate run forming</div></div>
-        <button class="k-pill k-pill--sm">VIEW</button>
-      </div>
-    </div>
+  <!-- BOTTOM TABBAR -->
+  <div class="k-tabbar" id="tabbar">
+    <a data-go="now"><i class="gl" id="gl-now">·</i>NOW</a>
+    <a data-go="map"><i class="gl" id="gl-map">·</i>MAP</a>
+    <a data-go="runs"><i class="gl" id="gl-runs">·</i>RUNS</a>
+    <a data-go="soul"><i class="gl" id="gl-soul">·</i>SOUL</a>
+    <a data-go="market"><i class="gl" id="gl-market">·</i>MARKET</a>
+    <a data-go="net"><i class="gl" id="gl-net">·</i>NET</a>
   </div>
 
-  <!-- ================= MAP — Ha7 Index ================= -->
-  <div class="board" id="b-map">
-    <div class="k-card">
-      <div class="k-dotline"><span class="t-label">Current index</span><span class="t-micro t-dim">HA7</span></div>
-      <div class="t-num-s">ZONE 7</div>
-      <div class="t-micro t-dim" style="margin-top:4px" id="map-count">2 nodes discovered · 1 locked</div>
-      <div class="k-live__bar"><i id="scan-bar"></i></div>
-      <div style="display:flex;gap:6px;margin-top:12px">
-        <button class="k-pill k-pill--ink" style="flex:1" id="scan-btn" onclick="scan()">SCAN</button>
-        <button class="k-pill k-pill--ghost" style="flex:1" onclick="toast('travel queued — already in zone 7')">TRAVEL</button>
-      </div>
-    </div>
+  <!-- MODAL / SHEET LAYER -->
+  <div class="scrim" id="scrim" data-act="sheet:close"></div>
+  <div class="sheet" id="sheet"></div>
 
-    <div class="xl" id="xl-hosp" style="view-transition-name:xl-hosp">
-      <div class="xl__line" onclick="xtoggle('xl-hosp')">
-        <i class="px" data-px="bus"></i>
-        <div class="xl__main"><div class="xl__name">Old Hospital Node</div>
-          <div class="xl__sub">discovered · quick run · the natural world</div></div>
-        <span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="kv"><span>type</span><span>quick run · low risk</span></div>
-        <div class="kv"><span>reward</span><span>+120 SEN</span></div>
-        <div class="kv"><span>lore</span><span>USER Project fragments</span></div>
-        <button class="k-pill k-pill--ink" style="width:100%;margin-top:10px"
-          onclick="go('runs');xtoggle('xl-rq',true)">OPEN NODE</button>
-      </div>
-    </div>
+  <!-- TOAST -->
+  <div class="toast" id="toast"><span class="dot"></span><span id="toast-msg"></span></div>
 
-    <div class="xl" id="xl-gate" style="view-transition-name:xl-gate">
-      <div class="xl__line" onclick="xtoggle('xl-gate')">
-        <i class="px px--dim" id="gate-px" data-px="ice"></i>
-        <div class="xl__main"><div class="xl__name" id="gate-name">??? — undiscovered</div>
-          <div class="xl__sub" id="gate-sub">scan to reveal</div></div>
-        <span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body" id="gate-body">
-        <div class="t-micro t-dim" style="padding:4px 0 8px">no data — run a scan from the zone card</div>
-      </div>
-    </div>
-
-    <div class="k-well t-micro t-dim" style="line-height:1.7">"the natural world remembers what jadenet indexed" — fragment 3/9</div>
-  </div>
-
-  <!-- ================= RUNS ================= -->
-  <div class="board" id="b-runs">
-
-    <div class="xl" id="xl-rq" style="view-transition-name:xl-rq">
-      <div class="xl__line" onclick="xtoggle('xl-rq')">
-        <i class="px" data-px="bus"></i>
-        <div class="xl__main"><div class="xl__name">OLD HOSPITAL NODE</div>
-          <div class="xl__sub">quick run · the natural world · 02:00</div></div>
-        <span class="k-st k-st--ready" id="rq-st">READY</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div style="display:flex;gap:6px;margin:6px 0 4px">
-          <span class="k-tag">+120 SEN</span><span class="k-tag k-tag--heat">HEAT +6</span><span class="k-tag">TRACE LOW</span>
-        </div>
-        <div class="k-well" style="margin-top:8px;font-size:11px"><span class="ok">✓</span> no rig requirements</div>
-        <div class="k-live__bar"><i id="rq-bar"></i></div>
-        <div id="rq-act" style="display:flex;gap:6px;margin-top:10px">
-          <button class="k-pill k-pill--run" style="flex:1" onclick="startRun('quick',event)">START</button>
-          <button class="k-pill k-pill--ghost" style="flex:1" onclick="toast('prep: no requirements — clear to start')">PREP</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="xl" id="xl-rd" style="view-transition-name:xl-rd">
-      <div class="xl__line" onclick="xtoggle('xl-rd')">
-        <i class="px" data-px="ice"></i>
-        <div class="xl__main"><div class="xl__name">JADENET GATE 02</div>
-          <div class="xl__sub">deep run · jadenet · 04:00</div></div>
-        <span class="k-st k-st--locked" id="rd-st">LOCKED</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div style="display:flex;gap:6px;margin:6px 0 4px">
-          <span class="k-tag">+450 SEN · CACHE</span><span class="k-tag k-tag--heat">HEAT +14</span><span class="k-tag k-tag--heat">TRACE +1</span>
-        </div>
-        <div class="k-well" style="margin-top:8px;font-size:11px" id="rd-req">
-          <span class="bad">✕</span> Scan +16 — install a LENS<br>
-          <span class="bad">✕</span> node undiscovered — SCAN on MAP</div>
-        <div class="k-live__bar"><i id="rd-bar"></i></div>
-        <div id="rd-act" style="display:flex;gap:6px;margin-top:10px">
-          <button class="k-pill is-off" style="flex:1" id="rd-start" disabled onclick="startRun('deep',event)">START</button>
-          <button class="k-pill k-pill--ghost" style="flex:1" onclick="prepDeep()">PREP</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= SOUL — account & profile ================= -->
-  <div class="board" id="b-soul">
-    <div class="k-card">
-      <div class="k-dotline"><span class="t-label">Profile</span><span class="t-micro t-dim">@ned · joined 2086.04</span></div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <span class="k-ava" style="width:46px;height:46px;font-size:15px">N</span>
-        <div style="flex:1">
-          <div class="t-title">NED</div>
-          <div class="t-micro t-dim">title: GHOST OPERATOR · crew: NULL SAINTS</div>
-        </div>
-      </div>
-      <div class="kv" style="margin-top:10px"><span>level</span><span>7 · 62% to 8</span></div>
-      <div class="k-live__bar"><i style="width:62%"></i></div>
-      <div class="kv" style="margin-top:8px"><span>reputation</span><span>TRUSTED · jadenet wary</span></div>
-      <div class="kv"><span>achievements</span><span>11 / 40</span></div>
-      <div style="display:flex;gap:6px;margin-top:12px">
-        <button class="k-pill k-pill--sm" onclick="toast('rig below')">VIEW RIG</button>
-        <button class="k-pill k-pill--sm" onclick="toast('title equipped: GHOST OPERATOR')">EQUIP TITLE</button>
-        <button class="k-pill k-pill--sm k-pill--ghost" onclick="xtoggle('xl-set',true)">SETTINGS</button>
-      </div>
-    </div>
-
-    <div class="k-card">
-      <div class="k-dotline"><span class="t-label">Rig — ghost build</span><span class="t-micro t-dim" id="soul-count">3/6 slots</span></div>
-      <div id="rig-list"></div>
-    </div>
-
-    <div class="k-card">
-      <div class="k-dotline"><span class="t-label">Inventory</span><span class="t-micro t-dim" id="inv-count">0 items</span></div>
-      <div id="inv-empty" class="t-micro t-dim">empty — claim the drop on NOW</div>
-      <div class="xl" id="xl-invlens" style="display:none;background:var(--bone-2);view-transition-name:xl-invlens">
-        <div class="xl__line" onclick="go('now');xtoggle('xl-lens',true)">
-          <i class="px" data-px="lens"></i>
-          <div class="xl__main"><div class="xl__name">Ghost Lens</div><div class="xl__sub">lens · uopt</div></div>
-          <span class="k-rar k-rar--rare">RARE</span>
-          <button class="k-pill k-pill--sm k-pill--ink">VIEW</button>
-        </div>
-      </div>
-      <div class="xl" id="xl-invice" style="display:none;background:var(--bone-2);view-transition-name:xl-invice">
-        <div class="xl__line" onclick="xtoggle('xl-invice')">
-          <i class="px" data-px="ice"></i>
-          <div class="xl__main"><div class="xl__name">Null Hex ICE</div><div class="xl__sub">ice · gil seized</div></div>
-          <span class="k-rar k-rar--mil">MIL</span><span class="xl__caret">▾</span>
-        </div>
-        <div class="xl__body">
-          <div class="stage" id="ice-stage"></div>
-          <div class="kv"><span>slot</span><span>ICE</span></div>
-          <div class="kv"><span>stat</span><span>Break +22</span></div>
-          <button class="k-pill k-pill--ink" style="width:100%;margin-top:10px" onclick="installIce(event)">INSTALL</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="xl" id="xl-set" style="view-transition-name:xl-set">
-      <div class="xl__line" onclick="xtoggle('xl-set')">
-        <i class="px" data-px="skin"></i>
-        <div class="xl__main"><div class="xl__name">Settings</div><div class="xl__sub">account · session · motion</div></div>
-        <span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="kv"><span>account</span><span>ned@userland.sh</span></div>
-        <div class="kv"><span>session</span><span>this device · 02:12</span></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
-          <span class="t-micro t-dim">REDUCED MOTION</span><span class="k-toggle" onclick="this.classList.toggle('is-on')"><i></i></span></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
-          <span class="t-micro t-dim">CREW PINGS</span><span class="k-toggle is-on" onclick="this.classList.toggle('is-on')"><i></i></span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= MARKET ================= -->
-  <div class="board" id="b-mkt">
-    <div class="k-card k-card--ink" style="display:flex;align-items:center;gap:10px">
-      <div style="flex:1"><div class="t-micro" style="opacity:.6">BALANCE</div>
-        <div class="t-num-s" id="mkt-sen">2,410 SEN</div></div>
-      <button class="k-pill k-pill--sm" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)"
-        onclick="toast('alert set: LENS listings under 500 SEN')">SET ALERT</button>
-    </div>
-
-    <!-- category pixel icons -->
-    <div class="catstrip" id="catstrip">
-      <div class="cat is-on" data-cat="all" onclick="filterCat('all',this)"><i class="px" data-px="all"></i><span class="t-micro">ALL</span></div>
-      <div class="cat" data-cat="core" onclick="filterCat('core',this)"><i class="px" data-px="core"></i><span class="t-micro">CORE</span></div>
-      <div class="cat" data-cat="lens" onclick="filterCat('lens',this)"><i class="px" data-px="lens"></i><span class="t-micro">LENS</span></div>
-      <div class="cat" data-cat="port" onclick="filterCat('port',this)"><i class="px" data-px="port"></i><span class="t-micro">PORT</span></div>
-      <div class="cat" data-cat="bus" onclick="filterCat('bus',this)"><i class="px" data-px="bus"></i><span class="t-micro">BUS</span></div>
-      <div class="cat" data-cat="ice" onclick="filterCat('ice',this)"><i class="px" data-px="ice"></i><span class="t-micro">ICE</span></div>
-      <div class="cat" data-cat="skin" onclick="filterCat('skin',this)"><i class="px" data-px="skin"></i><span class="t-micro">SKIN</span></div>
-    </div>
-
-    <!-- listing: ICE (MIL — inline armed confirm, no modal) -->
-    <div class="xl" data-cat="ice" id="xl-mkice" style="view-transition-name:xl-mkice">
-      <div class="xl__line" onclick="xtoggle('xl-mkice')">
-        <i class="px" data-px="ice"></i>
-        <div class="xl__main"><div class="xl__name">Null Hex ICE</div><div class="xl__sub">ice · gil seized · 950 sen</div></div>
-        <span class="k-rar k-rar--mil">MIL</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="stage" id="mkice-stage"></div>
-        <div class="kv"><span>slot</span><span>ICE</span></div>
-        <div class="kv"><span>stat</span><span>Break +22</span></div>
-        <div class="kv"><span>heat</span><span class="bad">+8 on purchase</span></div>
-        <div class="kv"><span>risk</span><span class="bad">GIL trace possible</span></div>
-        <div class="kv"><span>balance after</span><span id="mkice-after">1,460 SEN</span></div>
-        <div style="display:flex;gap:6px;margin-top:10px">
-          <button class="k-pill k-pill--trade" style="flex:1" id="mkice-buy" onclick="armBuyIce(this,event)">BUY 950</button>
-          <button class="k-pill k-pill--ghost" style="flex:1" onclick="toast('bid placed: 900 SEN')">BID</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- listing: CORE auction -->
-    <div class="xl" data-cat="core" id="xl-mkcore" style="view-transition-name:xl-mkcore">
-      <div class="xl__line" onclick="xtoggle('xl-mkcore')">
-        <i class="px" data-px="core"></i>
-        <div class="xl__main"><div class="xl__name">Hexcore 12</div><div class="xl__sub">core · paradise systems · auction</div></div>
-        <span class="k-rar k-rar--leg">LEG</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="stage" id="mkcore-stage"></div>
-        <div class="kv"><span>slot</span><span>CORE</span></div>
-        <div class="kv"><span>stat</span><span>Cycle +30</span></div>
-        <div class="kv"><span>top bid</span><span>2,300 SEN · 12 min left</span></div>
-        <button class="k-pill k-pill--trade" style="width:100%;margin-top:10px" onclick="toast('bid placed: 2,350 SEN — you lead')">BID 2,350</button>
-      </div>
-    </div>
-
-    <!-- listing: SKIN -->
-    <div class="xl" data-cat="skin" id="xl-mkskin" style="view-transition-name:xl-mkskin">
-      <div class="xl__line" onclick="xtoggle('xl-mkskin')">
-        <i class="px" data-px="skin"></i>
-        <div class="xl__main"><div class="xl__name">Mirror Skin</div><div class="xl__sub">skin · crystal palace · 320 sen</div></div>
-        <span class="k-rar k-rar--tun">TUN</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="stage" id="mkskin-stage"></div>
-        <div class="kv"><span>slot</span><span>SKIN</span></div>
-        <div class="kv"><span>stat</span><span>Trace −6</span></div>
-        <button class="k-pill k-pill--trade" style="width:100%;margin-top:10px" id="mkskin-buy" onclick="buySkin(this,event)">BUY 320</button>
-      </div>
-    </div>
-
-    <!-- your sell listing (hidden until claimed; armed confirm — forfeits unlock) -->
-    <div class="xl" data-cat="lens" id="xl-mklens" style="display:none;view-transition-name:xl-mklens">
-      <div class="xl__line" onclick="xtoggle('xl-mklens')">
-        <i class="px" data-px="lens"></i>
-        <div class="xl__main"><div class="xl__name">Ghost Lens <span class="t-micro t-dim">· YOURS</span></div>
-          <div class="xl__sub">lens · uopt · bid 480 sen</div></div>
-        <span class="k-rar k-rar--rare">RARE</span><span class="xl__caret">▾</span>
-      </div>
-      <div class="xl__body">
-        <div class="kv"><span>top bid</span><span>480 SEN</span></div>
-        <div class="kv"><span>warning</span><span class="bad">selling forfeits the gate unlock</span></div>
-        <button class="k-pill" style="width:100%;margin-top:10px" id="mklens-sell" onclick="armSellLens(this,event)">SELL 480</button>
-      </div>
-    </div>
-
-    <div class="k-well t-micro t-dim" id="mkt-note">keep the lens to unlock jadenet gate 02 — or sell it here</div>
-  </div>
-
-  <!-- ================= NET ================= -->
-  <div class="board" id="b-net">
-    <div style="display:flex;gap:5px;flex:none">
-      <span class="k-tag" style="opacity:.45">GLOBAL</span><span class="k-tag" style="background:var(--c-social)">CREW</span>
-      <span class="k-tag" style="opacity:.45">DM</span><span class="k-tag" style="opacity:.45">TRADE</span>
-    </div>
-    <div class="k-card" style="flex:1;display:flex;flex-direction:column;gap:8px;overflow-y:auto">
-      <div class="k-bubble" id="bub-vexa">
-        <div class="who" onclick="proToggle('bub-vexa')">vexa_9 · tap for profile</div>
-        anyone holding a spare LENS? gate run tonight
-        <div class="pro k-well">
-          <div class="kv"><span>player</span><span>vexa_9 · null saints</span></div>
-          <div class="kv"><span>trust</span><span>62 · ran 4 jobs with you</span></div>
-          <button class="k-pill k-pill--sm" style="margin-top:8px" onclick="toast('trade request sent to vexa_9')">TRADE</button>
-        </div>
-      </div>
-      <div class="k-bubble" id="bub-marrow">
-        <div class="who" onclick="proToggle('bub-marrow')">marrow · tap for profile</div>
-        need 1 more for JADENET GATE 02
-        <div class="k-well" style="margin-top:8px;display:flex;align-items:center;gap:8px">
-          <i class="px" data-px="ice"></i>
-          <div style="flex:1"><div style="font-size:11.5px;font-weight:700">Jadenet Gate 02</div>
-            <div class="t-micro t-dim">deep run · scan +16 required</div></div>
-          <button class="k-pill k-pill--sm" onclick="go('runs');xtoggle('xl-rd',true)">VIEW</button>
-          <button class="k-pill k-pill--sm k-pill--ink" onclick="netJoin()">JOIN</button>
-        </div>
-        <div class="pro k-well" style="margin-top:8px">
-          <div class="kv"><span>player</span><span>marrow · null saints</span></div>
-          <div class="kv"><span>trust</span><span>81 · crew lead</span></div>
-        </div>
-      </div>
-      <div class="k-bubble" id="bub-woo">
-        <div class="who" onclick="proToggle('bub-woo')">dr_peggy_woo · tap for profile</div>
-        the lens remembers. bring it whole.
-        <div class="pro k-well">
-          <div class="kv"><span>contact</span><span>Dr. Peggy Woo · USER Project</span></div>
-          <div class="kv"><span>status</span><span>encrypted relay · unverified</span></div>
-        </div>
-      </div>
-      <div class="k-bubble k-bubble--out" id="net-reply" style="display:none">installed the lens. i'm in.</div>
-    </div>
-    <div style="display:flex;gap:6px;flex:none">
-      <input style="flex:1;border:1.5px solid rgba(18,19,16,.3);border-radius:999px;background:var(--bone);
-        padding:0 14px;height:38px;font-family:inherit;font-size:12px;outline:none" placeholder="message crew…">
-      <button class="k-pill k-pill--ink" style="width:38px;padding:0" onclick="netReply()">→</button>
-    </div>
-  </div>
-
-  <!-- TABBAR -->
-  <nav class="k-tabbar">
-    <a id="t-now" class="is-on" onclick="go('now')">Now<span class="bdot"></span></a>
-    <a id="t-map" onclick="go('map')">Map<span class="bdot"></span></a>
-    <a id="t-runs" onclick="go('runs')">Runs<span class="bdot"></span></a>
-    <a id="t-soul" onclick="go('soul')">Soul<span class="bdot"></span></a>
-    <a id="t-mkt" onclick="go('mkt')">Market<span class="bdot"></span></a>
-    <a id="t-net" onclick="go('net')">Net<span class="bdot"></span></a>
-  </nav>
-
-  <div class="toast" id="toast"><span class="dot"></span><span id="toast-txt"></span></div>
 </div></div>
 
-<p class="sc-note">production mapping: boards = /os LiveViews · expand/contract = View Transitions API
-over LiveView DOM patches · CLAIM = cache:reveal · START/ABORT/CLAIM = run lifecycle ·
-INSTALL = rig:install · BUY/SELL/BID = trade events · profile tap = soul navigate.</p>
+<p class="sc-note">prototype only: state lives in one JS object; every data-act = future
+LiveView event (cache:claim, rig:install, map:scan, run:start, market:buy, net:reply…).</p>
 
 <script>
-/* ---------- server-truth sim ---------- */
-const S={sen:2410,heat:21,slots:3,lens:false,ice:false,iceInv:false,cache:'ready',gate:false,
-  runs:{quick:'ready',deep:'locked'}};
+/* ================================================================
+   SECTION 6 — STATE + CATALOGS
+   ================================================================ */
 const $=id=>document.getElementById(id);
 const fmt=n=>n.toLocaleString('en-US');
 
-/* ---------- THE ONE MOTION: View Transition wrapper ---------- */
-function vt(fn){
-  if(document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches){
-    document.startViewTransition(fn);
-  }else{fn()}
-}
-/* expand/contract a line; accordion per board */
-function xtoggle(id,force){
-  const el=$(id);if(!el)return;
-  const open=force!==undefined?force:!el.classList.contains('is-open');
-  vt(()=>{
-    if(open){const b=el.closest('.board');
-      if(b)b.querySelectorAll('.xl.is-open').forEach(o=>{if(o!==el)o.classList.remove('is-open')})}
-    el.classList.toggle('is-open',open);
-    if(open&&el.style.display==='none')el.style.display='';
-  });
-}
+const ITEMS={
+  ghost_lens:{name:'GHOST LENS',cat:'lens',slot:'LENS',rar:'rare',stats:{scan:'+16',stealth:'+2'},
+    origin:'UOPT salvage',price:0,tint:'#a8961a',
+    lore:'pulled from a decommissioned UOPT survey rig. sees what the Index hides.'},
+  null_hex:{name:'NULL HEX',cat:'ice',slot:'ICE',rar:'mil',stats:{break:'+22',trace:'+9'},
+    origin:'Null Saints',price:950,tint:'#c41f08',
+    lore:'military-grade breaker. ownership is a crime in four districts.'},
+  jade_relay:{name:'JADE RELAY',cat:'bus',slot:'BUS',rar:'tun',stats:{cycle:'+6'},
+    origin:'JADENET',price:300,tint:'#1f9d84',
+    lore:'tuned relay off the JADENET backbone. hums when Heat rises.'},
+  mirror_skin:{name:'MIRROR SKIN',cat:'skin',slot:'SKIN',rar:'tun',stats:{trace:'-6'},
+    origin:'Crystal Palace',price:320,tint:'#1f9d84',
+    lore:'reflects your signal back as someone else\u2019s.'},
+  hexcore9:{name:'HEXCORE 9',cat:'core',slot:'CORE',rar:'leg',stats:{cycle:'+18'},
+    origin:'Paradise Systems',price:0,tint:'#6a55d8',lore:'pre-collapse core. still warm.'},
+  duplex_port:{name:'DUPLEX PORT',cat:'port',slot:'PORT',rar:'com',stats:{link:'+4'},
+    origin:'street fab',price:0,tint:'#1d8f15',lore:'common, reliable, everywhere.'},
+  spine_bus:{name:'SPINE BUS',cat:'bus',slot:'BUS',rar:'tun',stats:{cycle:'+4'},
+    origin:'street fab',price:0,tint:'#1f9d84',lore:'stock bus. does the job, barely.'}
+};
 
-/* ---------- pixel icon system (8×8, crispEdges, currentColor) ---------- */
+const G={
+  board:'now', sen:2410, heat:21, aura:42,
+  rigSlots:['CORE','LENS','PORT','BUS','ICE','SKIN'],
+  inventory:[],                                  // item ids
+  installedParts:{CORE:'hexcore9',LENS:null,PORT:'duplex_port',BUS:'spine_bus',ICE:null,SKIN:null},
+  // nodes: state = locked | discovered | active | completed
+  nodes:{
+    hospital:{name:'ABANDONED HOSPITAL',state:'discovered',risk:'LOW',reward:'180 SEN',heat:'+1',
+      req:null,run:'sweep',sub:'sector 4 · the natural world'},
+    gate:{name:'JADENET GATE',state:'hidden',risk:'MED',reward:'420 SEN · CACHE',heat:'+6',
+      req:'GHOST LENS installed',run:'gate',sub:'sector 7 · jadenet edge'},
+    vault:{name:'HA7 INDEX VAULT',state:'hidden',risk:'HIGH',reward:'900 SEN · LORE',heat:'+12',
+      req:'Heat below 30',run:'vault',sub:'deep grid · duìshǒu claim'},
+    gil:{name:'GIL ARCHIVE',state:'locked',risk:'???',reward:'???',heat:'???',
+      req:'Faction rep: The GIL (not met)',run:null,sub:'restricted · the gil'},
+    spire:{name:'CRYSTAL SPIRE',state:'completed',risk:'MED',reward:'claimed',heat:'—',
+      req:null,run:null,sub:'sector 2 · crystal palace'}
+  },
+  scans:0,
+  // runs: status = locked | available | prepping | ready | running | complete | claimed | failed
+  runs:{
+    sweep:{name:'INDEX SWEEP',node:'hospital',status:'ready',reward:180,heat:1,time:8,prog:0,
+      req:null,sub:'quick run · low risk',deep:false},
+    gate:{name:'GATE BREACH',node:'gate',status:'locked',reward:420,heat:6,time:14,prog:0,
+      req:'GHOST LENS installed',sub:'deep run · needs prep',deep:true,prepped:false},
+    vault:{name:'VAULT DIVE',node:'vault',status:'locked',reward:900,heat:12,time:12,prog:0,
+      req:'node unlocked · heat < 30',sub:'high risk · can fail',deep:false,failedOnce:false}
+  },
+  completedRuns:['CRYSTAL SPIRE SWEEP'],
+  cache:'ready',                                  // ready | claimed
+  market:{
+    cat:'all',
+    listings:[
+      {id:'null_hex',stock:1,note:'two-press confirm · MIL'},
+      {id:'jade_relay',stock:1,note:'upgrade over spine bus'},
+      {id:'mirror_skin',stock:1,note:'trace down, ghosts love it'}
+    ],
+    sold:[],                                      // item ids player listed/sold
+    priceShift:{}                                 // id -> delta after player actions
+  },
+  netMessages:[
+    {who:'PEGGY WOO',dir:'in',txt:'Ha7 is reweighting tonight. If your rig changes, the Index sees it. Be boring.',acts:null},
+    {who:'NULL SAINTS',dir:'in',txt:'Crew run forming: GATE BREACH. Want in? We cover +2 heat.',acts:'crew'},
+  ],
+  loreFragments:[],                               // unlocked lore titles
+  achievements:[],                                // FIRST CLAIM, RIGGED, GATECRASHER
+  notifications:{now:'·',map:'·',runs:'·',soul:'·',market:'·',net:'✦'},
+  open:null,                                      // currently expanded .xl id
+  sheet:null, selectedItem:null, selectedNode:null, selectedRun:null,
+  crewAccepted:false, replied:false
+};
+
+/* ---- pixel icons ---- */
 const PX={
  core:['...##...','..####..','.######.','########','########','.######.','..####..','...##...'],
  lens:['..####..','.#....#.','#......#','#..##..#','#..##..#','#......#','.#....#.','..####..'],
@@ -654,303 +335,641 @@ function pxSVG(cat){
   g.forEach((row,y)=>{[...row].forEach((c,x)=>{if(c==='#')r+=`<rect x="${x}" y="${y}" width="1" height="1"/>`})});
   return `<svg viewBox="0 0 8 8" fill="currentColor">${r}</svg>`;
 }
-document.querySelectorAll('.px[data-px]').forEach(el=>el.innerHTML=pxSVG(el.dataset.px));
-
-/* ---------- 3D object placeholder (ToonHolo in prod) ---------- */
-const objSVG=tint=>`<svg width="80" height="80" viewBox="0 0 90 90">
+const objSVG=tint=>`<svg width="78" height="78" viewBox="0 0 90 90">
   <g stroke="#121310" stroke-width="1.5" fill="none">
     <path d="M45 8 L78 27 L78 63 L45 82 L12 63 L12 27 Z"/>
     <path d="M45 8 L45 45 L78 27 M45 45 L12 27 M45 45 L45 82"/>
     <circle cx="45" cy="45" r="7" fill="${tint}" stroke="none" opacity=".75"/>
   </g></svg>`;
-['lens-stage','ice-stage','mkice-stage','mkcore-stage','mkskin-stage'].forEach(id=>{
-  const el=$(id);if(el)el.innerHTML=objSVG(id.includes('core')?'#6a55d8':id.includes('ice')?'#c41f08':id.includes('skin')?'#1f9d84':'#a8961a');
-});
 
-/* ---------- chrome ---------- */
-function hud(){
-  $('hud-sen').textContent=fmt(S.sen);$('hud-heat').textContent=S.heat;
-  $('hud-rig').textContent=S.slots+'/6';$('soul-count').textContent=S.slots+'/6 slots';
-  $('mkt-sen').textContent=fmt(S.sen)+' SEN';
-  $('mkice-after').textContent=S.sen>=950?fmt(S.sen-950)+' SEN':'INSUFFICIENT';
-  renderRig();renderInv();
+/* ---- one motion ---- */
+function vt(fn){
+  if(document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches){
+    document.startViewTransition(fn);
+  }else{fn()}
 }
-function toast(msg){
-  $('toast-txt').textContent=msg;$('toast').classList.add('is-vis');
-  clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('is-vis'),2600);
+function xtoggle(id){
+  G.open = (G.open===id)?null:id;
+  vt(renderBoard);
 }
-function go(b){
-  vt(()=>{
-    document.querySelectorAll('.board').forEach(x=>x.classList.remove('is-on'));
-    document.querySelectorAll('.k-tabbar a').forEach(x=>x.classList.remove('is-on'));
-    $('b-'+b).classList.add('is-on');$('t-'+b).classList.add('is-on');
-    $('board-tag').textContent=b==='mkt'?'MARKET':b.toUpperCase();
-  });
-}
-function badge(tab,cls){$(tab).classList.add(cls)}
-function unbadge(tab){$(tab).classList.remove('has-ready','has-run')}
-function stopEv(e){if(e)e.stopPropagation()}
-
-/* generic two-step arm (destructive/MIL confirms stay inline) */
+/* two-press armed confirm (MIL / destructive) */
 function arm(btn,label,fn){
   if(btn.classList.contains('armed')){btn.classList.remove('armed');fn();return}
   btn.classList.add('armed');const old=btn.textContent;btn.textContent=label;
   setTimeout(()=>{if(btn.classList.contains('armed')){btn.classList.remove('armed');btn.textContent=old}},3500);
 }
 
-/* ---------- 1 · CLAIM (prod: cache:reveal) — panel self-dismisses ---------- */
-function claimCache(e){
-  stopEv(e);
-  if(S.cache!=='ready')return;
-  S.cache='claimed';
-  const b=$('cache-btn');b.textContent='DECRYPTING…';b.disabled=true;
-  const body=$('cache-body');
-  const st=document.createElement('div');st.className='stage revealing';st.innerHTML='<span class="ph">DECRYPTING…</span>';
-  vt(()=>body.prepend(st));
-  setTimeout(()=>vt(()=>{st.classList.remove('revealing');st.innerHTML=objSVG('#a8961a')}),700);
-  /* server confirms → collapse + dismiss the claim panel, item line appears */
-  setTimeout(()=>{
-    S.sen+=120;S.heat+=4;hud();
-    vt(()=>{
-      $('xl-cache').classList.remove('is-open','attn-ready');
-      $('xl-cache').style.display='none';
-      $('xl-lens').style.display='';
-      $('xl-invlens').style.display='';$('inv-empty').style.display='none';
-      $('xl-mklens').style.display='';
-      $('inv-count').textContent='1 item';
-    });
-    badge('t-soul','has-ready');unbadge('t-now');
-    toast('GHOST LENS +120 SEN — added to inventory');
-  },1900);
+/* ---- state mutation helpers ---- */
+function addInventoryItem(id){ if(!G.inventory.includes(id)) G.inventory.push(id); }
+function installRigPart(id){
+  const slot=ITEMS[id].slot;
+  const prev=G.installedParts[slot];
+  if(prev) addInventoryItem(prev);
+  G.installedParts[slot]=id;
+  G.inventory=G.inventory.filter(x=>x!==id);
+  return prev;
+}
+function uninstallRigPart(slot){
+  const id=G.installedParts[slot];
+  if(!id)return;
+  G.installedParts[slot]=null;
+  addInventoryItem(id);
+}
+function unlockNode(key){
+  G.nodes[key].state='discovered';
+  if(G.runs[G.nodes[key].run]) G.runs[G.nodes[key].run].status =
+    runReqMet(G.nodes[key].run)?'available':'locked';
+}
+function runReqMet(key){
+  if(key==='gate') return G.installedParts.LENS==='ghost_lens';
+  if(key==='vault') return G.heat<30 && G.nodes.vault.state!=='hidden';
+  return true;
+}
+function rigCount(){return Object.values(G.installedParts).filter(Boolean).length}
+function rigStat(stat){
+  let v=0;
+  Object.values(G.installedParts).filter(Boolean).forEach(id=>{
+    const s=ITEMS[id].stats[stat]; if(s) v+=parseInt(s);
+  });
+  return v;
 }
 
-/* ---------- 2 · INSTALL (prod: rig:install) ---------- */
-function installLens(e){
-  stopEv(e);
-  if(S.lens)return;
-  S.lens=true;S.slots++;
-  $('lens-loc').textContent='Rig · LENS slot';
-  $('lens-sub').textContent='installed to rig · lens slot';
-  $('lens-install').textContent='INSTALLED ✓';$('lens-install').classList.add('is-off');
-  $('lens-sell').classList.add('is-off');$('lens-sell').onclick=null;
-  unbadge('t-soul');hud();unlockCheck();
-  toast('GHOST LENS installed — RIG · LENS slot');
-  setTimeout(()=>vt(()=>{
-    $('xl-lens').classList.remove('is-open');
-    $('xl-invlens').style.display='none';
-    if(!S.iceInv){$('inv-empty').style.display='';$('inv-count').textContent='0 items'}
-    $('xl-mklens').style.display='none';
-    $('mkt-note').textContent='lens installed — no longer sellable';
-  }),900);
+/* ================================================================
+   SECTION 7 — RENDER FUNCTIONS
+   ================================================================ */
+const GLY={idle:'·',active:'∴',ready:'✦',sync:'⌁',warn:'▴',fail:'■'};
+
+function xline(id,{icon,name,sub,chip,body,dim,shimmer}){
+  const open=G.open===id;
+  return `<div class="xl ${open?'is-open':''} ${dim?'is-dim':''} ${shimmer?'attn-ready':''}" id="${id}" style="view-transition-name:${id}">
+    <div class="xl__line" data-x="${id}">
+      ${icon?`<i class="px ${dim?'px--dim':''}">${pxSVG(icon)}</i>`:''}
+      <div class="xl__main"><div class="xl__name">${name}</div>
+        <div class="xl__sub">${sub}</div></div>
+      ${chip||''}<span class="xl__caret">▾</span>
+    </div>
+    <div class="xl__body">${open?body:''}</div>
+  </div>`;
+}
+const chip=(cls,txt)=>`<span class="k-st k-st--${cls}">${txt}</span>`;
+const rar=r=>`<span class="k-rar k-rar--${r}">${r.toUpperCase()}</span>`;
+
+function renderHUD(){
+  $('hud').innerHTML=`
+   <div class="k-strip__cell"><div class="t-micro t-dim">SEN</div><div class="v" id="hud-sen">${fmt(G.sen)}</div></div>
+   <div class="k-strip__cell"><div class="t-micro t-dim">HEAT</div><div class="v">${String(G.heat).padStart(2,'0')}</div></div>
+   <div class="k-strip__cell"><div class="t-micro t-dim">AURA</div><div class="v">${G.aura}</div></div>
+   <div class="k-strip__cell"><div class="t-micro t-dim">RIG</div><div class="v">${rigCount()}/6</div></div>`;
+  $('board-tag').textContent=G.board.toUpperCase();
 }
 
-/* ---------- 3 · SCAN (prod: map:scan) ---------- */
-let scanning=false;
-function scan(){
-  if(scanning||S.gate)return;scanning=true;
-  $('scan-btn').textContent='SCANNING…';$('scan-btn').classList.add('is-off');
-  let p=0;const iv=setInterval(()=>{p+=20;$('scan-bar').style.width=p+'%';
-    if(p>=100){clearInterval(iv);scanning=false;S.gate=true;
-      $('scan-btn').textContent='SCAN';$('scan-btn').classList.remove('is-off');
-      vt(()=>{
-        $('gate-name').textContent='Jadenet Gate 02';
-        $('gate-sub').textContent='discovered · deep run';
-        $('gate-px').classList.remove('px--dim');
-        $('map-count').textContent='3 nodes discovered · 0 locked';
-        $('gate-body').innerHTML=`
-          <div class="kv"><span>type</span><span>deep run · high risk</span></div>
-          <div class="kv"><span>reward</span><span>+450 SEN · cache</span></div>
-          <div class="kv"><span>requires</span><span>Scan +16 (LENS)</span></div>
-          <button class="k-pill k-pill--ink" style="width:100%;margin-top:10px"
-            onclick="go('runs');xtoggle('xl-rd',true)">OPEN NODE</button>`;
-        $('xl-gate').classList.add('is-open');
-      });
-      toast('Node discovered: JADENET GATE 02');
-      unlockCheck();
-    }},600);
+/* next-best-action chain for NOW */
+function nextBest(){
+  if(G.cache==='ready') return {txt:'CLAIM today\u2019s Signal Cache',go:'now'};
+  if(G.inventory.includes('ghost_lens')) return {txt:'INSTALL Ghost Lens — unlocks Jadenet Gate',go:'soul'};
+  if(G.nodes.gate.state==='hidden') return {txt:'SCAN the map — your lens sees more now',go:'map'};
+  const r=G.runs;
+  if(r.gate.status==='available') return {txt:'PREP Gate Breach on RUNS',go:'runs'};
+  if(r.gate.status==='ready') return {txt:'START Gate Breach',go:'runs'};
+  if(Object.values(r).some(x=>x.status==='complete')) return {txt:'CLAIM a finished run',go:'runs'};
+  if(Object.values(r).some(x=>x.status==='failed')) return {txt:'RETRY Vault Dive — lower risk after a fail',go:'runs'};
+  if(G.nodes.vault.state==='hidden'&&G.scans>=1) return {txt:'SCAN again — deep grid signal detected',go:'map'};
+  if(r.vault.status==='available') return {txt:'START Vault Dive (high risk)',go:'runs'};
+  if(!G.replied) return {txt:'Peggy Woo is waiting on NET',go:'net'};
+  return {txt:'Browse MARKET — Jade Relay beats your Spine Bus',go:'market'};
 }
-function unlockCheck(){
-  if(S.lens&&S.gate&&S.runs.deep==='locked'){
-    S.runs.deep='ready';
-    vt(()=>{
-      $('rd-st').textContent='READY';$('rd-st').className='k-st k-st--ready';
-      $('rd-req').innerHTML='<span class="ok">✓</span> Scan +16 — Ghost Lens installed<br><span class="ok">✓</span> node discovered';
-      const b=$('rd-start');b.disabled=false;b.classList.remove('is-off');b.classList.add('k-pill--run');
-    });
-    badge('t-runs','has-ready');
-    toast('Deep run unlocked: JADENET GATE 02');
+
+function renderNow(){
+  const nb=nextBest();
+  let h=`<div class="k-card" style="padding:12px 18px;flex:none">
+    <div class="k-dotline" style="margin-bottom:6px"><span class="t-micro t-dim">NEXT</span>
+      <span class="t-micro t-dim">recommended</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="t-label" style="flex:1">${nb.txt}</div>
+      <button class="k-pill k-pill--sm k-pill--run" data-go="${nb.go}">GO</button>
+    </div></div>`;
+
+  // ready-to-claim cache (self-dismisses after claim)
+  if(G.cache==='ready'){
+    h+=xline('xl-cache',{icon:'core',name:'SIGNAL CACHE',sub:'today\u2019s drop · the natural world · 41 min',
+      chip:chip('ready','READY'),shimmer:true,
+      body:`<div style="display:flex;gap:6px;margin:6px 0 10px">
+        <span class="k-tag">+120 SEN</span><span class="k-tag k-tag--heat">HEAT +4</span><span class="k-tag">LENS PART</span></div>
+        <button class="k-pill k-pill--ink" style="width:100%" data-act="cache:claim">CLAIM</button>`});
   }
-}
-function prepDeep(){
-  toast(S.runs.deep==='locked'
-    ?'prep: missing — '+(S.lens?'':'LENS install')+(!S.lens&&!S.gate?' + ':'')+(S.gate?'':'node scan')
-    :'prep: all requirements met — clear to start');
+  // active / claimable runs surface on NOW
+  Object.entries(G.runs).forEach(([k,r])=>{
+    if(r.status==='running')
+      h+=xline('xl-now-'+k,{icon:'core',name:r.name,sub:'running · '+r.sub,chip:chip('running','RUNNING'),
+        body:`<div class="k-live__bar"><i style="width:${r.prog}%"></i></div>
+          <div class="actrow"><button class="k-pill k-pill--ghost" data-act="run:abort" data-arg="${k}">ABORT</button></div>`});
+    if(r.status==='complete')
+      h+=xline('xl-now-'+k,{icon:'core',name:r.name,sub:'complete · reward waiting',chip:chip('claim','CLAIM'),
+        body:`<button class="k-pill k-pill--run" style="width:100%" data-act="run:claim" data-arg="${k}">CLAIM +${r.reward} SEN</button>`});
+  });
+  // notifications well
+  const notes=[];
+  if(G.netMessages.some(m=>m.dir==='in'&&!G.replied)) notes.push('NET · unread signal');
+  if(G.runs.vault.status==='failed') notes.push('RUNS · Vault Dive failed — retry available');
+  if(G.heat>=30) notes.push('HEAT high — vault locked until you cool down');
+  if(notes.length)
+    h+=`<div class="k-well" style="flex:none">${notes.map(n=>`<div class="t-micro" style="padding:2px 0">▴ ${n}</div>`).join('')}</div>`;
+  $('b-now').innerHTML=h;
 }
 
-/* ---------- 4 · RUN lifecycle (prod: run:start → run:claim_reward) ---------- */
-const RUNS={
- quick:{lbl:'old hospital node',dur:8,sen:120,heat:6,trace:0,lore:'USER Project fragment 3/9',
-   st:['rq-st','nq-st'],bar:['rq-bar','nq-bar'],act:['rq-act','nq-act'],xl:['xl-rq','xl-nq']},
- deep:{lbl:'jadenet gate 02',dur:12,sen:450,heat:14,trace:1,lore:'USER Project fragment 4/9 · cache shard',
-   st:['rd-st'],bar:['rd-bar'],act:['rd-act'],xl:['xl-rd']}};
-let tickers={};
-function setSt(r,txt,cls){r.st.forEach(id=>{const el=$(id);if(el){el.textContent=txt;el.className='k-st '+cls}})}
-function setBar(r,p){r.bar.forEach(id=>{const el=$(id);if(el)el.style.width=p+'%'})}
-function setAct(r,html){r.act.forEach(id=>{const el=$(id);if(el)el.innerHTML=html})}
+function renderMap(){
+  let h=`<div class="k-card" style="padding:12px 18px;flex:none">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1"><div class="t-label">SECTOR GRID</div>
+        <div class="t-micro t-dim">scan range: ${16+rigStat('scan')} · ${G.scans} scans run</div></div>
+      <button class="k-pill k-pill--sm k-pill--ink" data-act="map:scan" id="scan-btn">SCAN</button>
+    </div></div>`;
+  const order=['hospital','gate','vault','spire','gil'];
+  order.forEach(k=>{
+    const n=G.nodes[k];
+    if(n.state==='hidden')return;
+    const st=n.state==='completed'?chip('done','DONE'):n.state==='locked'?chip('blocked','LOCKED')
+      :n.state==='active'?chip('running','ACTIVE'):chip('ready','OPEN');
+    let body=`<div class="kv"><span>risk</span><span>${n.risk}</span></div>
+      <div class="kv"><span>reward</span><span>${n.reward}</span></div>
+      <div class="kv"><span>heat</span><span>${n.heat}</span></div>`;
+    if(n.state==='locked'){
+      body+=`<div class="k-well" style="margin-top:8px"><span class="t-micro bad">▴ BLOCKED — needs: ${n.req}</span></div>
+        <div class="actrow"><button class="k-pill k-pill--ghost" data-act="node:reqs" data-arg="${k}">VIEW REQUIREMENTS</button></div>`;
+    }else if(n.state==='completed'){
+      body+=`<div class="t-micro t-dim" style="margin-top:8px">cleared · nothing left here… for now</div>`;
+    }else{
+      const r=G.runs[n.run];
+      const can=r&&(r.status!=='locked');
+      if(n.req&&!runReqMet(n.run))
+        body+=`<div class="k-well" style="margin-top:8px"><span class="t-micro bad">▴ needs: ${n.req}</span></div>`;
+      body+=`<div class="actrow">
+        <button class="k-pill k-pill--run" data-act="node:openrun" data-arg="${k}" ${can?'':'disabled'}>OPEN RUN</button>
+        <button class="k-pill k-pill--ghost" data-act="node:detail" data-arg="${k}">DETAIL</button></div>`;
+    }
+    h+=xline('xl-n-'+k,{icon:n.state==='locked'?'ice':'core',name:n.name,sub:n.sub,chip:st,
+      dim:n.state==='completed',body});
+  });
+  if(G.nodes.gate.state==='hidden')
+    h+=`<div class="k-well" style="flex:none"><span class="t-micro t-dim">⌁ 2 weak signals out of range — install a better LENS or scan</span></div>`;
+  $('b-map').innerHTML=h;
+}
 
-function startRun(kind,e){
-  stopEv(e);
-  const r=RUNS[kind];
-  if(S.runs[kind]!=='ready')return;
-  S.runs[kind]='running';
-  badge('t-runs','has-run');
-  vt(()=>{
-    setSt(r,'RUNNING','k-st--running');
-    setAct(r,`<button class="k-pill k-pill--ghost" style="width:100%" onclick="abortRun('${kind}',event)">ABORT</button>`);
-  });
-  let p=0;const step=100/r.dur;
-  tickers[kind]=setInterval(()=>{p=Math.min(100,p+step);setBar(r,p);
-    if(p>=100){clearInterval(tickers[kind]);runDone(kind)}},1000);
-}
-function abortRun(kind,e){
-  stopEv(e);
-  const r=RUNS[kind];clearInterval(tickers[kind]);
-  S.runs[kind]='ready';setBar(r,0);unbadge('t-runs');
-  vt(()=>{
-    setSt(r,'READY','k-st--ready');
-    setAct(r,`<button class="k-pill k-pill--run" style="width:100%" onclick="startRun('${kind}',event)">START</button>`);
-  });
-  toast('run aborted — no reward, no heat');
-}
-function runDone(kind){
-  const r=RUNS[kind];
-  S.runs[kind]='claimable';
-  vt(()=>{
-    setSt(r,'CLAIM','k-st--claim');
-    r.xl.forEach(id=>$(id)&&$(id).classList.add('attn-ready'));
-    setAct(r,`
-      <div class="kv"><span>sen</span><span class="ok">+${r.sen}</span></div>
+function renderRuns(){
+  let h='';
+  const order=['sweep','gate','vault'];
+  order.forEach(k=>{
+    const r=G.runs[k];
+    const stMap={locked:['locked','LOCKED'],available:['ready','AVAILABLE'],prepping:['prep','PREPPING'],
+      ready:['ready','READY'],running:['running','RUNNING'],complete:['claim','CLAIM'],
+      claimed:['done','CLAIMED'],failed:['failed','FAILED']};
+    const [cls,txt]=stMap[r.status];
+    let body=`<div class="kv"><span>reward</span><span>+${r.reward} SEN</span></div>
       <div class="kv"><span>heat</span><span class="bad">+${r.heat}</span></div>
-      ${r.trace?`<div class="kv"><span>trace</span><span class="bad">+${r.trace}</span></div>`:''}
-      <div class="kv"><span>lore</span><span>${r.lore}</span></div>
-      <button class="k-pill k-pill--run" style="width:100%;margin-top:8px" onclick="claimRun('${kind}',event)">CLAIM ALL</button>`);
+      <div class="kv"><span>time</span><span>${r.time}s</span></div>
+      ${r.req?`<div class="kv"><span>requires</span><span>${r.req}</span></div>`:''}`;
+    if(r.status==='locked')
+      body+=`<div class="k-well" style="margin-top:8px"><span class="t-micro bad">▴ BLOCKED — ${r.req}</span></div>`;
+    if(r.status==='available')
+      body+=`<div class="actrow">${r.deep
+        ?`<button class="k-pill k-pill--ink" data-act="node:prep" data-arg="${k}">PREP</button>`
+        :`<button class="k-pill k-pill--run" data-act="run:start" data-arg="${k}">START</button>`}
+        <button class="k-pill k-pill--ghost" data-act="run:inspect" data-arg="${k}">INSPECT REWARD</button></div>`;
+    if(r.status==='prepping')
+      body+=`<div class="t-micro t-dim" style="margin-top:8px">⌁ routing through ghost lens…</div>
+        <div class="k-live__bar"><i style="width:${r.prog}%"></i></div>`;
+    if(r.status==='ready')
+      body+=`<div class="actrow"><button class="k-pill k-pill--run" data-act="run:start" data-arg="${k}">START</button></div>`;
+    if(r.status==='running')
+      body+=`<div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <span class="dotpulse"></span><span class="t-micro t-dim">live · ${r.prog}%</span></div>
+        <div class="k-live__bar"><i style="width:${r.prog}%"></i></div>
+        <div class="actrow"><button class="k-pill k-pill--ghost" data-act="run:abort" data-arg="${k}">ABORT</button></div>`;
+    if(r.status==='complete')
+      body+=`<div class="actrow"><button class="k-pill k-pill--run" data-act="run:claim" data-arg="${k}">CLAIM +${r.reward} SEN</button>
+        <button class="k-pill k-pill--ghost" data-act="run:inspect" data-arg="${k}">INSPECT</button></div>`;
+    if(r.status==='failed')
+      body+=`<div class="k-well" style="margin-top:8px"><span class="t-micro bad">■ trace spike — run collapsed. no reward, +${r.heat} heat taken.</span></div>
+        <div class="actrow"><button class="k-pill k-pill--ink" data-act="run:start" data-arg="${k}">RETRY</button></div>`;
+    if(r.status==='claimed')
+      body+=`<div class="t-micro t-dim" style="margin-top:8px">claimed · in your ledger</div>`;
+    h+=xline('xl-r-'+k,{icon:'core',name:r.name,sub:r.sub,chip:chip(cls,txt),
+      dim:r.status==='claimed',shimmer:r.status==='complete',body});
   });
-  badge('t-runs','has-ready');
-  toast('RUN COMPLETE — '+r.lbl+' · tap to claim');
-}
-/* claim → rewards land → panel self-dismisses */
-function claimRun(kind,e){
-  stopEv(e);
-  const r=RUNS[kind];
-  if(S.runs[kind]!=='claimable')return;
-  S.runs[kind]='done';
-  S.sen+=r.sen;S.heat+=r.heat;hud();
-  unbadge('t-runs');
-  vt(()=>{
-    setSt(r,'DONE','k-st--done');setBar(r,0);
-    r.xl.forEach(id=>{const el=$(id);if(el){el.classList.remove('attn-ready','is-open')}});
-    setAct(r,`<div class="t-micro t-dim" style="padding:4px 0">claimed · +${r.sen} SEN · next cycle 06:00</div>`);
-  });
-  toast(`+${r.sen} SEN claimed · heat ${S.heat}${r.trace?' · trace +'+r.trace:''}`);
+  h+=`<div class="k-well" style="flex:none"><div class="t-micro t-dim">COMPLETED</div>
+    ${G.completedRuns.map(n=>`<div class="t-micro" style="padding:2px 0;opacity:.55">✓ ${n}</div>`).join('')||'<div class="t-micro t-dim">none yet</div>'}</div>`;
+  $('b-runs').innerHTML=h;
 }
 
-/* ---------- 5 · MARKET (prod: trade events) ---------- */
-function filterCat(cat,el){
-  vt(()=>{
-    document.querySelectorAll('.cat').forEach(c=>c.classList.remove('is-on'));
-    el.classList.add('is-on');
-    document.querySelectorAll('#b-mkt .xl').forEach(x=>{
-      const mine=x.dataset.cat;
-      const visible=cat==='all'||mine===cat;
-      /* respect lines hidden by game state */
-      const stateHidden=(x.id==='xl-mklens'&&($('xl-mklens').dataset.gone==='1'));
-      x.style.display=visible&&!stateHidden?'':'none';
-      if(!visible)x.classList.remove('is-open');
+function renderSoul(){
+  let h=`<div class="k-card" style="padding:12px 18px;flex:none">
+    <div class="k-dotline" style="margin-bottom:8px"><span class="t-micro t-dim">SOUL · GHOST BUILD</span>
+      <span class="t-micro t-dim">aura ${G.aura}</span></div>
+    <div style="display:flex;gap:6px">
+      <span class="k-tag">SCAN ${16+rigStat('scan')}</span><span class="k-tag">STEALTH ${8+rigStat('stealth')}</span>
+      <span class="k-tag">CYCLE ${12+rigStat('cycle')}</span></div></div>`;
+  // rig slots
+  h+=`<div class="k-card" style="padding:12px 18px;flex:none"><div class="t-micro t-dim" style="margin-bottom:6px">RIG · ${rigCount()}/6</div>`;
+  G.rigSlots.forEach(s=>{
+    const id=G.installedParts[s];
+    h+=`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px dotted rgba(18,19,16,.2)">
+      <i class="px ${id?'':'px--dim'}" style="width:20px;height:20px">${pxSVG(s.toLowerCase())}</i>
+      <span class="t-micro" style="width:38px;opacity:.55">${s}</span>
+      ${id?`<span class="t-label" style="flex:1">${ITEMS[id].name}</span>${rar(ITEMS[id].rar)}
+        <button class="k-pill k-pill--sm k-pill--ghost" data-act="item:inspect" data-arg="${id}">VIEW</button>`
+       :`<span class="t-micro t-dim" style="flex:1">empty</span>`}
+    </div>`;
+  });
+  h+=`</div>`;
+  // inventory
+  h+=`<div class="t-micro" style="color:rgba(255,255,255,.5);padding:2px 6px;flex:none">INVENTORY · ${G.inventory.length}</div>`;
+  if(!G.inventory.length) h+=`<div class="k-well" style="flex:none"><span class="t-micro t-dim">empty — claim caches, buy on market</span></div>`;
+  G.inventory.forEach(id=>{
+    const it=ITEMS[id];
+    h+=xline('xl-inv-'+id,{icon:it.cat,name:it.name,sub:it.slot+' · '+it.origin,chip:rar(it.rar),
+      body:`${Object.entries(it.stats).map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+      <div class="actrow">
+        <button class="k-pill k-pill--ink" data-act="rig:install" data-arg="${id}">INSTALL</button>
+        <button class="k-pill k-pill--ghost" data-act="item:inspect" data-arg="${id}">INSPECT</button>
+        ${G.installedParts[it.slot]?`<button class="k-pill k-pill--ghost" data-act="item:compare" data-arg="${id}">COMPARE</button>`:''}
+      </div>`});
+  });
+  // achievements + soul log
+  h+=`<div class="k-well" style="flex:none"><div class="t-micro t-dim">BADGES</div>
+    ${G.achievements.map(a=>`<div class="t-micro" style="padding:2px 0">✦ ${a}</div>`).join('')||'<div class="t-micro t-dim">none yet — play the loop</div>'}</div>`;
+  h+=`<div class="k-well" style="flex:none"><div class="k-dotline" style="margin-bottom:4px">
+    <span class="t-micro t-dim">SOUL LOG · LORE</span>
+    <button class="k-pill k-pill--sm k-pill--ghost" data-act="lore:viewall">VIEW</button></div>
+    ${G.loreFragments.map(l=>`<div class="t-micro" style="padding:2px 0">◈ ${l}</div>`).join('')||'<div class="t-micro t-dim">no fragments decoded</div>'}</div>`;
+  $('b-soul').innerHTML=h;
+}
+
+function renderMarket(){
+  const cats=['all','core','lens','port','bus','ice','skin'];
+  let h=`<div class="catstrip" style="padding:0">${cats.map(c=>
+    `<div class="cat ${G.market.cat===c?'is-on':''}" data-act="market:filter" data-arg="${c}">
+      <i class="px" style="width:18px;height:18px">${pxSVG(c)}</i><span class="t-micro">${c.toUpperCase()}</span></div>`).join('')}</div>`;
+  // listings
+  G.market.listings.forEach(l=>{
+    const it=ITEMS[l.id];
+    if(G.market.cat!=='all'&&it.cat!==G.market.cat)return;
+    const shift=G.market.priceShift[l.id]||0;
+    const price=it.price+shift;
+    const afford=G.sen>=price;
+    h+=xline('xl-mkt-'+l.id,{icon:it.cat,name:it.name,sub:`${it.slot} · ${it.origin} · ${l.note}`,chip:rar(it.rar),
+      body:`<div class="stage">${objSVG(it.tint)}<span class="ph">toonholo · glb in prod</span></div>
+        ${Object.entries(it.stats).map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+        <div class="kv"><span>price</span><span>${fmt(price)} SEN ${shift?`<span class="delta bad">+${shift}</span>`:''}</span></div>
+        ${afford?'':'<div class="k-well" style="margin-top:8px"><span class="t-micro bad">▴ not enough SEN</span></div>'}
+        <div class="actrow">
+          ${it.rar==='mil'
+            ?`<button class="k-pill k-pill--danger" data-act="market:armbuy" data-arg="${l.id}" ${afford?'':'disabled'}>BUY ${fmt(price)} · MIL</button>`
+            :`<button class="k-pill k-pill--trade" data-act="market:confirmbuy" data-arg="${l.id}" ${afford?'':'disabled'}>BUY ${fmt(price)}</button>`}
+          ${G.installedParts[it.slot]?`<button class="k-pill k-pill--ghost" data-act="item:compare" data-arg="${l.id}">COMPARE</button>`:''}
+        </div>`});
+  });
+  // sellable owned items
+  const sellable=G.inventory.filter(id=>G.market.cat==='all'||ITEMS[id].cat===G.market.cat);
+  if(sellable.length){
+    h+=`<div class="t-micro" style="color:rgba(255,255,255,.5);padding:2px 6px;flex:none">YOUR ITEMS · SELL</div>`;
+    sellable.forEach(id=>{
+      const it=ITEMS[id];const ask=Math.round((it.price||260)*.7);
+      h+=xline('xl-sell-'+id,{icon:it.cat,name:it.name,sub:'in inventory · market asks '+fmt(ask)+' SEN',chip:rar(it.rar),
+        body:`<div class="kv"><span>you get</span><span>${fmt(ask)} SEN</span></div>
+        <div class="actrow"><button class="k-pill k-pill--trade" data-act="market:confirmsell" data-arg="${id}">SELL ${fmt(ask)}</button></div>`});
     });
-    /* sell line only exists after claim, before install/sell */
-    if(!sellAvailable())$('xl-mklens').style.display='none';
+  }
+  if(G.market.sold.length)
+    h+=`<div class="k-well" style="flex:none"><span class="t-micro t-dim">⌁ market reacted: your ${ITEMS[G.market.sold[0]].name} sale dipped ${ITEMS[G.market.sold[0]].slot} prices in sector 4</span></div>`;
+  $('b-market').innerHTML=h;
+}
+
+function renderNet(){
+  let h=`<div style="display:flex;flex-direction:column;gap:8px;flex:1;overflow-y:auto;padding:2px" id="net-list">`;
+  G.netMessages.forEach((m,i)=>{
+    if(m.dir==='sys'){h+=`<div class="k-bubble k-bubble--sys"><span class="t-micro t-dim">SYSTEM · </span>${m.txt}</div>`;return}
+    h+=`<div class="k-bubble ${m.dir==='out'?'k-bubble--out':''}">
+      <div class="who">${m.who}</div>${m.txt}
+      ${m.acts==='crew'&&!G.crewAccepted?`<div class="actrow">
+        <button class="k-pill k-pill--sm k-pill--ink" data-act="crew:accept">ACCEPT</button>
+        <button class="k-pill k-pill--sm k-pill--ghost" data-act="run:view" data-arg="gate">VIEW RUN</button></div>`:''}
+      ${m.acts==='lore'?`<div class="actrow"><button class="k-pill k-pill--sm k-pill--ink" data-act="lore:view" data-arg="${m.arg}">VIEW LORE</button></div>`:''}
+      ${m.acts==='item'?`<div class="actrow"><button class="k-pill k-pill--sm k-pill--ghost" data-act="item:inspect" data-arg="${m.arg}">VIEW ITEM</button></div>`:''}
+    </div>`;
   });
+  h+=`</div>
+  <div style="display:flex;gap:6px;flex:none;padding:2px">
+    <button class="k-pill k-pill--ghost" style="flex:1" data-act="net:reply" data-arg="peggy">REPLY · “staying boring.”</button>
+  </div>`;
+  $('b-net').innerHTML=h;
 }
-function sellAvailable(){return S.cache==='claimed'&&!S.lens&&$('xl-mklens').dataset.gone!=='1'}
-function armBuyIce(btn,e){
-  stopEv(e);
-  if(S.sen<950){toast('insufficient SEN');return}
-  arm(btn,'CONFIRM 950 · MIL',()=>{
-    S.sen-=950;S.heat+=8;S.ice=true;S.iceInv=true;hud();
-    vt(()=>{
-      btn.textContent='OWNED';btn.classList.add('is-off');btn.disabled=true;
-      $('xl-mkice').classList.remove('is-open');
-      $('xl-invice').style.display='';$('inv-empty').style.display='none';
-      $('inv-count').textContent=(S.lens?'1':'2')+' item'+(S.lens?'':'s');
-    });
-    badge('t-soul','has-ready');
-    toast('NULL HEX ICE purchased · inventory · heat +8');
-  });
-}
-function buySkin(btn,e){
-  stopEv(e);
-  if(S.sen<320){toast('insufficient SEN');return}
-  S.sen-=320;hud();
-  vt(()=>{btn.textContent='OWNED';btn.classList.add('is-off');btn.disabled=true;
-    $('xl-mkskin').classList.remove('is-open')});
-  toast('MIRROR SKIN purchased · added to inventory');
-}
-function armSellLens(btn,e){
-  stopEv(e);
-  if(!sellAvailable())return;
-  arm(btn,'CONFIRM — FORFEITS UNLOCK',()=>{
-    S.sen+=480;hud();
-    $('xl-mklens').dataset.gone='1';
-    vt(()=>{
-      $('xl-mklens').classList.remove('is-open');$('xl-mklens').style.display='none';
-      $('xl-lens').style.display='none';$('xl-invlens').style.display='none';
-      if(!S.iceInv){$('inv-empty').style.display='';$('inv-count').textContent='0 items'}
-      $('mkt-note').textContent='lens sold — jadenet gate stays locked this cycle';
-    });
-    unbadge('t-soul');
-    toast('GHOST LENS sold · +480 SEN');
+
+function updateNotifications(){
+  const n=G.notifications;
+  n.now = G.cache==='ready'?GLY.ready:Object.values(G.runs).some(r=>r.status==='running')?GLY.active:GLY.idle;
+  n.map = (G.nodes.gate.state==='hidden'&&G.installedParts.LENS==='ghost_lens')?GLY.ready
+         : G.nodes.vault.state==='hidden'&&G.scans===1?GLY.sync:GLY.idle;
+  n.runs= Object.values(G.runs).some(r=>r.status==='complete')?GLY.ready
+         :Object.values(G.runs).some(r=>r.status==='failed')?GLY.fail
+         :Object.values(G.runs).some(r=>r.status==='running'||r.status==='prepping')?GLY.active:GLY.idle;
+  n.soul= G.inventory.length?GLY.ready:GLY.idle;
+  n.market= G.market.sold.length&&!G.marketSeen?GLY.sync:GLY.idle;
+  n.net = G.netMessages.some(m=>m.unread)?GLY.ready:GLY.idle;
+  ['now','map','runs','soul','market','net'].forEach(b=>{
+    const el=$('gl-'+b);el.textContent=n[b];
+    el.className='gl'+(n[b]===GLY.ready?' g-ready':n[b]===GLY.fail||n[b]===GLY.warn?' g-warn':n[b]===GLY.active?' g-active':'');
   });
 }
 
-/* ---------- 6 · NET (REPLY · TRADE · JOIN · PROFILE) ---------- */
-function proToggle(id){vt(()=>$(id).classList.toggle('pro-open'))}
-function netJoin(){
-  toast(S.lens?'joined gate run — crew notified':'JOIN blocked — requires LENS installed');
-}
-function netReply(){
-  vt(()=>$('net-reply').style.display='block');
-  toast('sent to crew');
+function renderBoard(){
+  renderHUD();
+  ({now:renderNow,map:renderMap,runs:renderRuns,soul:renderSoul,market:renderMarket,net:renderNet})[G.board]();
+  updateNotifications();
+  document.querySelectorAll('.board').forEach(b=>b.classList.toggle('is-on',b.id==='b-'+G.board));
+  document.querySelectorAll('#tabbar a').forEach(a=>a.classList.toggle('is-on',a.dataset.go===G.board));
 }
 
-/* ---------- SOUL renders ---------- */
-const SLOTS=[['CORE','Hexcore 9','k-rar--leg','core'],['LENS',null,null,'lens'],['PORT','Duplex Port','k-rar--com','port'],
-  ['BUS','Spine Bus','k-rar--tun','bus'],['ICE',null,null,'ice'],['SKIN',null,null,'skin']];
-function renderRig(){
-  $('rig-list').innerHTML=SLOTS.map(([slot,name,rar,px])=>{
-    let n=name,r=rar;
-    if(slot==='LENS'&&S.lens){n='Ghost Lens';r='k-rar--rare'}
-    if(slot==='ICE'&&S.ice&&!S.iceInv){n='Null Hex';r='k-rar--mil'}
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dotted rgba(18,19,16,.25)">
-      <i class="px ${n?'':'px--dim'}" style="width:20px;height:20px">${pxSVG(px)}</i>
-      <span class="t-micro t-dim" style="width:36px">${slot}</span>
-      <span style="flex:1;font-size:12.5px;font-weight:700;${n?'':'opacity:.4'}">${n||'— empty —'}</span>
-      ${r?`<span class="k-rar ${r}">${r.split('--')[1].toUpperCase()}</span>`:''}</div>`;
-  }).join('');
+/* ---- sheet layer (level 3, one purpose each) ---- */
+function openSheet(html){G.sheet=true;$('sheet').innerHTML=html;
+  vt(()=>{$('sheet').classList.add('is-vis');$('scrim').classList.add('is-vis')})}
+function closeSheet(){G.sheet=null;
+  vt(()=>{$('sheet').classList.remove('is-vis');$('scrim').classList.remove('is-vis')})}
+function pushToast(msg){
+  $('toast-msg').textContent=msg;$('toast').classList.add('is-vis');
+  clearTimeout(pushToast._t);pushToast._t=setTimeout(()=>$('toast').classList.remove('is-vis'),2600);
 }
-function renderInv(){/* inventory lines are static .xl elements toggled by state */}
-function installIce(e){
-  stopEv(e);
-  if(!S.iceInv)return;
-  S.iceInv=false;S.slots++;hud();unbadge('t-soul');
-  vt(()=>{
-    $('xl-invice').classList.remove('is-open');$('xl-invice').style.display='none';
-    if(!sellAvailable()&&S.lens){$('inv-empty').style.display='';$('inv-count').textContent='0 items'}
-  });
-  toast('NULL HEX ICE installed — RIG · ICE slot');
+function sheetItem(id,ctx){
+  const it=ITEMS[id];
+  return `<div class="k-dotline"><span class="t-micro t-dim">ITEM · ${it.slot}</span>${rar(it.rar)}</div>
+    <div class="t-title">${it.name}</div>
+    <div class="stage">${objSVG(it.tint)}<span class="ph">toonholo · glb in prod</span></div>
+    ${Object.entries(it.stats).map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+    <div class="kv"><span>origin</span><span>${it.origin}</span></div>
+    <div class="kv"><span>location</span><span>${ctx}</span></div>
+    <p style="font-size:11px;opacity:.65;margin-top:8px">${it.lore}</p>
+    <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">CLOSE</button></div>`;
 }
 
-badge('t-now','has-ready'); /* drop waiting */
-hud();
+/* ================================================================
+   SECTION 8 — EVENT HANDLERS (keys = future LiveView events)
+   ================================================================ */
+function completeRun(k){
+  const r=G.runs[k];
+  r.status='complete';r.prog=100;
+  pushToast(r.name+' COMPLETE — claim your reward');
+  vt(renderBoard);
+}
+function netPush(msg){ G.netMessages.push({...msg,unread:true}); updateNotifications();
+  if(G.board==='net') vt(renderBoard); }
+
+const EV={
+  /* cache:claim — server reveals contents, panel self-dismisses */
+  'cache:claim':()=>{
+    G.cache='claimed'; G.sen+=120; G.heat+=4; G.open=null;
+    addInventoryItem('ghost_lens');
+    if(!G.achievements.includes('FIRST CLAIM'))G.achievements.push('FIRST CLAIM');
+    vt(renderBoard);
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">CACHE OPENED</span><span class="k-st k-st--claim">+120 SEN</span></div>
+      <div class="t-title">GHOST LENS</div>
+      <div class="stage">${objSVG('#a8961a')}<span class="ph">reveal · cache:reveal</span></div>
+      <div class="kv"><span>where it went</span><span class="ok">ADDED TO INVENTORY</span></div>
+      <div class="kv"><span>also</span><span>+120 SEN · <span class="bad">heat +4</span></span></div>
+      <div class="actrow">
+        <button class="k-pill k-pill--ink" data-act="rig:install" data-arg="ghost_lens">INSTALL NOW</button>
+        <button class="k-pill k-pill--ghost" data-act="sheet:close">LATER</button></div>`);
+    pushToast('+120 SEN · GHOST LENS → INVENTORY');
+  },
+  'item:inspect':id=>{
+    G.selectedItem=id;
+    const where=G.inventory.includes(id)?'INVENTORY':Object.values(G.installedParts).includes(id)?'INSTALLED · RIG':'MARKET';
+    openSheet(sheetItem(id,where));
+  },
+  'item:compare':id=>{
+    const it=ITEMS[id],cur=G.installedParts[it.slot],c=ITEMS[cur];
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">COMPARE · ${it.slot} SLOT</span></div>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><div class="t-micro t-dim">INSTALLED</div><div class="t-label">${c.name}</div>
+          ${Object.entries(c.stats).map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}</div>
+        <div style="flex:1"><div class="t-micro ok">CANDIDATE</div><div class="t-label">${it.name}</div>
+          ${Object.entries(it.stats).map(([k,v])=>`<div class="kv"><span>${k}</span><span class="ok">${v}</span></div>`).join('')}</div>
+      </div>
+      <div class="actrow">
+        ${G.inventory.includes(id)?`<button class="k-pill k-pill--ink" data-act="rig:install" data-arg="${id}">SWAP IN</button>`:''}
+        <button class="k-pill k-pill--ghost" data-act="sheet:close">CLOSE</button></div>`);
+  },
+  'rig:install':id=>{
+    if(!G.inventory.includes(id))return;
+    const prev=installRigPart(id); G.open=null; closeSheet();
+    if(rigCount()>=4&&!G.achievements.includes('RIGGED'))G.achievements.push('RIGGED');
+    if(id==='ghost_lens'){
+      G.runs.gate.req='scan the map to find the gate';
+      pushToast('GHOST LENS → INSTALLED TO RIG · scan +16');
+      netPush({who:'PEGGY WOO',dir:'in',txt:'Your signal changed. Don\u2019t let the Index notice.'});
+    }else{
+      pushToast(ITEMS[id].name+' → INSTALLED TO RIG'+(prev?' · '+ITEMS[prev].name+' → INVENTORY':''));
+    }
+    G.board= G.board==='market'?'soul':G.board;
+    vt(renderBoard);
+  },
+  'rig:uninstall':slot=>{uninstallRigPart(slot);pushToast(slot+' EMPTIED → INVENTORY');vt(renderBoard)},
+  'map:scan':(a,btn)=>{
+    if(btn){btn.classList.add('is-pending');btn.textContent='⌁ SCANNING'}
+    setTimeout(()=>{
+      G.scans++;
+      if(G.nodes.gate.state==='hidden'&&G.installedParts.LENS==='ghost_lens'){
+        unlockNode('gate'); pushToast('NODE FOUND · JADENET GATE — lens made the difference');
+      }else if(G.nodes.gate.state==='hidden'){
+        pushToast('▴ scan too weak — install a better LENS');
+      }else if(G.nodes.vault.state==='hidden'){
+        unlockNode('vault'); G.runs.vault.status=runReqMet('vault')?'available':'locked';
+        pushToast('DEEP SIGNAL · HA7 INDEX VAULT discovered');
+        netPush({who:'SYSTEM',dir:'sys',txt:'New node logged: HA7 INDEX VAULT. Duìshǒu claim contested.'});
+      }else{ pushToast('no new nodes in range'); }
+      vt(renderBoard);
+    },900);
+  },
+  'node:detail':k=>{
+    const n=G.nodes[k];
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">NODE</span><span class="k-tag">${n.risk} RISK</span></div>
+      <div class="t-title">${n.name}</div><div class="t-micro t-dim">${n.sub}</div>
+      <div class="kv" style="margin-top:10px"><span>reward</span><span>${n.reward}</span></div>
+      <div class="kv"><span>heat</span><span class="bad">${n.heat}</span></div>
+      ${n.req?`<div class="kv"><span>requires</span><span>${n.req}</span></div>`:''}
+      <div class="actrow">
+        ${n.run?`<button class="k-pill k-pill--run" data-act="node:openrun" data-arg="${k}">OPEN RUN</button>`:''}
+        <button class="k-pill k-pill--ghost" data-act="sheet:close">CLOSE</button></div>`);
+  },
+  'node:reqs':k=>{
+    const n=G.nodes[k];
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">REQUIREMENTS</span><span class="k-st k-st--blocked">LOCKED</span></div>
+      <div class="t-title">${n.name}</div>
+      <div class="k-well" style="margin-top:10px"><span class="t-micro bad">▴ ${n.req}</span></div>
+      <p style="font-size:11px;opacity:.65;margin-top:8px">run GIL-aligned jobs to raise faction rep. none available in this prototype.</p>
+      <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">CLOSE</button></div>`);
+  },
+  'node:openrun':k=>{closeSheet();G.board='runs';G.open='xl-r-'+G.nodes[k].run;vt(renderBoard)},
+  'node:prep':k=>{
+    const r=G.runs[k]; r.status='prepping'; r.prog=0; G.open='xl-r-'+k;
+    pushToast('PREP STARTED · '+r.name);
+    vt(renderBoard);
+    const t=setInterval(()=>{
+      r.prog+=25;
+      if(r.prog>=100){clearInterval(t);r.status='ready';r.prepped=true;
+        pushToast(r.name+' PREPPED — ready to start')}
+      if(G.board==='runs'||G.board==='now')vt(renderBoard);
+    },700);
+  },
+  'run:start':k=>{
+    const r=G.runs[k];
+    if(k==='vault'&&G.heat>=30){pushToast('▴ BLOCKED — heat too high for the vault');return}
+    r.status='running'; r.prog=0; G.nodes[r.node].state='active'; G.open='xl-r-'+k;
+    pushToast(r.name+' STARTED · trace live');
+    vt(renderBoard);
+    const step=100/(r.time*2);
+    r._t=setInterval(()=>{
+      r.prog=Math.min(100,r.prog+step);
+      if(r.prog>=100){
+        clearInterval(r._t);
+        if(k==='vault'&&!r.failedOnce){ r.failedOnce=true; r.status='failed'; G.heat+=r.heat;
+          G.nodes.vault.state='discovered';
+          pushToast('■ VAULT DIVE FAILED — trace spike, +'+r.heat+' heat');
+          netPush({who:'SYSTEM',dir:'sys',txt:'Run failed: VAULT DIVE. The Index logged your shape. Cool down.'});
+        }else{ G.nodes[r.node].state='discovered'; completeRun(k); }
+      }
+      if(G.board==='runs'||G.board==='now')renderBoard();
+    },500);
+  },
+  'run:abort':k=>{
+    const r=G.runs[k];clearInterval(r._t);
+    r.status=r.prepped?'ready':'available';r.prog=0;G.nodes[r.node].state='discovered';
+    pushToast(r.name+' ABORTED — no reward, no extra heat');
+    vt(renderBoard);
+  },
+  'run:claim':k=>{
+    const r=G.runs[k];
+    r.status='claimed'; G.sen+=r.reward; G.heat+=r.heat; G.completedRuns.push(r.name); G.open=null;
+    let extra='';
+    if(k==='gate'){ G.aura+=3; G.loreFragments.push('THE GATE REMEMBERS');
+      if(!G.achievements.includes('GATECRASHER'))G.achievements.push('GATECRASHER');
+      extra=`<div class="kv"><span>lore</span><span class="ok">UNLOCKED IN SOUL LOG</span></div>
+        <div class="kv"><span>aura</span><span class="ok">+3</span></div>`;
+      netPush({who:'NULL SAINTS',dir:'in',txt:'You crashed the gate clean. The Saints noticed. ◈ fragment shared.',acts:'lore',arg:'THE GATE REMEMBERS'});
+    }
+    if(k==='vault'){ G.aura+=5; G.loreFragments.push('HA7 — WHAT THE INDEX WEIGHS');
+      extra=`<div class="kv"><span>lore</span><span class="ok">UNLOCKED IN SOUL LOG</span></div>
+        <div class="kv"><span>aura</span><span class="ok">+5</span></div>`;
+      G.nodes.vault.state='completed';
+    }
+    vt(renderBoard);
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">RUN RESULT</span><span class="k-st k-st--claim">CLAIMED</span></div>
+      <div class="t-title">${r.name}</div>
+      <div class="kv" style="margin-top:8px"><span>SEN</span><span class="ok">+${r.reward} → WALLET</span></div>
+      <div class="kv"><span>heat</span><span class="bad">+${r.heat}</span></div>${extra}
+      <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">DONE</button></div>`);
+    pushToast('+'+r.reward+' SEN → WALLET');
+  },
+  'run:inspect':k=>{
+    const r=G.runs[k];
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">REWARD PREVIEW</span></div>
+      <div class="t-title">${r.name}</div>
+      <div class="kv" style="margin-top:8px"><span>SEN</span><span>+${r.reward}</span></div>
+      <div class="kv"><span>heat</span><span class="bad">+${r.heat}</span></div>
+      <div class="kv"><span>time</span><span>${r.time}s</span></div>
+      ${k==='gate'?'<div class="kv"><span>bonus</span><span>lore fragment · aura +3</span></div>':''}
+      ${k==='vault'?'<div class="kv"><span>bonus</span><span>lore fragment · aura +5</span></div>':''}
+      <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">CLOSE</button></div>`);
+  },
+  'run:view':k=>{G.board='runs';G.open='xl-r-'+k;vt(renderBoard)},
+  'market:filter':c=>{G.market.cat=c;vt(renderBoard)},
+  'market:armbuy':(id,btn)=>{ // MIL: two-press armed inline
+    arm(btn,'CONFIRM '+fmt(ITEMS[id].price)+' · MIL',()=>EV['market:buy'](id));
+  },
+  'market:confirmbuy':id=>{ // expensive buy → confirmation sheet
+    const it=ITEMS[id],price=it.price+(G.market.priceShift[id]||0);
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">CONFIRM ORDER</span>${rar(it.rar)}</div>
+      <div class="t-title">${it.name}</div>
+      <div class="kv" style="margin-top:8px"><span>price</span><span>${fmt(price)} SEN</span></div>
+      <div class="kv"><span>balance after</span><span>${fmt(G.sen-price)} SEN</span></div>
+      <div class="actrow">
+        <button class="k-pill k-pill--trade" data-act="market:buy" data-arg="${id}">CONFIRM BUY</button>
+        <button class="k-pill k-pill--ghost" data-act="sheet:close">CANCEL</button></div>`);
+  },
+  'market:buy':id=>{
+    const it=ITEMS[id],price=it.price+(G.market.priceShift[id]||0);
+    if(G.sen<price){pushToast('▴ not enough SEN');return}
+    G.sen-=price; addInventoryItem(id);
+    G.market.listings=G.market.listings.filter(l=>l.id!==id);
+    G.open=null; closeSheet();
+    pushToast(it.name+' BOUGHT → ADDED TO INVENTORY');
+    netPush({who:'JADENET BROKER',dir:'in',txt:'Order filled: '+it.name+'. Pleasure doing quiet business.',acts:'item',arg:id});
+    vt(renderBoard);
+  },
+  'market:confirmsell':id=>{
+    const it=ITEMS[id],ask=Math.round((it.price||260)*.7);
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">CONFIRM SALE</span>${rar(it.rar)}</div>
+      <div class="t-title">${it.name}</div>
+      <div class="kv" style="margin-top:8px"><span>you receive</span><span class="ok">+${fmt(ask)} SEN</span></div>
+      ${id==='ghost_lens'?'<div class="k-well" style="margin-top:8px"><span class="t-micro bad">▴ WARNING — selling forfeits the JADENET GATE unlock</span></div>':''}
+      <div class="actrow">
+        <button class="k-pill k-pill--trade" data-act="market:sell" data-arg="${id}">CONFIRM SELL</button>
+        <button class="k-pill k-pill--ghost" data-act="sheet:close">CANCEL</button></div>`);
+  },
+  'market:sell':id=>{
+    const it=ITEMS[id],ask=Math.round((it.price||260)*.7);
+    G.sen+=ask; G.inventory=G.inventory.filter(x=>x!==id);
+    G.market.sold.unshift(id); G.market.priceShift[id]=-40; G.marketSeen=false;
+    G.market.listings.push({id,stock:1,note:'resold · price dipped'});
+    G.open=null; closeSheet();
+    pushToast('+'+fmt(ask)+' SEN → WALLET · LISTED ON MARKET');
+    vt(renderBoard);
+  },
+  'net:reply':()=>{
+    if(G.replied)return;
+    G.replied=true;
+    G.netMessages.push({who:'NED',dir:'out',txt:'staying boring.'});
+    G.netMessages.forEach(m=>m.unread=false);
+    vt(renderBoard);
+    setTimeout(()=>netPush({who:'PEGGY WOO',dir:'in',txt:'Good. Boring operators live longest. ◈ here\u2019s something the Index forgot.',acts:'lore',arg:'PARADISE SYSTEMS — FOUNDING ERROR'}),1800);
+  },
+  'crew:accept':()=>{
+    G.crewAccepted=true; G.runs.gate.heat=Math.max(0,G.runs.gate.heat-2);
+    pushToast('CREW JOINED · gate breach heat −2');
+    netPush({who:'NULL SAINTS',dir:'in',txt:'In. We mask your trace on the breach. Heat cost down 2.'});
+    vt(renderBoard);
+  },
+  'lore:view':title=>{
+    if(!G.loreFragments.includes(title)){G.loreFragments.push(title);G.aura+=2;pushToast('LORE → UNLOCKED IN SOUL LOG · aura +2')}
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">LORE FRAGMENT</span><span class="k-tag">◈ DECODED</span></div>
+      <div class="t-title">${title}</div>
+      <p style="font-size:11.5px;opacity:.75;margin-top:8px">…recovered text. the Ha7 Index was never meant to measure people.
+      it measured load. someone at Paradise Systems changed one weight, once, and the city has been
+      paying interest on that edit ever since…</p>
+      <div class="kv" style="margin-top:8px"><span>where it went</span><span class="ok">SOUL LOG</span></div>
+      <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">CLOSE</button></div>`);
+    vt(renderBoard);
+  },
+  'lore:viewall':()=>{
+    openSheet(`<div class="k-dotline"><span class="t-micro t-dim">SOUL LOG</span><span class="k-tag">${G.loreFragments.length} FRAGMENTS</span></div>
+      ${G.loreFragments.map(l=>`<div class="kv"><span>◈</span><span>${l}</span></div>`).join('')||'<p class="t-micro t-dim">nothing decoded yet.</p>'}
+      <div class="actrow"><button class="k-pill k-pill--ghost" style="flex:1" data-act="sheet:close">CLOSE</button></div>`);
+  },
+  'soul:open':()=>{G.board='soul';vt(renderBoard)},
+  'sheet:close':()=>closeSheet()
+};
+
+/* delegated dispatch — one listener, all boards */
+document.addEventListener('click',e=>{
+  const x=e.target.closest('[data-x]');
+  if(x&&!e.target.closest('[data-act],[data-go]')){xtoggle(x.dataset.x);return}
+  const g=e.target.closest('[data-go]');
+  if(g){G.board=g.dataset.go;G.open=null;if(G.board==='net')G.netMessages.forEach(m=>m.unread=false);vt(renderBoard);return}
+  const t=e.target.closest('[data-act]');
+  if(t&&EV[t.dataset.act])EV[t.dataset.act](t.dataset.arg,t);
+});
+
+/* init */
+renderBoard();
+
 </script>
 </body>
 </html>
