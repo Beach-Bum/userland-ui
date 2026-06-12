@@ -571,6 +571,58 @@ body{
 .dk-circles{display:block;margin-top:6px}
 
 footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-height:1.7}
+
+/* ================================================================
+   EXPAND / CONTRACT — FLIP-lite card-to-detail, touch-first
+   Tap an expandable card → clone animates from card rect to center
+   → hidden .k-xd detail content revealed → tap backdrop to close
+   ================================================================ */
+.k-expandable{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  user-select:none;position:relative}
+.k-expandable::after{content:"";position:absolute;inset:-4px;z-index:1}
+
+.k-expand-backdrop{
+  position:fixed;inset:0;z-index:900;
+  background:rgba(10,12,16,.55);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;
+  transition:opacity .32s ease;
+}
+.k-expand-backdrop.is-open{opacity:1;pointer-events:auto}
+
+.k-expand-panel{
+  position:fixed;z-index:901;
+  overflow:hidden;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  box-shadow:0 24px 80px rgba(0,0,0,.45);
+  transition:left .44s cubic-bezier(.4,0,.12,1),
+             top .44s cubic-bezier(.4,0,.12,1),
+             width .44s cubic-bezier(.4,0,.12,1),
+             height .44s cubic-bezier(.4,0,.12,1),
+             border-radius .34s ease,
+             opacity .2s ease;
+}
+.k-expand-panel.is-closing{pointer-events:none}
+
+/* detail content hidden in compact, shown when expanded */
+.k-xd{display:none}
+.k-expand-panel .k-xd{display:block;animation:xdIn .3s .18s ease both}
+@keyframes xdIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* close strip inside expanded panel */
+.k-expand-close{display:none;justify-content:flex-end;padding:6px 6px 0}
+.k-expand-panel .k-expand-close{display:flex}
+
+/* pulse hint on expandable cards */
+.k-expandable .k-expand-hint{position:absolute;top:8px;right:8px;width:22px;height:22px;
+  border-radius:50%;background:rgba(18,19,16,.12);display:flex;align-items:center;
+  justify-content:center;font-size:10px;font-weight:800;opacity:.5;z-index:2;pointer-events:none}
+.k-card--black .k-expand-hint,.k-card--navy .k-expand-hint{background:rgba(255,255,255,.15);color:#fff}
+
+@media(prefers-reduced-motion:reduce){
+  .k-expand-backdrop,.k-expand-panel{transition:none !important}
+  .k-expand-panel .k-xd{animation:none !important}
+}
 </style>
 </head>
 <body>
@@ -1099,7 +1151,8 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <button class="k-pill k-pill--sm k-pill--ink">Claim</button>
           </div>
 
-          <div class="k-card k-card--black k-tab-t k-go" style="--tabc:var(--black);--p:100">
+          <div class="k-card k-card--black k-tab-t k-go" data-expand style="--tabc:var(--black);--p:100">
+            <span class="k-expand-hint">↗</span>
             <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="k-dotline"><span class="t-label">Quick hack · ready</span><span class="k-rar k-rar--com blink">LIVE</span></div>
             <div class="t-title" style="font-size:28px">OLD HOSPITAL<br>NODE</div>
@@ -1108,17 +1161,69 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
             <div class="k-live is-ready"><i class="k-live__dot"></i><span class="k-live__lbl">Node live · ready to run</span><span class="k-pct"></span></div>
             <div class="k-live__bar"><i></i></div>
+            <div class="k-xd" style="margin-top:16px">
+              <div class="k-perf" style="margin:0 -20px 14px;--shell:var(--black)"></div>
+              <div class="t-label" style="margin-bottom:10px">Run detail</div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-micro t-dim">Corp</span>
+                <span class="t-body" style="color:#fff">JADENET</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Zone</span>
+                <span class="t-body" style="color:#fff">03 · Old Hospital</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Duration</span>
+                <span class="t-body" style="color:#fff">02:00</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Scan req</span>
+                <span class="t-body" style="color:#fff">12/12 <span class="k-rar k-rar--com">OK</span></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Trace risk</span>
+                <span class="t-body" style="color:#fff">Low <span class="k-rar k-rar--com">OK</span></span>
+              </div>
+              <p class="t-micro" style="margin-top:14px;line-height:1.7;opacity:.7">Reward includes chance for
+              <span style="color:var(--pink)">SIGNAL CACHE</span> drop (COM rarity).</p>
+            </div>
             <button class="k-pill k-pill--lg k-pill--lime" style="margin-top:14px;width:100%">RUN — 02:00</button>
           </div>
 
-          <div class="k-card k-card--mint">
+          <div class="k-card k-card--mint" data-expand>
+            <span class="k-expand-hint">↗</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Install part</span>
                 <div class="t-title">GHOST LENS</div>
                 <span class="t-micro t-dim">Rare · UOPT · Scan +16</span></div>
               <div class="m-lens" style="width:48px;height:48px"><i></i></div>
             </div>
-            <button class="k-pill k-pill--sm k-pill--ink" style="margin-top:10px">Install</button>
+            <div class="k-xd" style="margin-top:14px">
+              <div class="k-perf" style="margin:0 -20px 14px;--shell:var(--mint)"></div>
+              <div class="k-device__stage" style="height:120px;margin-bottom:14px;border-radius:6px;background:rgba(18,19,16,.06)">
+                <div class="m-lens" style="width:64px;height:64px"><i></i></div>
+              </div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-micro t-dim">Scan</span>
+                <span class="t-body">12 → <b>16</b> <span class="k-rar k-rar--com" style="margin-left:4px">+4</span></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Trace</span>
+                <span class="t-body">−02 → <b>−03</b> <span class="k-rar k-rar--com" style="margin-left:4px">OK</span></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Corp</span>
+                <span class="t-body">UOPT</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Motion</span>
+                <span class="t-body">Radar sweep</span>
+              </div>
+            </div>
+            <div class="sc-row" style="margin-top:12px;gap:6px">
+              <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Install</button>
+              <button class="k-pill k-pill--sm" style="flex:1">Compare</button>
+            </div>
           </div>
 
           <div class="k-row">
@@ -1186,12 +1291,41 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-card" style="padding:14px 16px">
+          <div class="k-card" data-expand style="padding:14px 16px">
+            <span class="k-expand-hint">↗</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Discovered</span>
                 <div class="k-row__name">OLD HOSPITAL NODE</div>
                 <span class="t-micro t-dim">JDN · Quick hack available</span></div>
               <span class="k-chip k-chip--ink">→</span>
+            </div>
+            <div class="k-xd" style="margin-top:14px">
+              <div style="height:1px;background:rgba(18,19,16,.15);margin:0 0 12px"></div>
+              <pre class="k-glyphs" style="font-size:9px;line-height:1.5;opacity:.35;margin-bottom:12px;letter-spacing:2px">  ┌──────────────┐
+  │  ▣ NODE  ▣   │
+  │  OLD HOSP    │
+  │  Z03 · JDN   │
+  └──────────────┘</pre>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-micro t-dim">Corp</span>
+                <span class="t-body">JADENET</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Zone</span>
+                <span class="t-body">03</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Runs available</span>
+                <span class="t-body">2 (Quick hack, Sweep)</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Lore fragments</span>
+                <span class="t-body">1/3 collected</span>
+              </div>
+              <div class="sc-row" style="margin-top:14px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Travel</button>
+                <button class="k-pill k-pill--sm" style="flex:1">Scan</button>
+              </div>
             </div>
           </div>
 
@@ -1253,7 +1387,8 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-card k-card--black k-go" style="--p:72">
+          <div class="k-card k-card--black k-go" data-expand style="--p:72">
+            <span class="k-expand-hint">↗</span>
             <div class="k-dotline"><span class="t-label">Active · quick hack</span><span class="k-rar k-rar--com blink">LIVE</span></div>
             <div class="t-title" style="font-size:24px">OLD HOSPITAL NODE</div>
             <div class="sc-row" style="margin-top:8px;gap:6px">
@@ -1263,6 +1398,30 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
             <div class="k-live"><i class="k-live__dot"></i><span class="k-live__lbl">Running · trace clean</span><span class="k-pct"></span></div>
             <div class="k-live__bar"><i></i></div>
+            <div class="k-xd" style="margin-top:16px">
+              <div class="k-perf" style="margin:0 -20px 14px;--shell:var(--black)"></div>
+              <div class="t-num-xl" style="font-size:44px;text-align:center;margin:8px 0">00:01:24</div>
+              <div class="sc-row" style="justify-content:center;gap:16px;margin-bottom:14px">
+                <span class="t-micro t-dim">H&nbsp;&nbsp;&nbsp;&nbsp;M&nbsp;&nbsp;&nbsp;&nbsp;S</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-micro t-dim">Corp</span>
+                <span class="t-body" style="color:#fff">JADENET</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Zone</span>
+                <span class="t-body" style="color:#fff">03 · Old Hospital</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Trace status</span>
+                <span class="t-body" style="color:#fff">Clean <span class="k-rar k-rar--com">OK</span></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Cache chance</span>
+                <span class="t-body" style="color:var(--pink)">22%</span>
+              </div>
+              <button class="k-pill k-pill--red" style="margin-top:14px;width:100%;color:#fff">ABORT RUN</button>
+            </div>
           </div>
 
           <div class="k-row" style="background:var(--mint)">
@@ -1303,7 +1462,8 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-card k-go" style="--p:100;padding:14px 16px;background:var(--c-drop)">
+          <div class="k-card k-go" data-expand style="--p:100;padding:14px 16px;background:var(--c-drop)">
+            <span class="k-expand-hint">↗</span>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Last result</span>
                 <div class="k-row__name">FIELD SWEEP · Z02</div></div>
@@ -1313,6 +1473,34 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
               <span class="k-tag">+80 SEN</span>
               <span class="k-tag">TUNED CORE</span>
               <span class="k-tag">Heat +3</span>
+            </div>
+            <div class="k-xd" style="margin-top:14px">
+              <div style="height:1px;background:rgba(18,19,16,.3);margin:0 0 12px"></div>
+              <div class="t-label" style="margin-bottom:10px">Loot breakdown</div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-micro t-dim">SEN earned</span>
+                <span class="t-body"><b>+80</b></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Part drop</span>
+                <span class="t-body">TUNED CORE <span class="k-rar k-rar--tun">TUN</span></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Heat gained</span>
+                <span class="t-body">+3 (24 total)</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Trace</span>
+                <span class="t-body">Clean <span class="k-rar k-rar--com">OK</span></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Duration</span>
+                <span class="t-body">04:58 actual</span>
+              </div>
+              <div class="sc-row" style="margin-top:14px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Install core</button>
+                <button class="k-pill k-pill--sm" style="flex:1">Sell</button>
+              </div>
             </div>
           </div>
 
@@ -1463,12 +1651,42 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-row">
+          <div class="k-row" data-expand>
             <span class="k-ava" style="background:var(--yellow)">◆</span>
             <div class="k-row__main"><div class="k-row__name">GHOST LENS</div>
               <div class="k-row__sub">Rare · UOPT · Scan +16</div></div>
             <span class="t-title">480</span>
             <button class="k-pill k-pill--sm k-pill--ink">Bid</button>
+            <div class="k-xd" style="width:100%;margin-top:12px">
+              <div style="height:1px;background:rgba(18,19,16,.15);margin:0 0 12px"></div>
+              <div class="k-device__stage" style="height:100px;border-radius:6px;background:rgba(18,19,16,.06);margin-bottom:12px">
+                <div class="m-lens" style="width:56px;height:56px"><i></i></div>
+              </div>
+              <div class="sc-row" style="justify-content:space-between">
+                <span class="t-micro t-dim">Seller</span>
+                <span class="t-body">vex_11</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Price</span>
+                <span class="t-body"><b>480 SEN</b></span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Rarity</span>
+                <span class="k-rar k-rar--rare">RARE</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Stat</span>
+                <span class="t-body">Scan +16</span>
+              </div>
+              <div class="sc-row" style="justify-content:space-between;margin-top:6px">
+                <span class="t-micro t-dim">Expires</span>
+                <span class="t-body" style="color:var(--red)">12 min</span>
+              </div>
+              <div class="sc-row" style="margin-top:14px;gap:6px">
+                <button class="k-pill k-pill--sm k-pill--ink" style="flex:1">Bid 480</button>
+                <button class="k-pill k-pill--sm" style="flex:1">Offer</button>
+              </div>
+            </div>
           </div>
 
           <div class="k-ticker">
@@ -1886,10 +2104,145 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 </section>
 
 <footer class="sc-foot">
-  USERLAND · KIT-B “BENTO KEYLINE” · experiments/bento-keyline-kit.html · standalone, no toolchain, no JS ·
-  content sourced from the 96-item gear catalogue and the 3D-sync brief · 2026-06-11
+  USERLAND · KIT-B “BENTO KEYLINE” · experiments/bento-keyline-kit.html · standalone, no toolchain ·
+  content sourced from the 96-item gear catalogue and the 3D-sync brief · 2026-06-12
 </footer>
 
 </div>
+
+<script>
+/* ================================================================
+   EXPAND / CONTRACT — FLIP-lite, touch-first, reduced-motion safe
+   ================================================================ */
+(function(){
+  'use strict';
+  var backdrop=document.createElement('div');
+  backdrop.className='k-expand-backdrop';
+  document.body.appendChild(backdrop);
+
+  var panel=null,src=null,srcRect=null,locked=false;
+  var reducedMotion=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  document.querySelectorAll('[data-expand]').forEach(function(el){
+    el.classList.add('k-expandable');
+    el.addEventListener('click',function(e){
+      // don't expand if user tapped a button/link inside
+      if(e.target.closest('button,a,[data-close]'))return;
+      e.stopPropagation();
+      expand(el);
+    },{passive:false});
+  });
+
+  function expand(el){
+    if(locked||panel)return;
+    locked=true;src=el;
+    srcRect=el.getBoundingClientRect();
+
+    // clone card into panel
+    var p=document.createElement('div');
+    p.className='k-expand-panel';
+
+    // close button
+    var cls=document.createElement('div');
+    cls.className='k-expand-close';
+    cls.innerHTML='<button class="k-chip k-chip--ink" data-close style="width:30px;height:30px;font-size:12px">✕</button>';
+    p.appendChild(cls);
+
+    // clone content
+    var inner=document.createElement('div');
+    inner.style.padding='0 '+getComputedStyle(el).paddingLeft;
+    inner.innerHTML=el.innerHTML;
+    p.appendChild(inner);
+
+    // copy background
+    var bg=getComputedStyle(el).backgroundColor;
+    var br=getComputedStyle(el).borderRadius;
+    var color=getComputedStyle(el).color;
+    p.style.background=bg;p.style.color=color;
+
+    // FLIP: set to source rect
+    p.style.left=srcRect.left+'px';
+    p.style.top=srcRect.top+'px';
+    p.style.width=srcRect.width+'px';
+    p.style.height=srcRect.height+'px';
+    p.style.borderRadius=br;
+
+    document.body.appendChild(p);
+    panel=p;
+
+    // force layout
+    p.offsetHeight;
+
+    // FLIP: animate to center
+    var vw=window.innerWidth,vh=window.innerHeight;
+    var pw=Math.min(vw-24,400),ph=Math.min(vh-80,560);
+    if(reducedMotion){p.style.transition='none';backdrop.style.transition='none'}
+
+    requestAnimationFrame(function(){
+      p.style.left=((vw-pw)/2)+'px';
+      p.style.top=((vh-ph)/2)+'px';
+      p.style.width=pw+'px';
+      p.style.height=ph+'px';
+      p.style.borderRadius='12px';
+      backdrop.classList.add('is-open');
+      el.style.opacity='0';
+      el.style.transition='opacity .15s';
+      locked=false;
+    });
+
+    cls.querySelector('[data-close]').addEventListener('click',contract);
+    backdrop.addEventListener('click',contract);
+  }
+
+  function contract(){
+    if(!panel||!src||locked)return;
+    locked=true;
+    panel.classList.add('is-closing');
+
+    // re-measure in case of scroll
+    var r=src.getBoundingClientRect();
+    var br=getComputedStyle(src).borderRadius;
+
+    panel.style.left=r.left+'px';
+    panel.style.top=r.top+'px';
+    panel.style.width=r.width+'px';
+    panel.style.height=r.height+'px';
+    panel.style.borderRadius=br;
+    panel.style.overflow='hidden';
+    backdrop.classList.remove('is-open');
+
+    var p=panel,s=src;
+    function cleanup(){
+      if(p.parentNode)p.remove();
+      s.style.opacity='';s.style.transition='';
+      panel=null;src=null;srcRect=null;locked=false;
+      backdrop.removeEventListener('click',contract);
+    }
+
+    if(reducedMotion){cleanup();return}
+
+    p.addEventListener('transitionend',function handler(e){
+      if(e.propertyName!=='left'&&e.propertyName!=='width')return;
+      p.removeEventListener('transitionend',handler);
+      cleanup();
+    });
+    // safety fallback
+    setTimeout(cleanup,600);
+  }
+
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')contract()});
+
+  // swipe-down to close on touch
+  var touchY=0;
+  document.addEventListener('touchstart',function(e){
+    if(panel)touchY=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!panel)return;
+    var dy=e.changedTouches[0].clientY-touchY;
+    if(dy>60)contract();
+  },{passive:true});
+})();
+</script>
 </body>
 </html>
