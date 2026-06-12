@@ -155,15 +155,25 @@ selector, donor card. Plus run ticket, ticker, interlock tabs, dot rail,
 bite corners, 45° cut options, gradient fills, two alternate themes,
 progress, chart.
 
-Screens (three-zone contract, phone canonical): NOW command center · RIG
-vertical six-slot stack (CORE→LENS→PORT→BUS→ICE→SKIN chained by interlock
-tabs) · MARKET stocks/listings (bite-corner stocks card) · NET chat with
-inline item cards · SOUL profile/achievements/donor · two theme demo screens
-(Dusk, Midnight). Desktop: same kit recomposed on a 12-col bento in the black
+Screens (three-zone contract, phone canonical): all six boards — NOW command
+center · MAP world navigation with glyph-field map, discovered/locked nodes,
+scan target, lore hint · RUNS jobs board with active run timer, available/locked
+runs list, requirement checks (OK/FAIL), last result card · RIG vertical
+six-slot stack (CORE→LENS→PORT→BUS→ICE→SKIN chained by interlock tabs) ·
+MARKET stocks/listings (bite-corner stocks card) · NET chat with inline item
+cards · SOUL profile/achievements/donor · two theme demo screens (Dusk,
+Midnight). Desktop: same kit recomposed on a 12-col bento in the black
 keyline frame with the connected pill nav chain. Breakpoints: 390 canonical /
 ≥768 two-col / ≥1100 full bento + optional detail rail.
 
 ## Revisions
+
+- **Rev 5 (2026-06-12):** all six boards complete — added MAP phone screen
+  (glyph-field map, discovered/locked/scan-target nodes, lore hint, SCAN/
+  TRAVEL/VIEW action bar) and RUNS phone screen (active run with live timer,
+  available/locked runs list, run requirements with OK/FAIL checks, last
+  result card with loot summary, START/PREP/ABORT action bar). Section note
+  updated from "Five boards" to "All six boards plus rig detail".
 
 - **Rev 4 (2026-06-12):** type voice — Gamja Flower for display headings/subs
   (numerals, titles, device names), Space Mono for body and small copy;
