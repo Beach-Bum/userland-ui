@@ -273,6 +273,49 @@ button{font-family:inherit;border:0;cursor:pointer}
 .memrow{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px}
 .memrow .role{margin-left:auto;font-size:11px;color:var(--txt-3)}
 
+/* ===== pass 3: composer icon panels, tabs, rig, inventory, msg context ===== */
+.composer .cico{width:30px;height:30px;border-radius:6px;background:transparent;color:var(--txt-2);
+  font-size:15px;flex:none;display:flex;align-items:center;justify-content:center}
+.composer .cico:hover{background:var(--bg-3);color:var(--txt)}
+.gifbtn{font-size:9px;font-weight:800;letter-spacing:.03em;border:1.5px solid currentColor;
+  border-radius:4px;padding:1px 3px}
+.emogrid{display:flex;flex-wrap:wrap;gap:4px;padding:4px 14px 10px}
+.emo{width:34px;height:34px;border-radius:6px;background:transparent;font-size:19px;
+  display:flex;align-items:center;justify-content:center}
+.emo:hover{background:var(--bg-3)}
+.tabs{display:flex;gap:2px;padding:0 18px;border-bottom:1px solid var(--bg-3);margin-top:14px;
+  overflow-x:auto}
+.tab{padding:9px 12px;background:transparent;color:var(--txt-2);font-size:13px;font-weight:600;
+  border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--txt)}
+.tab.is-on{color:var(--txt);border-bottom-color:var(--accent)}
+.slotrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bg-3);font-size:13px}
+.slotrow:last-child{border-bottom:0}
+.slotrow .slot{width:52px;font-size:11px;font-weight:700;color:var(--txt-3);
+  font-family:ui-monospace,Menlo,monospace;flex:none}
+.slotrow .part{flex:1}
+.slotrow .empty{color:var(--txt-3);font-style:italic}
+.statgrid{display:flex;gap:8px;flex-wrap:wrap}
+.stat{flex:1;min-width:84px;background:var(--bg-2);border-radius:8px;padding:8px 10px;text-align:center}
+.stat b{display:block;font-size:18px}
+.stat span{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--txt-2)}
+.invrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg-3);font-size:13px}
+.invrow:last-child{border-bottom:0}
+.invrow .nm{flex:1;font-weight:600}
+.invrow .note{color:var(--txt-3);font-size:12px}
+.invrow .acts{display:flex;gap:4px}
+.msg{position:relative}
+.msg__more{position:absolute;top:-10px;right:10px;display:none;width:28px;height:24px;border-radius:5px;
+  background:var(--bg-3);color:var(--txt-2);font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.msg:hover .msg__more{display:block}
+.msg__more:hover{color:var(--txt)}
+.ctx{position:absolute;top:16px;right:10px;z-index:20;background:var(--bg-1);border:1px solid var(--bg-4);
+  border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.5);min-width:160px;overflow:hidden}
+.ctx button{display:block;width:100%;text-align:left;padding:7px 12px;background:transparent;
+  color:var(--txt-2);font-size:13px}
+.ctx button:hover{background:var(--bg-3);color:var(--txt)}
+.ctx button.danger{color:var(--danger)}
+
 @media (max-width:720px){
   .rail{display:none}
   .chans{position:fixed;inset:0 auto 0 0;z-index:40;transform:translateX(-100%);
@@ -304,10 +347,10 @@ button{font-family:inherit;border:0;cursor:pointer}
     <div class="chans__head">Userland</div>
     <div class="chans__list" id="nav-list"></div>
     <div class="me">
-      <span class="ava" data-profile="ned" style="background:#7b68c9;width:32px;height:32px;font-size:13px">N</span>
-      <div class="me__txt" data-profile="ned">
+      <span class="ava" data-myprofile style="background:#7b68c9;width:32px;height:32px;font-size:13px">N</span>
+      <div class="me__txt" data-myprofile>
         <div class="me__name">ned <span class="donor" title="Supporter">✦</span></div>
-        <div class="me__status">Online</div>
+        <div class="me__status">Online · Ghost Build</div>
       </div>
       <button class="me__gear" data-modal="settings" title="settings">⚙</button>
     </div>
@@ -328,8 +371,12 @@ button{font-family:inherit;border:0;cursor:pointer}
       <div class="compwrap">
         <div class="popmenu" id="popmenu"></div>
         <div class="composer">
-          <button class="plus" id="plus" title="insert packet">+</button>
+          <button class="plus" id="plus" title="Quick Create">+</button>
           <input id="composer-in" placeholder="Message" autocomplete="off">
+          <button class="cico" data-panel="gift" title="Patron / Gift / Rewards">🎁</button>
+          <button class="cico" data-panel="gif" title="Media"><span class="gifbtn">GIF</span></button>
+          <button class="cico" data-panel="emotes" title="Emotes & reactions">🙂</button>
+          <button class="cico" data-panel="apps" title="Apps & commands">✦</button>
           <button class="send" id="send" title="send">➤</button>
         </div>
       </div>
@@ -431,6 +478,21 @@ const RUNS=[
    banner:'linear-gradient(120deg,#5e4a33,#33415e)'}
 ];
 
+/* rig + inventory (pass 3) */
+const RIG={name:'Ghost Build',owner:'ned',
+  stats:[['Scan',7],['Break',4],['Stealth',9],['Heat resist',3]],
+  slots:[['CORE','Pulse Core v2','Rare'],['LENS','Ghost Lens','Epic'],
+         ['PORT','Signal Booster','Common'],['BUS',null,null],['ICE',null,null],
+         ['SKIN','Matte Shell','Uncommon']]};
+const INV=[
+  {name:'Ghost Lens',type:'part',rarity:'Epic',note:'LENS · equipped'},
+  {name:'Pulse Core v2',type:'part',rarity:'Rare',note:'CORE · equipped'},
+  {name:'Signal Booster',type:'part',rarity:'Common',note:'PORT · equipped'},
+  {name:'ICE Shard',type:'part',rarity:'Rare',note:'ICE · not installed'},
+  {name:'Med Stim',type:'consumable',rarity:'Common',note:'×3'},
+  {name:'Spare Relay',type:'marketable',rarity:'Common',note:'listed · 120 SEN'},
+  {name:'Sector Map Fragment',type:'marketable',rarity:'Uncommon',note:'tradeable'}];
+
 /* nav: PRIMARY / ROOMS / DIRECT MESSAGES */
 const PRIMARY=[
   ['home','Home','⌂'],['contacts','Contacts','☻'],['requests','Requests','✉'],
@@ -460,7 +522,17 @@ const E={
     fields:[['Severity','Medium'],['Trace','Partial']],acts:[['Details','view']]}),
   crewinv:id=>({kind:'crewinv',ref:id,kicker:'Crew invite',title:`Join ${CREWS[id].name} [${CREWS[id].tag}]`,
     desc:'Open invitation. Reviewed by crew officers.',cls:'embed--ok',
-    fields:[['Members',CREWS[id].members],['Rep',CREWS[id].rep]],acts:[['View crew','crew']]})
+    fields:[['Members',CREWS[id].members],['Rep',CREWS[id].rep]],acts:[['View crew','crew']]}),
+  profilecard:id=>{const u=USERS[id];return{kind:'profile',ref:id,kicker:'Profile share',
+    title:`${u.name} — Level ${u.level} ${u.title}`,desc:`${u.rep} · ${u.worth}`,cls:'',
+    fields:[['Crew',u.crew?CREWS[u.crew].tag:'—'],['Listings',u.listings.length]],
+    acts:[['View profile','view']]}},
+  rigcard:()=>({kind:'rig',ref:'ned',kicker:'Rig share',title:`${RIG.name} — ned`,
+    desc:'4/6 slots installed. Stealth-leaning build.',cls:'embed--ok',
+    fields:RIG.stats.map(([k,v])=>[k,String(v)]),acts:[['View rig','view']]}),
+  reward:()=>({kind:'reward',ref:'',kicker:'Daily reward',title:'Daily reward claimed',
+    desc:'Cosmetic drop + streak credit. No gameplay power.',cls:'embed--ok',
+    fields:[['Drop','Plate shard (cosmetic)'],['Streak','4 days']],acts:[['View drops','view']]})
 };
 
 const MSGS={
@@ -527,15 +599,12 @@ const COMMANDS=[
   ['/trade','@player','Open a trade offer'],
   ['/stock','TICKER','Open a stock detail'],
   ['/crew','create','Create or manage a crew'],
+  ['/rig','[share]','Open your rig — "share" inserts a rig card'],
+  ['/inventory','','Open your inventory'],
   ['/profile','@player','View a player profile'],
   ['/item','[name]','Inspect an inventory item'],
   ['/market','','Open the Blackmarket'],
   ['/invite','[run]','Insert a run invite into chat']
-];
-const PACKETS=[
-  ['Trade offer',()=>E.trade('marco')],['Run invite',()=>E.run('east')],
-  ['Market listing',()=>E.listing('booster')],['Hack warning',()=>E.hack('vera')],
-  ['Stock alert',()=>E.stock('RELAY')],['Crew invite',()=>E.crewinv('ns')]
 ];
 
 const state={view:'chat',chan:'global',unread:{crew:true,market:true,'dm-marco':true},modal:null};
@@ -612,14 +681,15 @@ function renderFeed(){
     const u=USERS[m.who];
     const grp=prev&&prev.who===m.who;
     const body=m.embed?renderEmbed(m.embed):esc(m.text);
+    const more=`<button class="msg__more" data-ctx="${m.who}" title="more">⋯</button>`;
     if(grp){
-      h+=`<div class="msg is-grp"><div class="ava-slot"></div><div class="msg__col"><div class="msg__body">${body}</div></div></div>`;
+      h+=`<div class="msg is-grp"><div class="ava-slot"></div><div class="msg__col"><div class="msg__body">${body}</div></div>${more}</div>`;
     }else{
       h+=`<div class="msg"><div class="ava-slot">${avaHtml(m.who)}</div>
         <div class="msg__col"><div class="msg__head">
           <span class="msg__who" data-profile="${m.who}">${u.name}</span>${crewTag(m.who)}${donorMark(m.who)}
           <span class="msg__time">${m.t}</span></div>
-        <div class="msg__body">${body}</div></div></div>`;
+        <div class="msg__body">${body}</div></div>${more}</div>`;
     }
     prev=m;
   });
@@ -728,7 +798,7 @@ function cardListing(l){
 
 /* ================= modal shell ================= */
 function openModal(type,props={}){
-  state.modal=type;
+  state.modal=type;state.modalProps=props;
   $('scrim').innerHTML=MODALS[type](props);
   $('scrim').classList.add('is-vis');
 }
@@ -990,13 +1060,139 @@ const MODALS={
   },
 
   /* crew invite packet routes here */
-  crewinv(p){return MODALS.crew({id:p.id})}
+  crewinv(p){return MODALS.crew({id:p.id})},
+
+  /* 12. RigModal */
+  rig(){
+    return `<div class="modal" style="width:520px"><div class="dm__body">
+      <div class="dm__kicker">Rig</div>
+      <div class="dm__title">${RIG.name} <span style="font-weight:400;font-size:13px;color:var(--txt-2)">owner: ned</span></div>
+      ${rigBody()}
+      <div class="dm__acts">
+        <button class="btn btn--ghost" data-close>Close</button>
+        <button class="btn" data-modal="inventory">Open Inventory</button>
+        <button class="btn" data-sharerig>Share Rig</button>
+        <button class="btn btn--primary" data-modal="inventory">Equip Part</button>
+      </div></div></div>`;
+  },
+
+  /* 13. InventoryModal */
+  inventory(p){
+    return `<div class="modal" style="width:560px"><div class="dm__body">
+      <div class="dm__kicker">Inventory</div>
+      <div class="dm__title">Your items</div>
+      ${invBody(p.f)}
+      <div class="dm__acts">
+        <button class="btn btn--ghost" data-close>Close</button>
+        <button class="btn btn--primary" data-modal="rig">Open Rig</button>
+      </div></div></div>`;
+  },
+
+  /* 14. MyProfileModal — tabs: Profile / Rig / Inventory / Listings / Badges / Settings */
+  myprofile(p){
+    const tab=p.tab||'profile';const u=USERS.ned;
+    const TABS=['profile','rig','inventory','listings','badges','settings'];
+    let body='';
+    if(tab==='profile'){
+      body=`<div class="pf__status"><span class="st-dot"></span>${u.status}</div>
+        <div class="pf__chips">${u.badges.map(b=>`<span class="chip">${b}</span>`).join('')}</div>`
+        +sect('Standing',row('Reputation',u.rep)+row('Crew','<span class="crewtag" data-crew="ns">NSX Null Saints</span>')+row('Net worth',u.worth))
+        +sect('Player plate <span style="float:right;font-weight:400;text-transform:none">cosmetic only</span>',
+          `<div class="platewrap">${PLATES.map(([id,lbl])=>
+            `<div class="plate plate--${id} ${u.plate===id?'is-cur':''}">${u.name}<small>${lbl}</small></div>`).join('')}</div>`);
+    }
+    if(tab==='rig')body=rigBody()
+      +`<div class="dm__acts" style="justify-content:flex-start">
+        <button class="btn" data-sharerig>Share Rig</button>
+        <button class="btn" data-mytab="inventory">Equip / Unequip</button>
+        <button class="btn btn--primary" data-modal="rig">Open Rig modal</button></div>`;
+    if(tab==='inventory')body=invBody(p.f);
+    if(tab==='listings')body=sect(`Public listings (${u.listings.length})`,
+        u.listings.map(([n,pr])=>row(n,pr)).join(''))
+      +`<div class="dm__acts" style="justify-content:flex-start">
+        <button class="btn btn--primary" data-open-kind="listing" data-open-ref="">List an item</button></div>`;
+    if(tab==='badges')body=sect('Achievement badges',
+        `<div class="pf__chips" style="margin-top:2px">${u.badges.map(b=>`<span class="chip">${b}</span>`).join('')}</div>`)
+      +sect('Badge showcase',row('Pinned on profile','Up to 3 — Patron feature, cosmetic only'));
+    if(tab==='settings')body=`<div class="set__card"><h4>Account</h4><p>@ned#0001 · ned@example.com</p></div>
+      <div class="set__card"><h4>Full settings</h4><p><button class="btn btn--primary btn--sm" data-modal="settings">Open Account Settings</button></p></div>`;
+    return `<div class="modal" style="width:560px">
+      <div class="pf__banner" style="background:linear-gradient(120deg,#7b68c9,#2c2f3a);height:84px">
+        <div class="pf__ava"><span class="ava" style="background:#7b68c9">N</span></div>
+      </div>
+      <div style="padding:34px 18px 0">
+        <div class="pf__name">ned <span class="donor" title="Supporter — cosmetic only">✦</span>
+          <span class="crewtag" data-crew="ns">NSX</span></div>
+        <div class="pf__handle">@ned#0001 · Level 14 · Ghost Operator</div>
+      </div>
+      <div class="tabs">${TABS.map(tb=>
+        `<button class="tab ${tb===tab?'is-on':''}" data-mytab="${tb}">${tb[0].toUpperCase()+tb.slice(1)}</button>`).join('')}</div>
+      <div class="dm__body">${body}</div></div>`;
+  },
+
+  /* 15. PatronGiftModal */
+  patronGift(){
+    return `<div class="modal"><div class="dm__body">
+      <div class="dm__kicker">Patron</div>
+      <div class="dm__title">Gift supporter pass <span class="donor">✦</span></div>
+      <div class="field"><label>Recipient</label>
+        <select>${DMS.map(id=>`<option>${USERS[id].name}</option>`).join('')}</select></div>
+      <div class="field"><label>Duration</label>
+        <select><option>1 month</option><option>3 months</option><option>12 months</option></select></div>
+      <div class="field"><label>Note</label><input placeholder="optional message"></div>
+      <div class="set__card"><p>Gifts unlock cosmetics only. No gameplay power.</p></div>
+      <div class="dm__acts">
+        <button class="btn btn--ghost" data-close>Cancel</button>
+        <button class="btn btn--primary">Gift pass</button>
+      </div></div></div>`;
+  },
+
+  /* 16. RedeemCodeModal */
+  redeem(){
+    return `<div class="modal"><div class="dm__body">
+      <div class="dm__kicker">Patron</div>
+      <div class="dm__title">Redeem code</div>
+      <div class="field"><label>Code</label><input placeholder="XXXX-XXXX-XXXX"></div>
+      <div class="dm__acts">
+        <button class="btn btn--ghost" data-close>Cancel</button>
+        <button class="btn btn--primary">Redeem</button>
+      </div></div></div>`;
+  }
 };
+
+/* shared bodies for rig + inventory */
+function rigBody(){
+  const filled=RIG.slots.filter(s=>s[1]).length;
+  return sect('Summary',`<div class="statgrid">${RIG.stats.map(([k,v])=>
+      `<div class="stat"><b>${v}</b><span>${k}</span></div>`).join('')}</div>`)
+    +sect(`Slots (${filled}/6 installed)`,RIG.slots.map(([s,part,r])=>
+      `<div class="slotrow"><span class="slot">${s}</span>
+        <span class="part">${part?`${part} <span class="rarity">${r}</span>`:'<span class="empty">empty slot</span>'}</span>
+        ${part?`<button class="btn btn--sm" data-open-kind="item" data-open-ref="${part}">Inspect</button>
+          <button class="btn btn--sm btn--ghost" title="placeholder">Unequip</button>`
+          :'<button class="btn btn--sm" data-modal="inventory">Equip</button>'}</div>`).join(''));
+}
+function invBody(f){
+  f=f||'all';
+  const chips=[['all','All'],['part','Rig Parts'],['consumable','Consumables'],['marketable','Marketable']];
+  const items=INV.filter(i=>f==='all'||i.type===f);
+  return `<div class="filters" style="margin-bottom:6px">${chips.map(([id,lbl])=>
+      `<button class="fchip ${f===id?'is-on':''}" data-invfilter="${id}">${lbl}</button>`).join('')}</div>`
+    +items.map(i=>`<div class="invrow">
+      <span class="nm">${i.name} <span class="rarity">${i.rarity}</span></span>
+      <span class="note">${i.note}</span>
+      <span class="acts">
+        <button class="btn btn--sm" data-open-kind="item" data-open-ref="${i.name}">Inspect</button>
+        <button class="btn btn--sm">Equip</button>
+        <button class="btn btn--sm" data-open-kind="listing" data-open-ref="">Sell</button>
+        <button class="btn btn--sm" data-open-kind="trade" data-open-ref="marco">Trade</button>
+      </span></div>`).join('');
+}
 
 /* kind → modal mapping for embeds/cards */
 function openByKind(kind,ref){
   const map={listing:'listing',run:'run',stock:'stock',trade:'trade',hack:'hack',
-    item:'item',crewinv:'crew',crew:'crew',profile:'profile'};
+    item:'item',crewinv:'crew',crew:'crew',profile:'profile',rig:'rig',reward:'patron'};
   openModal(map[kind]||'item',{id:ref,title:ref});
 }
 
@@ -1009,22 +1205,99 @@ function renderCmdMenu(filter){
     `<div class="cmd ${i===0?'is-sel':''}" data-cmd="${c}"><b>${c}</b><span class="args">${a}</span><span class="desc">${d}</span></div>`).join('');
   $('popmenu').classList.add('is-vis');menuMode='cmd';
 }
-function renderPacketMenu(){
-  $('popmenu').innerHTML='<div class="popmenu__h">Insert activity packet</div>'+PACKETS.map(([lbl],i)=>
-    `<div class="cmd" data-packet="${i}"><b>${lbl}</b><span class="desc">insert into chat</span></div>`).join('');
-  $('popmenu').classList.add('is-vis');menuMode='packet';
-}
 function hideMenu(){$('popmenu').classList.remove('is-vis');$('popmenu').innerHTML='';menuMode=null}
 
-function runCommand(cmd){
+/* composer icon panels (Discord-style floating panels) */
+const panelRows=rows=>rows.map(([lbl,desc,attr])=>
+  `<div class="cmd" ${attr||''}><b>${lbl}</b><span class="desc">${desc}</span></div>`).join('');
+const PANELS={
+  quick:()=>'<div class="popmenu__h">Quick Create</div>'+panelRows([
+    ['Create Trade Offer','open a trade','data-pact="trade"'],
+    ['List Item','sell on the Blackmarket','data-pact="sell"'],
+    ['Create Run Invite','start or share a run','data-pact="runmodal"'],
+    ['Attach Item','pick from inventory','data-pact="inventory"'],
+    ['Share Profile','insert your profile card','data-pact="shareprofile"'],
+    ['Share Rig','insert your rig card','data-pact="sharerig"']]),
+  gift:()=>'<div class="popmenu__h">Patron · Gifts · Rewards — cosmetics only</div>'+panelRows([
+    ['Claim Daily Reward','insert today\'s drop','data-pact="daily"'],
+    ['Gift Patron','gift a supporter pass','data-pact="giftpatron"'],
+    ['Send Cosmetic','from your cosmetic shelf','data-pact="patron"'],
+    ['View Reward Drops','recent cosmetic drops','data-pact="patron"'],
+    ['Redeem Code','enter a code','data-pact="redeem"']]),
+  gif:()=>'<div class="popmenu__h">Media (placeholder)</div>'+panelRows([
+    ['Recent media','nothing here yet',''],
+    ['Signal effects','animated effects — placeholder',''],
+    ['Run clips','your run replays — placeholder',''],
+    ['Upload','attach a file — placeholder','']]),
+  emotes:()=>{
+    const g=(h,em)=>`<div class="popmenu__h">${h}</div><div class="emogrid">${em.map(x=>
+      `<button class="emo" data-emo="${x}">${x}</button>`).join('')}</div>`;
+    return g('Frequently used',['👍','😂','🔥','👀','💀','🫡'])
+      +g('Crew emoji',['🟢','🛰️','🗝️','📡'])
+      +g('Stickers',['🐙','🤖','🌆'])
+      +g('Reactions',['❤️','✅','❌','❓']);
+  },
+  apps:()=>'<div class="popmenu__h">Quick Actions</div>'+panelRows([
+      ['/sell','list an item on the Blackmarket','data-cmd="/sell"'],
+      ['/run','start or create a run','data-cmd="/run"'],
+      ['/hack','target a player','data-cmd="/hack"'],
+      ['/trade','offer a trade','data-cmd="/trade"']])
+    +'<div class="popmenu__h">Activities</div>'+panelRows([
+      ['Crew Run','open the crew run','data-pact="runmodal"'],
+      ['Market Listing','create or browse','data-pact="sell"'],
+      ['Stock Watch','open a ticker','data-pact="stock"'],
+      ['Rig Share','insert your rig card','data-pact="sharerig"']])
+    +'<div class="popmenu__h">Economy</div>'+panelRows([
+      ['Blackmarket','items, players, stocks','data-pact="market"'],
+      ['Stocks','exchange view','data-pact="market"'],
+      ['Escrow Trades','open trades','data-pact="trade"']])
+    +'<div class="popmenu__h">Social</div>'+panelRows([
+      ['Create Crew','found a new crew','data-pact="createcrew"'],
+      ['Invite Player','insert crew invite','data-pact="crewinvite"'],
+      ['Message Contact','open contacts','data-pact="contacts"'],
+      ['View Profile','open a profile','data-pact="profile"']])
+};
+function openPanel(name){
+  if(menuMode===name)return hideMenu();
+  $('popmenu').innerHTML=PANELS[name]();
+  $('popmenu').classList.add('is-vis');menuMode=name;
+}
+function doPact(a){
+  hideMenu();
+  const acts={
+    trade:()=>openModal('trade',{id:'marco'}),
+    sell:()=>openModal('listing',{title:'New listing — sell an item'}),
+    runmodal:()=>openModal('run',{id:'east'}),
+    inventory:()=>openModal('inventory',{}),
+    shareprofile:()=>insertPacket(E.profilecard('ned')),
+    sharerig:()=>insertPacket(E.rigcard()),
+    daily:()=>insertPacket(E.reward()),
+    giftpatron:()=>openModal('patronGift',{}),
+    patron:()=>openModal('patron',{}),
+    redeem:()=>openModal('redeem',{}),
+    stock:()=>openModal('stock',{id:'RELAY'}),
+    market:()=>show('blackmarket'),
+    createcrew:()=>openModal('createCrew',{}),
+    crewinvite:()=>insertPacket(E.crewinv('ns')),
+    contacts:()=>show('contacts'),
+    profile:()=>openModal('profile',{id:'peggy'})
+  };
+  (acts[a]||(()=>{}))();
+}
+
+function runCommand(raw){
   hideMenu();$('composer-in').value='';
+  const parts=raw.trim().split(/\s+/);
+  const cmd=parts[0],arg=parts[1];
   switch(cmd){
     case '/sell':   openModal('listing',{title:'New listing — sell an item'});break;
     case '/run':    openModal('run',{id:'east'});break;
     case '/hack':   openModal('hack',{id:'vera'});break;
     case '/trade':  openModal('trade',{id:'marco'});break;
-    case '/stock':  openModal('stock',{id:'RELAY'});break;
+    case '/stock':  openModal('stock',{id:arg||'RELAY'});break;
     case '/crew':   openModal('createCrew',{});break;
+    case '/rig':    arg==='share'?insertPacket(E.rigcard()):openModal('rig',{});break;
+    case '/inventory':openModal('inventory',{});break;
     case '/profile':openModal('profile',{id:'peggy'});break;
     case '/item':   openModal('item',{});break;
     case '/market': show('blackmarket');break;
@@ -1040,7 +1313,7 @@ function insertPacket(embed){
 function send(){
   const inp=$('composer-in');const txt=inp.value.trim();
   if(!txt)return;
-  if(txt.startsWith('/')){runCommand(txt.split(' ')[0]);return}
+  if(txt.startsWith('/')){runCommand(txt);return}
   inp.value='';hideMenu();
   MSGS[state.chan].push({who:'ned',t:'now',text:txt});
   renderFeed();
@@ -1056,6 +1329,24 @@ function send(){
 document.addEventListener('click',e=>{
   const t=e.target;
 
+  // message context menu (⋯) — toggle / close
+  const moreBtn=t.closest('[data-ctx]');
+  const openCtx=document.querySelector('.ctx');
+  const wasForSame=openCtx&&moreBtn&&openCtx.parentElement===moreBtn.parentElement;
+  if(openCtx)openCtx.remove();
+  if(moreBtn&&!wasForSame){
+    const who=moreBtn.dataset.ctx;
+    const div=document.createElement('div');div.className='ctx';
+    div.innerHTML=`<button data-profile="${who}">View Profile</button>
+      <button data-room="dm-${who}">Message</button>
+      <button data-open-kind="trade" data-open-ref="${who}">Trade</button>
+      <button class="danger" data-open-kind="hack" data-open-ref="${who}">Hack</button>
+      <button>Reply — soon</button>
+      <button>Copy link — soon</button>`;
+    moreBtn.parentElement.appendChild(div);
+    return;
+  }
+
   // modal-internal triggers first (so they work inside scrim)
   const sp=t.closest('[data-set-page]');
   if(sp){openModal('settings',{page:sp.dataset.setPage});return}
@@ -1065,6 +1356,19 @@ document.addEventListener('click',e=>{
     if(room)openRoom(room.dataset.room);
     return;
   }
+  // pass 3 modal/panel triggers
+  const mt=t.closest('[data-mytab]');
+  if(mt){openModal('myprofile',{tab:mt.dataset.mytab});return}
+  const inf=t.closest('[data-invfilter]');
+  if(inf){
+    const f=inf.dataset.invfilter;
+    if(state.modal==='myprofile')openModal('myprofile',{tab:'inventory',f});
+    else openModal('inventory',{f});
+    return;
+  }
+  if(t.closest('[data-sharerig]')){closeModal();insertPacket(E.rigcard());return}
+  if(t.closest('[data-myprofile]')){openModal('myprofile',{});return}
+
   const crew=t.closest('[data-crew]');
   if(crew){openModal('crew',{id:crew.dataset.crew});return}
   const crewOpen=t.closest('[data-crew-open]');
@@ -1093,11 +1397,15 @@ document.addEventListener('click',e=>{
   if(rail){show('home');return}
 
   if(t.closest('#burger')){$('chans').classList.toggle('is-open');return}
-  if(t.closest('#plus')){menuMode==='packet'?hideMenu():renderPacketMenu();return}
+  if(t.closest('#plus')){openPanel('quick');return}
+  const pan=t.closest('[data-panel]');
+  if(pan){openPanel(pan.dataset.panel);return}
   const cmd=t.closest('[data-cmd]');
   if(cmd){runCommand(cmd.dataset.cmd);return}
-  const pk=t.closest('[data-packet]');
-  if(pk){insertPacket(PACKETS[+pk.dataset.packet][1]());return}
+  const pact=t.closest('[data-pact]');
+  if(pact){doPact(pact.dataset.pact);return}
+  const emo=t.closest('[data-emo]');
+  if(emo){$('composer-in').value+=emo.dataset.emo;$('composer-in').focus();return}
   if(t.closest('#send')){send();return}
 
   if(!t.closest('#popmenu')&&!t.closest('.composer'))hideMenu();
@@ -1110,8 +1418,9 @@ $('composer-in').addEventListener('keydown',e=>{
   if(e.key==='Enter'){
     const v=$('composer-in').value.trim();
     if(menuMode==='cmd'&&v.startsWith('/')){
-      const first=COMMANDS.find(([c])=>c.startsWith(v.split(' ')[0]));
-      runCommand(first?first[0]:v.split(' ')[0]);
+      const parts=v.split(/\s+/);
+      const first=COMMANDS.find(([c])=>c.startsWith(parts[0]));
+      runCommand(first?[first[0],...parts.slice(1)].join(' '):v);
     }else send();
   }
 });
