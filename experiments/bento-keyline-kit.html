@@ -108,25 +108,27 @@ body{
 .k-edge-fade{filter:drop-shadow(1px 0 0 rgba(255,255,255,.35)) drop-shadow(-1px 0 0 rgba(255,255,255,.35))
   drop-shadow(0 1px 0 rgba(255,255,255,.35)) drop-shadow(0 -1px 0 rgba(255,255,255,.35))}
 
-/* sci-fi bite — recessed top-right corner, the shell shows through
-   recess 64×22 · inner radius 12 · entry fillets r12 */
+/* sci-fi bite — recessed top-right corner, drawn as one SVG path
+   (.k-bitefx child) so the fillets are seamless; shell shows through */
 .k-bite-tr{position:relative}
-.k-bite-tr::before{content:"";position:absolute;top:0;right:0;width:64px;height:22px;
-  background:var(--shell,var(--navy));border-radius:0 0 0 12px}
-.k-bite-tr::after{content:"";position:absolute;top:0;right:0;width:76px;height:34px;pointer-events:none;
-  background:
-    radial-gradient(circle at 0 100%,rgba(0,0,0,0) 11.5px,var(--shell,var(--navy)) 12px) 0 0/12px 12px no-repeat,
-    radial-gradient(circle at 0 100%,rgba(0,0,0,0) 11.5px,var(--shell,var(--navy)) 12px) 100% 22px/12px 12px no-repeat}
+.k-bite-tr>.k-bitefx{position:absolute;top:0;right:0;display:block}
+.k-bitefx path{fill:var(--shell,var(--navy))}
 
-/* interlock — the lower card raises an 88×14 plateau tab (r10 shoulders,
-   r12 base fillets) into the 20px shell band; the gap stays thin over it */
-.k-tab-t{position:relative;margin-top:14px}
-.k-tab-t::before{content:"";position:absolute;top:-14px;left:var(--tabx,56%);width:88px;height:15px;
-  background:var(--tabc,var(--paper));border-radius:10px 10px 0 0}
-.k-tab-t::after{content:"";position:absolute;top:-12px;left:calc(var(--tabx,56%) - 12px);width:112px;height:12px;
-  background:
-    radial-gradient(circle at 0 0,rgba(0,0,0,0) 11.5px,var(--tabc,var(--paper)) 12px) left bottom/12px 12px no-repeat,
-    radial-gradient(circle at 100% 0,rgba(0,0,0,0) 11.5px,var(--tabc,var(--paper)) 12px) right bottom/12px 12px no-repeat}
+/* interlock — the lower card raises a plateau tab into the shell band.
+   Drawn as one SVG path (.k-platop child): flares r12, shoulders r10,
+   112×18, 1px overlap into the card — no gradient fringes, no seams */
+.k-tab-t{position:relative;margin-top:16px}
+.k-tab-t>.k-platop{position:absolute;top:-17px;left:var(--tabx,56%);display:block}
+.k-platop path{fill:var(--tabc,var(--paper))}
+
+/* pinch — centered middle connector: shell blob notching into both cards
+   with flares riding their edges; one SVG path, sits in the 6px gap */
+.k-pinch{display:block;position:relative;z-index:2;margin:-18px auto}
+.k-pinch path{fill:var(--shell,var(--navy))}
+
+/* flat-card separation lines (offset keyline is controls/frame only now) */
+.k-line{border:1.5px solid var(--ink)}
+.k-line-lt{border:1px solid rgba(255,255,255,.22)}
 
 /* ================================================================
    THEMES — variable swap; MIL red stays constant as a state color
@@ -414,16 +416,16 @@ body{
 .k-perf::after{right:-8.5px}
 
 .k-ticket{background:var(--yellow);border-radius:10px;color:var(--ink)}
-.k-ticket section{padding:16px 18px}
+.k-ticket section{padding:12px 16px}
 
-.k-sheet__tab{position:relative;width:58%;height:52px;background:var(--paper);
+.k-sheet__tab{position:relative;width:58%;height:46px;background:var(--paper);
   border-radius:10px 10px 0 0;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:6px}
-.k-sheet__tab::after{content:"";position:absolute;right:-12px;bottom:0;width:12px;height:12px;
-  background:radial-gradient(circle at 100% 0,rgba(0,0,0,0) 11.5px,var(--paper) 12px)}
+  justify-content:center;gap:5px}
+.k-sheet__tab>.k-fil{position:absolute;right:-12px;bottom:0;display:block}
+.k-fil path{fill:var(--paper)}
 .k-sheet__handle{width:44px;height:5px;border-radius:var(--r-pill);background:rgba(18,19,16,.25)}
-.k-sheet__body{position:relative;background:var(--paper);border-radius:0 10px 0 0;padding:18px 20px 20px}
-.k-sheet__ghost{position:absolute;right:18px;top:26px;font-size:72px;font-weight:800;
+.k-sheet__body{position:relative;background:var(--paper);border-radius:0 10px 0 0;padding:16px 18px 18px}
+.k-sheet__ghost{position:absolute;right:16px;top:18px;font-size:64px;font-weight:800;
   letter-spacing:-.04em;opacity:.07;pointer-events:none;user-select:none}
 
 /* ================================================================
@@ -529,7 +531,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
   <p class="sub">A UI-kit experiment: the bento / keyline / pill visual system from the four reference
   shots, rebuilt with exact measurements and populated with real Userland game content
   (six boards, rig slots, 96-item catalogue, SEN/HEAT economy). Phone canonical, scales to pad and desktop.</p>
-  <div class="sc-banner k-key">
+  <div class="sc-banner">
     <span>⚠</span>
     <span><b>EXPERIMENT — NOT PRODUCTION.</b> Owner-directed test (2026-06-11). This file deliberately
     departs from the locked .dk rails (radius-0, 8×14 cell grid, all-caps mono, decode transitions).
@@ -543,45 +545,48 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
      ============================================================ -->
 <section class="sc-sec" id="s01">
   <h2>01 · Foundations</h2>
-  <p class="sc-note">Base unit 4px (2px half-steps for gutters). Keyline = 1.5px line offset 3px outside the
-  fill (the “sticker” edge). Surfaces use a very small radius — r8 cards/rows/bubbles, 6 nested, 10 bars,
-  12 frame — with shape options: sci-fi bite corner, 45° cuts, interlock tab, ticket tear. Controls and
-  indicators stay pill/circle. Gutters 6 (phone) / 8 (desk) — a thin shell line between cards.
-  Inter / neo-grotesque, tabular numerals everywhere.</p>
+  <p class="sc-note">Base unit 4px (2px half-steps for gutters). Cards are flat — separation is the thin shell
+  gap; the 3px-offset keyline lives on controls and the desktop frame only, so lines can never collide.
+  Surfaces use a very small radius — r8 cards/rows/bubbles, 6 nested, 10 bars, 12 frame — with shape options:
+  sci-fi bite corner, 45° cuts, interlock tab, centered pinch, ticket tear — every sculpted junction is a
+  single-path inline SVG (no gradient fringes, no element seams). Controls and indicators stay pill/circle.
+  Gutters 6 (phone) / 8 (desk). Inter / neo-grotesque, tabular numerals everywhere.</p>
 
   <div class="sc-grid">
     <div class="sc-bench" style="grid-column:1/-1">
       <h3>Palette</h3>
       <div class="sc-pal">
-        <div><div class="sw k-key" style="background:var(--ink)"></div><div class="nm">Ink</div><div class="hx">#121310</div></div>
-        <div><div class="sw k-key" style="background:var(--black)"></div><div class="nm">Black</div><div class="hx">#0A0A0A</div></div>
-        <div><div class="sw k-key" style="background:var(--navy)"></div><div class="nm">Navy shell</div><div class="hx">#1B2531</div></div>
-        <div><div class="sw k-key" style="background:var(--paper)"></div><div class="nm">Paper</div><div class="hx">#FFFFFF</div></div>
-        <div><div class="sw k-key" style="background:var(--bone)"></div><div class="nm">Bone</div><div class="hx">#EDEAE0</div></div>
-        <div><div class="sw k-key" style="background:var(--green)"></div><div class="nm">Green · COM</div><div class="hx">#4FD645</div></div>
-        <div><div class="sw k-key" style="background:var(--lime)"></div><div class="nm">Lime · GO</div><div class="hx">#CDF263</div></div>
-        <div><div class="sw k-key" style="background:var(--mint)"></div><div class="nm">Mint · TUN</div><div class="hx">#BFEBDC</div></div>
-        <div><div class="sw k-key" style="background:var(--yellow)"></div><div class="nm">Yellow · RARE</div><div class="hx">#F2DF4E</div></div>
-        <div><div class="sw k-key" style="background:var(--pink)"></div><div class="nm">Pink</div><div class="hx">#F2CCE3</div></div>
-        <div><div class="sw k-key" style="background:var(--lav)"></div><div class="nm">Lavender</div><div class="hx">#DCDDF6</div></div>
-        <div><div class="sw k-key" style="background:var(--violet)"></div><div class="nm">Violet · LEG</div><div class="hx">#B5A8F2</div></div>
-        <div><div class="sw k-key" style="background:var(--sky)"></div><div class="nm">Sky · EPIC</div><div class="hx">#79A8E6</div></div>
-        <div><div class="sw k-key" style="background:var(--red)"></div><div class="nm">Red · MIL</div><div class="hx">#F2472E</div></div>
-        <div><div class="sw k-key" style="background:var(--gray)"></div><div class="nm">Gray · BRK</div><div class="hx">#C7C4B8</div></div>
-        <div><div class="sw k-key r-myth"></div><div class="nm">Shimmer · MYTH</div><div class="hx">multi</div></div>
+        <div><div class="sw k-line" style="background:var(--ink)"></div><div class="nm">Ink</div><div class="hx">#121310</div></div>
+        <div><div class="sw k-line" style="background:var(--black)"></div><div class="nm">Black</div><div class="hx">#0A0A0A</div></div>
+        <div><div class="sw k-line" style="background:var(--navy)"></div><div class="nm">Navy shell</div><div class="hx">#1B2531</div></div>
+        <div><div class="sw k-line" style="background:var(--paper)"></div><div class="nm">Paper</div><div class="hx">#FFFFFF</div></div>
+        <div><div class="sw k-line" style="background:var(--bone)"></div><div class="nm">Bone</div><div class="hx">#EDEAE0</div></div>
+        <div><div class="sw k-line" style="background:var(--green)"></div><div class="nm">Green · COM</div><div class="hx">#4FD645</div></div>
+        <div><div class="sw k-line" style="background:var(--lime)"></div><div class="nm">Lime · GO</div><div class="hx">#CDF263</div></div>
+        <div><div class="sw k-line" style="background:var(--mint)"></div><div class="nm">Mint · TUN</div><div class="hx">#BFEBDC</div></div>
+        <div><div class="sw k-line" style="background:var(--yellow)"></div><div class="nm">Yellow · RARE</div><div class="hx">#F2DF4E</div></div>
+        <div><div class="sw k-line" style="background:var(--pink)"></div><div class="nm">Pink</div><div class="hx">#F2CCE3</div></div>
+        <div><div class="sw k-line" style="background:var(--lav)"></div><div class="nm">Lavender</div><div class="hx">#DCDDF6</div></div>
+        <div><div class="sw k-line" style="background:var(--violet)"></div><div class="nm">Violet · LEG</div><div class="hx">#B5A8F2</div></div>
+        <div><div class="sw k-line" style="background:var(--sky)"></div><div class="nm">Sky · EPIC</div><div class="hx">#79A8E6</div></div>
+        <div><div class="sw k-line" style="background:var(--red)"></div><div class="nm">Red · MIL</div><div class="hx">#F2472E</div></div>
+        <div><div class="sw k-line" style="background:var(--gray)"></div><div class="nm">Gray · BRK</div><div class="hx">#C7C4B8</div></div>
+        <div><div class="sw k-line r-myth"></div><div class="nm">Shimmer · MYTH</div><div class="hx">multi</div></div>
       </div>
     </div>
 
     <div class="sc-bench">
-      <h3>Keyline anatomy</h3>
-      <div class="sc-stage sc-stage--bone" style="align-items:center;padding:28px">
-        <div class="k-card k-card--green k-key" style="width:200px">
+      <h3>Edges — flat cards, keyline controls</h3>
+      <div class="sc-stage sc-stage--bone" style="align-items:center;padding:28px;gap:14px">
+        <div class="k-card k-card--green" style="width:200px">
           <div class="k-dotline"><span class="t-label">Heat level</span></div>
           <div class="t-num-s">21%</div>
         </div>
+        <button class="k-chip k-chip--ink k-key">↗</button>
       </div>
-      <p class="spec">fill r8 · line 1.5px · gap 3px (line sits 4.5px outside the fill edge and follows the
-      small radius) · dotted leader: 2px dotted @ 55% ink, 10px under the title</p>
+      <p class="spec">cards are flat — separation is the thin shell gap (6/8), so adjacent lines can never
+      collide · the 3px-offset keyline lives on controls and the desktop frame only · same-color-on-same-color
+      rows use an on-edge 1.5px border (.k-line) · dotted leader: 2px dotted @ 55% ink, 10px under the title</p>
     </div>
 
     <div class="sc-bench">
@@ -589,15 +594,16 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
       <div class="sc-stage sc-stage--navy" style="--shell:var(--navy)">
         <div class="sc-row">
           <div style="width:84px;height:64px;border-radius:8px;background:var(--paper)"></div>
-          <div class="k-bite-tr" style="width:120px;height:64px;border-radius:8px;background:var(--paper)"></div>
+          <div class="k-bite-tr" style="width:120px;height:64px;border-radius:8px;background:var(--paper)"><svg class="k-bitefx" width="76" height="34" viewBox="0 0 76 34" aria-hidden="true"><path d="M0 0 Q10 0 10 10 Q10 22 22 22 L64 22 Q76 22 76 34 L76 0 Z"/></svg></div>
           <div class="cut-tr k-edge-lt" style="width:84px;height:64px;background:var(--lime)"></div>
           <div class="cut-x" style="width:84px;height:64px;background:var(--violet)"></div>
           <span class="k-pill k-pill--lime">pill 999</span>
         </div>
       </div>
-      <p class="spec">surfaces default r8 (nested 6, bars 10, frame 12) · sci-fi bite-TR = 64×22 recess, r12
-      inner corner + r12 entry fillets, shell shows through · 45° options cut-TR @22 / cut-X @14 for statement
-      surfaces · interlock tab + ticket tear complete the set · controls &amp; indicators stay pill/circle</p>
+      <p class="spec">surfaces default r8 (nested 6, bars 10, frame 12) · sci-fi bite-TR = 66×22 recess drawn
+      as one SVG path (r10 entry, r12 inner fillets), shell shows through · 45° options cut-TR @22 / cut-X @14
+      for statement surfaces · interlock tab, centered pinch + ticket tear complete the set · controls &amp;
+      indicators stay pill/circle</p>
     </div>
 
     <div class="sc-bench">
@@ -697,7 +703,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           <button class="k-pill">INSTALL</button>
           <button class="k-pill">SELL</button>
         </div>
-        <div class="k-ticker k-key">
+        <div class="k-ticker">
           <span class="k-ticker__code">▮▯▮▮▯▮▮</span>
           <span class="k-ticker__msg">Scan nodes© for better access and 5th generation connectivity.</span>
           <button class="k-pill k-pill--sm k-pill--ink">Scan now</button>
@@ -708,7 +714,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
     <div class="sc-bench">
       <h3>Stat card</h3>
-      <div class="k-card k-card--green k-key">
+      <div class="k-card k-card--green">
         <div class="k-dotline"><span class="t-label">Heat level</span><span>⌁</span></div>
         <div class="t-num">21%</div>
         <p class="t-micro" style="margin-top:12px;line-height:1.7">Stay under 40% for the next
@@ -724,7 +730,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
     <div class="sc-bench">
       <h3>Timer card</h3>
-      <div class="k-card k-card--mint k-key">
+      <div class="k-card k-card--mint">
         <div class="k-dotline"><span class="t-label">TX Daemon</span><span class="k-rar k-rar--com">RUNNING</span></div>
         <div class="t-num-xl">00:14:38</div>
         <div class="sc-row" style="justify-content:space-between;margin-top:6px">
@@ -738,13 +744,13 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
     <div class="sc-bench">
       <h3>Progress + chart</h3>
-      <div class="k-card k-card--black k-key" style="margin-bottom:12px">
+      <div class="k-card k-card--black" style="margin-bottom:12px">
         <div class="sc-row" style="justify-content:space-between">
           <span class="t-label">Gate 02 progress</span><span class="t-title">63%</span>
         </div>
         <div class="k-progress k-progress--lt" style="margin-top:12px"><i style="width:63%"></i></div>
       </div>
-      <div class="k-card k-card--green k-key">
+      <div class="k-card k-card--green">
         <span class="k-tag">7-day SEN flow</span>
         <div class="k-chart">
           <div class="bar"><i style="height:52%"></i><span>Mon</span></div>
@@ -764,20 +770,22 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
       <div class="sc-stage sc-stage--navy">
         <div class="k-stack">
           <div class="k-card k-card--lime" style="padding:14px 18px"><span class="t-label">Run complete</span></div>
-          <div class="k-card k-card--pink k-tab-t" style="padding:14px 18px;--tabc:var(--pink)"><span class="t-label">Cache earned → decode</span></div>
+          <svg class="k-pinch" width="84" height="30" viewBox="0 0 84 30" aria-hidden="true"><path d="M0 12 Q14 12 14 8 Q14 0 22 0 L62 0 Q70 0 70 8 Q70 12 84 12 L84 18 Q70 18 70 22 Q70 30 62 30 L22 30 Q14 30 14 22 Q14 18 0 18 Z"/></svg>
+          <div class="k-card k-card--pink" style="padding:14px 18px"><span class="t-label">Cache earned → decode</span></div>
+          <div class="k-card k-card--mint k-tab-t" style="padding:14px 18px;--tabc:var(--mint)"><svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg><span class="t-label">Part installed</span></div>
           <div class="k-dots"><i></i><i></i><span class="k-chip k-chip--ink" style="border-color:#fff">✓</span></div>
-          <div class="k-card k-card--mint" style="padding:14px 18px"><span class="t-label">Part installed</span></div>
         </div>
       </div>
-      <p class="spec">interlock: the lower card raises an 88×14 plateau tab (r10 shoulders, r12 base fillets)
-      into a 20px shell band — the gap stays thin (6) over the plateau · chains causally-linked cards
-      (run→cache→part) · dot rail = soft sequence · tab position via --tabx (56% default, 18% alt)</p>
+      <p class="spec">two connectors, both single-path SVG: <b>pinch</b> = centered shell blob (84×30, flares
+      riding both card edges) notching into the pair · <b>plateau</b> = the lower card raises a 112×18 tab
+      (r10 shoulders, r12 flares, position via --tabx) into the shell band, gap stays thin over it ·
+      chains causally-linked cards (run→cache→part) · dot rail = soft sequence</p>
     </div>
 
     <div class="sc-bench" style="grid-column:1/-1">
       <h3>Device card + rarity ladder (real catalogue items) — rarity = color &amp; intensity, category = motion</h3>
       <div class="sc-row" style="align-items:flex-start">
-        <div class="k-device r-rare k-key">
+        <div class="k-device r-rare">
           <div class="k-device__stage"><div class="m-lens"><i></i></div></div>
           <div class="k-device__name">GHOST LENS</div>
           <div class="k-device__meta"><span class="k-rar k-rar--rare">RARE</span><span class="k-tag" style="height:22px;font-size:8.5px">UOPT</span></div>
@@ -834,7 +842,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
     <div class="sc-bench">
       <h3>List rows + market listing</h3>
       <div class="sc-stage sc-stage--navy">
-        <div class="k-row k-key">
+        <div class="k-row">
           <span class="k-ava">NS</span>
           <div class="k-row__main"><div class="k-row__name">Null Saint invited you to Gate 02</div>
             <div class="k-row__sub">Crew · 2 min ago</div></div>
@@ -875,7 +883,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 
     <div class="sc-bench">
       <h3>Profile card + achievement badges</h3>
-      <div class="k-card k-card--violet k-key">
+      <div class="k-card k-card--violet">
         <div class="sc-row" style="justify-content:space-between">
           <div class="sc-row">
             <span class="k-ava k-ava--lg" style="background:var(--paper)">N</span>
@@ -914,7 +922,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </section>
         </div>
         <div class="k-sheet">
-          <div class="k-sheet__tab"><i class="k-sheet__handle"></i><span class="t-micro t-dim">Confirmation</span></div>
+          <div class="k-sheet__tab"><i class="k-sheet__handle"></i><span class="t-micro t-dim">Confirmation</span><svg class="k-fil" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M0 0 Q0 12 12 12 L0 12 Z"/></svg></div>
           <div class="k-sheet__body">
             <span class="k-sheet__ghost">+4</span>
             <div class="sc-row" style="justify-content:space-between">
@@ -937,21 +945,21 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
         </div>
       </div>
-      <p class="spec">sheet edge = raised tab 58%×52 r10 flowing through a concave r12 fillet into the stepped
-      body corner r10 — the sci-fi “bitten” top-right · perforation = 2px dotted tear with 15px diamond notches
-      cut in the shell color, full-bleed · ticket r10: glyph/corp above the tear, name + vertical serial below ·
+      <p class="spec">sheet edge = raised tab 58%×46 r10 flowing through a concave r12 SVG fillet (seamless —
+      no gradient fringe) into the stepped body corner r10, the sci-fi “bitten” top-right · perforation = 2px
+      dotted tear with 15px diamond notches in the shell color, full-bleed · ticket r10, tightened padding ·
       reward/risk always shown before confirm</p>
     </div>
 
     <div class="sc-bench">
       <h3>Settings rows · themes · donor</h3>
       <div class="sc-col">
-        <div class="k-row k-key">
+        <div class="k-row k-line">
           <div class="k-row__main"><div class="k-row__name">Reduced motion</div>
             <div class="k-row__sub">Lists stop animating · reveals simplify</div></div>
           <span class="k-toggle k-toggle--on"><i></i></span>
         </div>
-        <div class="k-row k-key">
+        <div class="k-row k-line">
           <div class="k-row__main"><div class="k-row__name">Text size</div>
             <div class="k-row__sub">Compact · Normal · Large</div></div>
           <span class="k-pill k-pill--sm">Normal</span>
@@ -963,7 +971,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           <div class="k-swatch k-key" style="background:var(--lime)">MRTN ✓</div>
           <div class="k-swatch" style="background:var(--paper)">HI-C</div>
         </div>
-        <div class="k-card k-card--black k-key">
+        <div class="k-card k-card--black">
           <div class="k-dotline"><span class="t-label">Supporter</span><span class="k-rar k-rar--rare">DONOR</span></div>
           <p class="t-body">Back the grid. Cosmetic only — themes, 3D skins, chat flair, loadout slots.
           <b>No stat power. Ever.</b></p>
@@ -1015,6 +1023,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-card k-card--black k-tab-t" style="--tabc:var(--black)">
+            <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="k-dotline"><span class="t-label">Quick hack · ready</span><span class="k-rar k-rar--com blink">LIVE</span></div>
             <div class="t-title" style="font-size:24px">OLD HOSPITAL<br>NODE</div>
             <div class="sc-row" style="margin-top:10px;gap:6px">
@@ -1046,7 +1055,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <button class="k-pill k-pill--sm k-pill--ink">View</button>
           </div>
 
-          <div class="k-card k-card--navy" style="border:1px solid rgba(255,255,255,.18)">
+          <div class="k-card k-card--navy k-line-lt">
             <div class="sc-row" style="justify-content:space-between">
               <span class="k-tag">Next step</span><span class="t-title">63%</span>
             </div>
@@ -1088,35 +1097,35 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
               <div class="m-core" style="width:44px;height:44px"><i></i></div>
             </div>
           </div>
-          <div class="k-card r-rare k-tab-t" style="padding:14px 16px;--tabc:var(--yellow)">
+          <div class="k-card r-rare k-tab-t" style="padding:14px 16px;--tabc:var(--yellow)"><svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Lens</span><div class="k-row__name">GHOST LENS</div>
                 <span class="t-micro t-dim">Rare · UOPT · Scan +16</span></div>
               <div class="m-lens" style="width:44px;height:44px"><i></i></div>
             </div>
           </div>
-          <div class="k-card r-leg k-tab-t" style="padding:14px 16px;--tabc:var(--violet);--tabx:18%">
+          <div class="k-card r-leg k-tab-t" style="padding:14px 16px;--tabc:var(--violet);--tabx:18%"><svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Port</span><div class="k-row__name">ADMIN PORT</div>
                 <span class="t-micro t-dim">Leg · JDN · Power +20</span></div>
               <div class="m-port" style="width:44px;height:44px"><i></i><b></b></div>
             </div>
           </div>
-          <div class="k-card r-com k-tab-t" style="padding:14px 16px;--tabc:var(--green);--tabx:18%">
+          <div class="k-card r-com k-tab-t" style="padding:14px 16px;--tabc:var(--green);--tabx:18%"><svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Bus</span><div class="k-row__name">HIVE BUS</div>
                 <span class="t-micro t-dim">Com · UNET · Power +08</span></div>
               <div class="m-bus" style="width:44px;height:44px"><i></i></div>
             </div>
           </div>
-          <div class="k-card r-rare k-tab-t" style="padding:14px 16px;--tabc:var(--yellow)">
+          <div class="k-card r-rare k-tab-t" style="padding:14px 16px;--tabc:var(--yellow)"><svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Ice</span><div class="k-row__name">TRACE NEEDLE</div>
                 <span class="t-micro t-dim">Rare · BLK · Breach +16</span></div>
               <div class="m-ice" style="width:44px;height:44px"><i></i></div>
             </div>
           </div>
-          <div class="k-card r-com k-tab-t" style="padding:14px 16px;--tabc:var(--green);--tabx:18%">
+          <div class="k-card r-com k-tab-t" style="padding:14px 16px;--tabc:var(--green);--tabx:18%"><svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="sc-row" style="justify-content:space-between">
               <div><span class="t-micro t-dim">Skin</span><div class="k-row__name">NULL SKIN</div>
                 <span class="t-micro t-dim">Com · CPAL · Power +08</span></div>
@@ -1124,7 +1133,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
           </div>
 
-          <div class="k-card k-card--navy" style="border:1px solid rgba(255,255,255,.18)">
+          <div class="k-card k-card--navy k-line-lt">
             <p class="t-micro" style="line-height:1.7;opacity:.75">Stack reads top-down: CORE → LENS → PORT →
             BUS → ICE → SKIN. Interlock tabs mark the signal path. Tap a slot to compare against stash.</p>
           </div>
@@ -1165,6 +1174,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
           </div>
 
           <div class="k-card k-card--lav k-bite-tr">
+            <svg class="k-bitefx" width="76" height="34" viewBox="0 0 76 34" aria-hidden="true"><path d="M0 0 Q10 0 10 10 Q10 22 22 22 L64 22 Q76 22 76 34 L76 0 Z"/></svg>
             <div class="k-dotline"><span class="t-label">Stocks</span></div>
             <div class="sc-col" style="gap:10px">
               <div class="sc-row" style="justify-content:space-between">
@@ -1315,13 +1325,15 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             </div>
             <div class="k-progress" style="margin-top:10px"><i style="width:64%"></i></div>
           </div>
-          <div class="k-card k-card--lime k-tab-t" style="padding:16px;--tabc:var(--lime)">
+          <svg class="k-pinch" width="84" height="30" viewBox="0 0 84 30" aria-hidden="true"><path d="M0 12 Q14 12 14 8 Q14 0 22 0 L62 0 Q70 0 70 8 Q70 12 84 12 L84 18 Q70 18 70 22 Q70 30 62 30 L22 30 Q14 30 14 22 Q14 18 0 18 Z"/></svg>
+          <div class="k-card k-card--lime" style="padding:16px">
             <div class="sc-row" style="justify-content:space-between">
               <div><div class="k-row__name">First Corp Breach</div><span class="t-micro t-dim">Corp Breaker</span></div>
               <span class="k-rar k-rar--com">CLAIMED ✓</span>
             </div>
           </div>
-          <div class="k-card k-tab-t" style="padding:16px;--tabc:var(--paper);--tabx:18%">
+          <svg class="k-pinch" width="84" height="30" viewBox="0 0 84 30" aria-hidden="true"><path d="M0 12 Q14 12 14 8 Q14 0 22 0 L62 0 Q70 0 70 8 Q70 12 84 12 L84 18 Q70 18 70 22 Q70 30 62 30 L22 30 Q14 30 14 22 Q14 18 0 18 Z"/></svg>
+          <div class="k-card" style="padding:16px">
             <div class="sc-row" style="justify-content:space-between">
               <div><div class="k-row__name">Market Maker</div><span class="t-micro t-dim">Economist</span></div>
               <span class="t-title">12/50</span>
@@ -1336,7 +1348,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <button class="k-pill k-pill--sm k-pill--yellow" style="margin-top:12px">Support</button>
           </div>
 
-          <div class="k-row k-key">
+          <div class="k-row k-line">
             <div class="k-row__main"><div class="k-row__name">Reduced motion</div></div>
             <span class="k-toggle k-toggle--on"><i></i></span>
           </div>
@@ -1358,9 +1370,9 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
 <section class="sc-sec" id="s04">
   <h2>04 · Desktop &amp; pad — same kit, bento composition</h2>
   <p class="sc-note">Identical components recomposed on a 12-column bento (gutter 8, card radius 8,
-  padding 24). Every card carries the keyline on black; the nav pills run as a connected chain. Pad (768–1100)
-  collapses to the 6-column midpoints; below 640 it becomes the phone stack — resize this window to watch it
-  happen.</p>
+  padding 24). Cards sit flat on black — the white frame line and control keylines carry the outline language;
+  the nav pills run as a connected chain. Pad (768–1100) collapses to the 6-column midpoints; below 640 it
+  becomes the phone stack — resize this window to watch it happen.</p>
 
   <div class="dk-frame">
     <div class="dk-nav">
@@ -1374,7 +1386,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
     </div>
 
     <div class="dk-grid">
-      <div class="k-card k-card--black k-key-lt dk-hero">
+      <div class="k-card k-card--black dk-hero">
         <div class="dk-heroart">
           <pre class="k-glyphs">·  :  ╱  ▘ ·    ⌁ ·
  ▝ ·  JDN ╱ · ▖   :
@@ -1395,7 +1407,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         </div>
       </div>
 
-      <div class="k-card k-card--green k-key dk-stat">
+      <div class="k-card k-card--green dk-stat">
         <span style="font-size:20px">⌁</span>
         <div class="k-dotline" style="margin-top:12px"><span class="t-label">Heat level</span></div>
         <div class="t-num-xl">21%</div>
@@ -1408,7 +1420,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         </div>
       </div>
 
-      <div class="k-card k-card--yellow k-key dk-stat--last">
+      <div class="k-card k-card--yellow dk-stat--last">
         <span style="font-size:20px">◎</span>
         <div class="k-dotline" style="margin-top:12px"><span class="t-label">Crew reputation</span></div>
         <div class="t-num-xl">4.8k</div>
@@ -1417,7 +1429,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         <button class="k-pill k-pill--ink" style="margin-top:16px"><span class="k-chip" style="width:22px;height:22px;border-color:#fff;background:transparent;color:#fff;font-size:11px">✚</span>&nbsp;Invite runners</button>
       </div>
 
-      <div class="k-card k-key dk-cell2">
+      <div class="k-card dk-cell2">
         <div class="sc-row" style="justify-content:space-between">
           <span class="t-title">Start run</span>
           <span class="k-chip k-chip--ink">→</span>
@@ -1425,7 +1437,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         <div style="border-bottom:2px dotted rgba(18,19,16,.45);padding-top:70px"></div>
       </div>
 
-      <div class="k-card k-card--pink k-key dk-cell2">
+      <div class="k-card k-card--pink dk-cell2">
         <div class="sc-row" style="justify-content:space-between">
           <span class="t-title">Signal map</span>
           <span class="k-chip k-chip--ink">→</span>
@@ -1439,7 +1451,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         </svg>
       </div>
 
-      <div class="k-card k-card--black k-key-lt dk-wide">
+      <div class="k-card k-card--black dk-wide">
         <div class="sc-row" style="justify-content:space-between">
           <span class="k-tag" style="color:#fff">Breach prep</span>
           <span class="k-chip k-chip--ink k-key-lt">↗</span>
@@ -1453,7 +1465,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
         Your <span class="t-link">rig needs upgrades</span>. Continue the tasks.</p>
       </div>
 
-      <div class="k-card k-key" style="grid-column:1/-1;padding:10px 10px 10px 22px">
+      <div class="k-card" style="grid-column:1/-1;padding:10px 10px 10px 22px">
         <div style="display:flex;align-items:center;gap:14px">
           <span class="k-ticker__code">▮▯▮▮▯▮▮▯</span>
           <span class="k-ticker__msg">Scan nodes© for better access and 5th generation connectivity.</span>
@@ -1492,6 +1504,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <div class="t-num" style="color:#fff">78%</div>
           </div>
           <div class="k-card k-card--mint k-tab-t" style="--tabc:var(--mint)">
+            <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="k-dotline"><span class="t-label">TX Daemon</span><span class="k-rar k-rar--com">RUNNING</span></div>
             <div class="t-num-s">00:14:38</div>
           </div>
@@ -1524,6 +1537,7 @@ footer.sc-foot{margin-top:70px;font-size:11px;font-weight:600;opacity:.5;line-he
             <div class="t-num" style="color:#11425d">78%</div>
           </div>
           <div class="k-card k-card--mint k-tab-t" style="--tabc:var(--mint)">
+            <svg class="k-platop" width="112" height="18" viewBox="0 0 112 18" aria-hidden="true"><path d="M0 18 Q12 18 12 10 Q12 0 22 0 L90 0 Q100 0 100 10 Q100 18 112 18 Z"/></svg>
             <div class="k-dotline"><span class="t-label">TX Daemon</span><span class="k-rar k-rar--com">RUNNING</span></div>
             <div class="t-num-s">00:14:38</div>
           </div>

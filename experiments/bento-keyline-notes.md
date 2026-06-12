@@ -42,9 +42,16 @@ Spacing — base unit 4px:
 | screen inset | 10px  | phone screen padding               |
 | corner cut   | 14px  | 45° chamfer size for cut-* options |
 
-Keyline (the signature "sticker" edge): **1.5px line, 3px offset** outside the
-fill, following the radius. All cards on the desktop black frame; opt-in on
-phone (CTAs, white-on-light rows).
+Keyline (1.5px line, 3px offset) lives on **controls and the desktop frame
+only** — cards are flat, separated by the thin shell gap, so adjacent lines
+can never collide at 6/8 gutters. Same-color-on-same-color rows use an
+on-edge border instead: `.k-line` (1.5px ink) / `.k-line-lt` (1px 22% white).
+
+Pixel-perfect rule: every sculpted junction — plateau tab, centered pinch,
+sheet fillet, bite corner — is a **single-path inline SVG** (`.k-platop`,
+`.k-pinch`, `.k-fil`, `.k-bitefx`). No CSS radial-gradient fillets, no
+stacked pseudo-elements: one continuous path means no fringes, slivers, or
+hairline seams at any zoom or DPR.
 
 Corners (rev 2): surfaces use a VERY SMALL radius — cards/rows/bubbles/device
 cards r8 · nested/stage/cells/swatches r6 · bars (tab/action/ticker) and
@@ -53,15 +60,21 @@ pill · controls stay round (pills 999, chips/avatars/badges circular).
 
 Shape options on top of the default radius:
 
-- **Sci-fi bite (`k-bite-tr`)** — recessed top-right corner, 64×22, r12 inner
-  corner, r12 entry fillets; the shell color shows through.
+- **Sci-fi bite (`k-bite-tr` + `.k-bitefx` SVG)** — recessed top-right
+  corner, 66×22, r10 entry + r12 inner fillets in one path; shell shows
+  through.
 - **45° cuts (`cut`, `cut-t`, `cut-b`, `cut-x`, `cut-tr`)** — clip-path
   chamfers @14 (statement corner @22) for hero/statement surfaces; pair with
   `k-edge`/`k-edge-lt` hairlines since outlines can't follow clip-path.
-- **Interlock (`k-tab-t`)** — the lower card raises an 88×14 plateau tab (r10
-  shoulders, r12 base fillets) into a 20px shell band; the gap stays thin (6)
-  over the plateau. Position via `--tabx` (56% default / 18% alt), fill via
-  `--tabc`. Used to chain causally-linked cards (run→cache→part, rig stack).
+- **Interlock (`k-tab-t` + `.k-platop` SVG)** — the lower card raises a
+  112×18 plateau tab (r10 shoulders, r12 flares, 1px overlap into the card)
+  into the shell band; the gap stays thin over the plateau. Position via
+  `--tabx` (56% default / 18% alt), fill via `--tabc`. Chains causally-linked
+  cards (run→cache→part, rig stack).
+- **Pinch (`.k-pinch` SVG)** — the centered middle connector: an 84×30 shell
+  blob notching 12px into both cards with flares riding their edges; placed
+  between cards, margin −18 auto. Use where the link is mutual rather than
+  directional (achievement chains, paired cards).
 - **Ticket tear (`k-perf`)** — 2px dotted line with 15px diamond notches.
 
 Type (Inter / neo-grotesque, tabular numerals): numerals 64/44/34 @ w800,
@@ -74,12 +87,13 @@ r999 · chart bars max-w 26 r 3/3/0/0 · toggle 46×27 knob 19 · badge circle
 62 · theme swatch 64×44 r6 · desktop nav = connected pill chain (−10px
 overlap, outlines fuse at the junctions).
 
-Modal / ticket edges: sheet = raised tab 58%×52 r10 (handle 44×5 inside)
-flowing through a **concave fillet r12** into a stepped body corner r10 — the
-sci-fi "bitten" top-right. Ticket perforation = 2px dotted tear line with
+Modal / ticket edges: sheet = raised tab 58%×46 r10 (handle 44×5 inside)
+flowing through a **concave r12 SVG fillet** into a stepped body corner r10 —
+the sci-fi "bitten" top-right. The modal is the reference feel for the whole
+kit: flat, crisp, tight. Ticket perforation = 2px dotted tear line with
 **15px diamond notches** (45°-rotated squares in the shell color) cut into
-both edges, full-bleed. Ticket card r10, halves split by the perforation:
-glyph + corp tag above, name + vertical serial below.
+both edges, full-bleed. Ticket card r10, section padding 12/16, halves split
+by the perforation: glyph + corp tag above, name + vertical serial below.
 
 Themes: a theme is a CSS-variable swap; MIL red stays constant as a state
 color. **DUSK / MP156**: Baby Blossom #FAEFE9, Onion White #E2D5C2, Creamy
@@ -126,6 +140,14 @@ keyline frame with the connected pill nav chain. Breakpoints: 390 canonical /
 
 ## Revisions
 
+- **Rev 3 (2026-06-12, pixel-perfect pass):** all sculpted junctions redrawn
+  as single-path inline SVG (plateau `.k-platop`, new centered pinch
+  `.k-pinch`, sheet fillet `.k-fil`, bite `.k-bitefx`) — kills the gradient
+  fringes, slivers, and hairline seams; centered middle connector restored
+  alongside the plateau (connectors bench + SOUL); card keylines removed
+  (controls/frame only, `.k-line` borders for same-color rows) so lines
+  can't collide at 6/8 gutters; modal tightened (tab 46, paddings 12–18)
+  while keeping its feel as the kit-wide reference.
 - **Rev 2 (2026-06-12, consolidated owner pass):** gutters 12/16 → 6/8 (thin
   shell lines, cards nearly touch); surfaces moved to very small radius r8
   (nested 6, bars 10, frame 12); exact plateau-tab interlock replaces the
