@@ -168,6 +168,18 @@ keyline frame with the connected pill nav chain. Breakpoints: 390 canonical /
 
 ## Revisions
 
+- **Rev 6 (2026-06-12):** inline expand system complete — all 6 expandable cards
+  use grid-template-rows 0fr→1fr wrapper pattern; three card types added
+  (info/action/risk with distinct visual treatment); 3 more market listings
+  (action, risk with MIL warning, info delisted); SOUL achievements made
+  expandable with reward/tier/unlock stats; rig slot card with 3D stage
+  placeholder in SOUL; SOUL action bar added; 6 modal sheet examples
+  (run prep, run complete/claim, item install compare, market buy confirm
+  with risk warning, cache reveal, chat trade offer); result states
+  (ok/fail) stay inside expanded panels; sheet overlay slides from bottom
+  with escape/tap-outside close; risk cards get red left border + warning
+  pip; reduced motion on all new animations.
+
 - **Rev 5 (2026-06-12):** all six boards complete — added MAP phone screen
   (glyph-field map, discovered/locked/scan-target nodes, lore hint, SCAN/
   TRAVEL/VIEW action bar) and RUNS phone screen (active run with live timer,

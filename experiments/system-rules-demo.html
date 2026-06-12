@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USERLAND · System Rules Demo</title>
+<!--
+  System Rules Demo — proves the UX/UI operating system defined in docs/ui/*.
+  Tests: semantic colors by role, object states, card types, expand levels,
+  modal sheets, 3D stage placeholders, motion budget, icon placeholders.
+  Standalone, no toolchain.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Gamja+Flower&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ================================================================
+   TOKENS — semantic color system (doc 01)
+   ================================================================ */
+:root{
+  --u:4px;
+  --gap:6px;
+  --pad:20px;
+  --key-w:1.5px;
+  --r-pill:999px;
+  --r-card:8px;
+  --r-nested:6px;
+  --r-bar:10px;
+
+  /* surfaces */
+  --clr-surface-primary:#ffffff;
+  --clr-surface-dark:#0a0a0a;
+  --clr-surface-navy:#1b2531;
+  --clr-surface-page:#edeae0;
+  --clr-surface-stage:rgba(18,19,16,.06);
+  --clr-surface-stage-dark:rgba(255,255,255,.08);
+  --clr-sep:rgba(18,19,16,.15);
+  --clr-sep-dark:rgba(255,255,255,.15);
+
+  /* ink */
+  --ink:#121310;
+  --paper:#ffffff;
+
+  /* board identity */
+  --clr-board-now:#121310;
+  --clr-board-map:#79a8e6;
+  --clr-board-runs:#cdf263;
+  --clr-board-soul:#b5a8f2;
+  --clr-board-market:#f2df4e;
+  --clr-board-net:#dcddf6;
+
+  /* state */
+  --clr-state-idle:#c7c4b8;
+  --clr-state-active:#cdf263;
+  --clr-state-ready:#4fd645;
+  --clr-state-blocked:#f2472e;
+  --clr-state-syncing:#79a8e6;
+  --clr-state-cooling:#bfebdc;
+
+  /* rarity */
+  --clr-rar-brk:#c7c4b8;
+  --clr-rar-com:#4fd645;
+  --clr-rar-tun:#bfebdc;
+  --clr-rar-rare:#f2df4e;
+  --clr-rar-leg:#b5a8f2;
+  --clr-rar-epic:#79a8e6;
+  --clr-rar-mil:#f2472e;
+
+  /* category */
+  --clr-cat-core:#cdf263;
+  --clr-cat-lens:#f2df4e;
+  --clr-cat-port:#dcddf6;
+  --clr-cat-bus:#bfebdc;
+  --clr-cat-ice:#79a8e6;
+  --clr-cat-skin:#f2cce3;
+  --clr-cat-cache:#b5a8f2;
+
+  /* action */
+  --clr-action-primary:#121310;
+  --clr-action-destructive:#f2472e;
+  --clr-action-disabled:#c7c4b8;
+  --clr-action-pending:#cdf263;
+
+  /* feedback */
+  --clr-fb-ok:#4fd645;
+  --clr-fb-fail:#f2472e;
+  --clr-fb-warn:#f2df4e;
+  --clr-fb-info:#79a8e6;
+
+  /* danger */
+  --clr-danger:#f2472e;
+
+  /* reveal */
+  --clr-reveal:#b5a8f2;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Space Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:var(--clr-surface-page);color:var(--ink);
+  font-size:13.5px;line-height:1.55;font-weight:400;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ================================================================
+   TYPE SCALE
+   ================================================================ */
+.t-num-xl{font-size:68px;font-weight:400;font-family:"Gamja Flower",cursive;line-height:.9}
+.t-num{font-size:48px;font-weight:400;font-family:"Gamja Flower",cursive;line-height:.92}
+.t-num-s{font-size:36px;font-weight:400;font-family:"Gamja Flower",cursive;line-height:.95}
+.t-title{font-size:22px;font-weight:400;font-family:"Gamja Flower",cursive;line-height:1.02}
+.t-body{font-size:13.5px;font-weight:400}
+.t-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.t-micro{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.t-dim{opacity:.62}
+
+/* ================================================================
+   LAYOUT
+   ================================================================ */
+.demo-wrap{max-width:440px;margin:0 auto;padding:20px 10px 60px}
+.demo-section{margin-bottom:32px}
+.demo-section h2{font-family:"Gamja Flower",cursive;font-size:28px;font-weight:400;
+  margin-bottom:6px;line-height:1}
+.demo-section .note{font-size:10px;opacity:.5;margin-bottom:16px;line-height:1.6}
+.demo-header{background:var(--ink);color:#fff;padding:20px;border-radius:var(--r-card);
+  margin-bottom:24px}
+.demo-header h1{font-family:"Gamja Flower",cursive;font-size:32px;font-weight:400;line-height:1}
+.demo-header p{font-size:10px;opacity:.6;margin-top:6px;line-height:1.6}
+
+/* card stack */
+.card-stack{display:flex;flex-direction:column;gap:var(--gap)}
+
+/* ================================================================
+   CARD (doc 03)
+   ================================================================ */
+.k-card{
+  position:relative;background:var(--paper);color:var(--ink);
+  border-radius:var(--r-card);padding:var(--pad);
+}
+.k-card--dark{background:var(--clr-surface-dark);color:#fff}
+.k-card--navy{background:var(--clr-surface-navy);color:#fff}
+
+/* card types (doc 03) */
+[data-card-type="risk"]{border-left:3px solid var(--clr-danger)}
+
+/* ================================================================
+   STATE CHIPS (doc 02)
+   ================================================================ */
+.state-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  height:22px;padding:0 10px;border-radius:var(--r-pill);
+  font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(18,19,16,.08);
+}
+.state-chip .dot{width:6px;height:6px;border-radius:50%;flex:none}
+
+.state-chip.is-idle .dot{background:var(--clr-state-idle)}
+.state-chip.is-available .dot{background:transparent}
+.state-chip.is-prepping .dot{background:var(--clr-state-active);animation:pulse-dot 1.5s ease-in-out infinite}
+.state-chip.is-running .dot{background:var(--clr-state-active)}
+.state-chip.is-ready .dot{background:var(--clr-state-ready);animation:pulse-dot 1.5s ease-in-out infinite}
+.state-chip.is-failed .dot{background:var(--clr-fb-fail)}
+.state-chip.is-blocked .dot{background:var(--clr-state-blocked)}
+.state-chip.is-syncing .dot{background:var(--clr-state-syncing);animation:pulse-dot 1.5s ease-in-out infinite}
+.state-chip.is-claimed .dot{background:var(--clr-state-ready)}
+.state-chip.is-cooling-down .dot{background:var(--clr-state-cooling)}
+
+@keyframes pulse-dot{
+  0%,100%{opacity:1}50%{opacity:.3}
+}
+
+/* dark card state chips */
+.k-card--dark .state-chip,.k-card--navy .state-chip{background:rgba(255,255,255,.12);color:#fff}
+
+/* ================================================================
+   RARITY BADGES (doc 01)
+   ================================================================ */
+.k-rar{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.k-rar--brk{color:var(--clr-rar-brk)}
+.k-rar--com{color:var(--clr-rar-com)}
+.k-rar--tun{color:var(--clr-rar-tun)}
+.k-rar--rare{color:var(--clr-rar-rare)}
+.k-rar--leg{color:var(--clr-rar-leg)}
+.k-rar--epic{color:var(--clr-rar-epic)}
+.k-rar--mil{color:var(--clr-rar-mil);animation:mil-pulse 3s ease-in-out infinite}
+@keyframes mil-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ================================================================
+   PILLS / BUTTONS (doc 08)
+   ================================================================ */
+.k-pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:40px;padding:0 18px;border-radius:var(--r-pill);
+  border:var(--key-w) solid var(--ink);background:var(--paper);color:var(--ink);
+  font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;font-family:inherit;
+}
+.k-pill--sm{height:30px;padding:0 14px;font-size:10px;letter-spacing:.03em;text-transform:uppercase}
+.k-pill--ink{background:var(--ink);border-color:var(--ink);color:#fff}
+.k-pill--ghost{background:transparent}
+
+/* action states (doc 02) */
+.act-primary{background:var(--clr-action-primary);border-color:var(--clr-action-primary);color:#fff}
+.act-pending{background:var(--clr-action-primary);border-color:var(--clr-action-primary);color:#fff;
+  box-shadow:0 0 0 2px var(--clr-action-pending);pointer-events:none;opacity:.8}
+.act-success{background:var(--clr-fb-ok);border-color:var(--clr-fb-ok);color:#fff}
+.act-failed{background:transparent;border-color:var(--clr-fb-fail);color:var(--clr-fb-fail)}
+.act-blocked{background:var(--clr-action-disabled);border-color:var(--clr-action-disabled);
+  color:rgba(18,19,16,.4);cursor:not-allowed}
+.act-destructive{background:var(--clr-action-destructive);border-color:var(--clr-action-destructive);color:#fff}
+
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-4px)}
+  75%{transform:translateX(4px)}
+}
+
+/* ================================================================
+   PROGRESS (doc 06)
+   ================================================================ */
+.k-progress{height:4px;border-radius:var(--r-pill);background:rgba(18,19,16,.1);overflow:hidden;position:relative}
+.k-progress i{display:block;height:100%;border-radius:var(--r-pill);
+  background:var(--clr-state-active);transition:width .6s ease-out}
+.k-progress.is-ready i{background:var(--clr-state-ready)}
+.k-progress.is-failed i{background:var(--clr-fb-fail)}
+
+/* scan / indeterminate */
+.k-progress.is-scan{overflow:hidden}
+.k-progress.is-scan i{width:30%;animation:scan 1.5s ease-in-out infinite}
+@keyframes scan{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+
+/* dark card progress */
+.k-card--dark .k-progress,.k-card--navy .k-progress{background:rgba(255,255,255,.12)}
+
+/* ================================================================
+   INLINE EXPAND (doc 03)
+   ================================================================ */
+[data-expand]{cursor:pointer;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;user-select:none;position:relative}
+.k-xhint{position:absolute;top:10px;right:10px;font-size:9px;font-weight:800;
+  opacity:.45;pointer-events:none;transition:transform .3s ease}
+[data-expand].is-open .k-xhint{transform:rotate(180deg);opacity:.7}
+.k-card--dark .k-xhint,.k-card--navy .k-xhint{color:#fff}
+
+/* card type hints (doc 03) */
+[data-card-type="info"] .k-xhint{color:var(--clr-fb-info)}
+[data-card-type="action"] .k-xhint{color:var(--clr-state-active)}
+[data-card-type="risk"] .k-xhint{color:var(--clr-danger)}
+
+.k-xd{display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .4s cubic-bezier(.4,0,.15,1)}
+.k-xd>div{overflow:hidden}
+[data-expand].is-open .k-xd{grid-template-rows:1fr}
+.k-xd__in{opacity:0;transform:translateY(4px);
+  transition:opacity .25s .1s ease,transform .25s .1s ease}
+[data-expand].is-open .k-xd__in{opacity:1;transform:none}
+
+.k-xd-sep{height:1px;background:var(--clr-sep);margin:12px 0}
+.k-card--dark .k-xd-sep,.k-card--navy .k-xd-sep{background:var(--clr-sep-dark)}
+
+/* stat rows */
+.k-xd-stat{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
+
+/* 3D stage (doc 04) */
+.k-xd-stage{border-radius:var(--r-nested);min-height:120px;
+  background:var(--clr-surface-stage);display:flex;align-items:center;
+  justify-content:center;position:relative;overflow:hidden;flex-direction:column;gap:4px}
+.k-card--dark .k-xd-stage,.k-card--navy .k-xd-stage{background:var(--clr-surface-stage-dark)}
+.k-xd-stage .t-micro{opacity:.35}
+.k-xd-stage .stage-icon{font-size:32px;opacity:.25}
+
+/* reveal glow (doc 04/06) */
+.k-xd-stage.is-reveal{border:2px solid var(--clr-reveal);
+  box-shadow:0 0 20px rgba(181,168,242,.3)}
+
+/* result states (doc 03) */
+.k-xd-result{padding:12px;border-radius:var(--r-nested);margin-top:10px;text-align:center}
+.k-xd-result--ok{background:rgba(79,214,69,.12);border:1px solid rgba(79,214,69,.3)}
+.k-xd-result--fail{background:rgba(242,71,46,.1);border:1px solid rgba(242,71,46,.3)}
+.k-xd-result .t-label{display:block;margin-bottom:4px}
+
+/* ready shimmer (doc 06) */
+.is-ready-card{border:1.5px solid var(--clr-state-ready);
+  animation:ready-shimmer 2.5s ease-in-out infinite}
+@keyframes ready-shimmer{
+  0%,100%{box-shadow:0 0 0 rgba(79,214,69,0)}
+  50%{box-shadow:0 0 8px rgba(79,214,69,.35)}
+}
+
+/* risk pip */
+.k-risk-pip{display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--clr-danger);margin-right:6px;vertical-align:middle}
+
+/* ================================================================
+   ROWS
+   ================================================================ */
+.sc-row{display:flex;align-items:center;gap:8px}
+
+/* ================================================================
+   AVATAR DOT (category colored)
+   ================================================================ */
+.k-ava{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  width:34px;height:34px;border-radius:50%;
+  border:var(--key-w) solid var(--ink);font-size:12px;font-weight:800}
+
+/* ================================================================
+   BOARD NAV
+   ================================================================ */
+.board-nav{display:flex;gap:2px;background:rgba(18,19,16,.08);
+  border-radius:var(--r-bar);padding:4px;margin-bottom:16px}
+.board-nav a{flex:1;text-align:center;padding:8px 0;border-radius:6px;
+  font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;position:relative;color:var(--ink);text-decoration:none}
+.board-nav a.is-on{background:var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.board-dot{position:absolute;top:4px;right:calc(50% - 14px);width:5px;height:5px;
+  border-radius:50%;opacity:0}
+.board-dot.has-activity{opacity:1}
+.board-dot.dot-active{background:var(--clr-state-active);animation:pulse-dot 2s ease-in-out infinite}
+.board-dot.dot-ready{background:var(--clr-state-ready);animation:pulse-dot 2s ease-in-out infinite}
+.board-dot.dot-alert{background:var(--clr-danger);animation:pulse-dot 1.5s ease-in-out infinite}
+
+/* ================================================================
+   MODAL / SHEET (doc 03)
+   ================================================================ */
+.k-sheet-overlay{position:fixed;inset:0;background:rgba(10,10,10,.6);
+  z-index:900;display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s ease}
+.k-sheet-overlay.is-vis{opacity:1;pointer-events:auto}
+.k-sheet{width:100%;max-width:420px;max-height:85vh;overflow-y:auto;
+  background:var(--paper);border-radius:var(--r-bar) var(--r-bar) 0 0;
+  padding:0 20px 28px;transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.4,0,.15,1)}
+.k-sheet-overlay.is-vis .k-sheet{transform:none}
+.k-sheet__handle{width:44px;height:5px;border-radius:999px;
+  background:rgba(18,19,16,.2);margin:12px auto 16px}
+.k-sheet__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.k-sheet__close{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink);
+  background:none;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;font-weight:800}
+.k-sheet--dark{background:var(--clr-surface-dark);color:#fff}
+.k-sheet--dark .k-sheet__handle{background:rgba(255,255,255,.25)}
+.k-sheet--dark .k-sheet__close{border-color:#fff;color:#fff}
+.k-sheet--dark .k-xd-sep{background:var(--clr-sep-dark)}
+.k-sheet--dark .k-xd-stage{background:var(--clr-surface-stage-dark)}
+.k-sheet--risk{border-top:3px solid var(--clr-danger)}
+
+/* ================================================================
+   COLOR SWATCH TABLE (demo only)
+   ================================================================ */
+.swatch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin:12px 0}
+.swatch{height:44px;border-radius:var(--r-nested);display:flex;align-items:flex-end;padding:4px 6px}
+.swatch span{font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.swatch.dark-text span{color:var(--ink)}
+.swatch.light-text span{color:#fff}
+
+/* ================================================================
+   REDUCED MOTION
+   ================================================================ */
+@media(prefers-reduced-motion:reduce){
+  .k-xd,.k-xhint{transition:none !important}
+  .k-xd__in{transition:none !important;opacity:1;transform:none}
+  .k-sheet-overlay,.k-sheet{transition:none !important}
+  .state-chip .dot,.board-dot,.k-rar--mil,.is-ready-card{animation:none !important}
+  .k-progress.is-scan i{animation:none !important;width:100%;opacity:.3}
+}
+</style>
+</head>
+<body>
+<div class="demo-wrap">
+
+<!-- ============================================================ -->
+<div class="demo-header">
+  <h1>System Rules Demo</h1>
+  <p>UX/UI operating system proof · docs/ui/01–08 · tap cards to test expand · click buttons for modals</p>
+</div>
+
+<!-- ============================================================
+     SECTION 1: SEMANTIC COLOR ROLES
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Color Roles</h2>
+  <p class="note">Each color has exactly one job per visual layer. Board identity ≠ state ≠ rarity ≠ category. (doc 01)</p>
+
+  <p class="t-label" style="margin-bottom:6px">Board identity</p>
+  <div class="swatch-grid">
+    <div class="swatch light-text" style="background:var(--clr-board-now)"><span>NOW</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-board-map)"><span>MAP</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-board-runs)"><span>RUNS</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-board-soul)"><span>SOUL</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-board-market)"><span>MARKET</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-board-net)"><span>NET</span></div>
+  </div>
+
+  <p class="t-label" style="margin:12px 0 6px">State</p>
+  <div class="swatch-grid">
+    <div class="swatch dark-text" style="background:var(--clr-state-idle)"><span>Idle</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-state-active)"><span>Active</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-state-ready)"><span>Ready</span></div>
+    <div class="swatch light-text" style="background:var(--clr-state-blocked)"><span>Blocked</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-state-syncing)"><span>Syncing</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-state-cooling)"><span>Cooling</span></div>
+  </div>
+
+  <p class="t-label" style="margin:12px 0 6px">Rarity</p>
+  <div class="swatch-grid">
+    <div class="swatch dark-text" style="background:var(--clr-rar-brk)"><span>BRK</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-rar-com)"><span>COM</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-rar-tun)"><span>TUN</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-rar-rare)"><span>RARE</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-rar-leg)"><span>LEG</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-rar-epic)"><span>EPIC</span></div>
+    <div class="swatch light-text" style="background:var(--clr-rar-mil)"><span>MIL</span></div>
+  </div>
+
+  <p class="t-label" style="margin:12px 0 6px">Item category</p>
+  <div class="swatch-grid">
+    <div class="swatch dark-text" style="background:var(--clr-cat-core)"><span>CORE</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-cat-lens)"><span>LENS</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-cat-port)"><span>PORT</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-cat-bus)"><span>BUS</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-cat-ice)"><span>ICE</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-cat-skin)"><span>SKIN</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-cat-cache)"><span>CACHE</span></div>
+  </div>
+
+  <p class="t-label" style="margin:12px 0 6px">Feedback</p>
+  <div class="swatch-grid">
+    <div class="swatch dark-text" style="background:var(--clr-fb-ok)"><span>OK</span></div>
+    <div class="swatch light-text" style="background:var(--clr-fb-fail)"><span>Fail</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-fb-warn)"><span>Warn</span></div>
+    <div class="swatch dark-text" style="background:var(--clr-fb-info)"><span>Info</span></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 2: BOARD NAV WITH GLYPH STATES
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Board Nav</h2>
+  <p class="note">Board glyph dots show activity per board. Only active/ready/alert states blink. (doc 06)</p>
+
+  <nav class="board-nav">
+    <a class="is-on">Now<span class="board-dot has-activity dot-active"></span></a>
+    <a>Map</a>
+    <a>Runs<span class="board-dot has-activity dot-ready"></span></a>
+    <a>Soul</a>
+    <a>Market<span class="board-dot has-activity dot-alert"></span></a>
+    <a>Net</a>
+  </nav>
+  <p class="t-micro t-dim">NOW = running process · RUNS = ready to claim · MARKET = MIL alert</p>
+</div>
+
+<!-- ============================================================
+     SECTION 3: CARD STATES — SIGNAL RELAY PREP FLOW
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Signal Relay — PREP Flow</h2>
+  <p class="note">Shows the full lifecycle: available → prepping → ready → claimed. Each card is a different state. (doc 02)</p>
+
+  <div class="card-stack">
+
+    <!-- STATE: AVAILABLE — user can PREP -->
+    <div class="k-card" data-expand data-card-type="action" data-state="available">
+      <span class="k-xhint">▾</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700">Old Hospital Relay</div>
+          <div class="t-micro t-dim" style="margin-top:2px">Signal · JDN sector</div>
+        </div>
+        <state class="state-chip is-available"><span class="dot"></span>AVAILABLE</state>
+      </div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <!-- peek zone -->
+        <p class="t-micro t-dim">Tap PREP to establish connection</p>
+        <button class="k-pill k-pill--sm act-primary" style="margin-top:10px;width:100%"
+                onclick="demoPrep(this)">PREP</button>
+        <div class="k-xd-sep"></div>
+        <!-- expanded detail -->
+        <div class="k-xd-stat"><span class="t-micro t-dim">Reward</span><span class="t-body">+120 SEN</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Heat cost</span><span class="t-body">+6</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Rig check</span><span class="t-body" style="color:var(--clr-fb-ok)">CORE ✓ LENS ✓ PORT ✓</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Current heat</span><span class="t-body">21%</span></div>
+      </div></div></div>
+    </div>
+
+    <!-- STATE: PREPPING — in progress -->
+    <div class="k-card" data-expand data-card-type="action" data-state="prepping">
+      <span class="k-xhint" style="opacity:.7">◠</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700">Jadenet Gate Relay</div>
+          <div class="t-micro t-dim" style="margin-top:2px">Signal · JDN sector</div>
+        </div>
+        <span class="state-chip is-prepping"><span class="dot"></span>PREPPING</span>
+      </div>
+      <div class="k-progress is-scan" style="margin-top:10px"><i></i></div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <p class="t-micro t-dim">Checking rig requirements…</p>
+        <button class="k-pill k-pill--sm act-pending" style="margin-top:10px;width:100%">PREPPING…</button>
+        <div class="k-xd-sep"></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Rig check</span><span class="t-body" style="color:var(--clr-state-syncing)">Verifying…</span></div>
+      </div></div></div>
+    </div>
+
+    <!-- STATE: RUNNING — active process with progress -->
+    <div class="k-card" data-expand data-card-type="action" data-state="running">
+      <span class="k-xhint" style="opacity:.7">●</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700">Quick Hack</div>
+          <div class="t-micro t-dim" style="margin-top:2px">Run · Old Hospital · 3:42</div>
+        </div>
+        <span class="state-chip is-running"><span class="dot"></span>RUNNING</span>
+      </div>
+      <div class="k-progress" style="margin-top:10px"><i style="width:64%"></i></div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <div class="sc-row" style="justify-content:space-between">
+          <span class="t-micro t-dim">ETA 2 min · Heat +6</span>
+          <span class="t-body" style="font-weight:700">64%</span>
+        </div>
+        <div class="k-xd-sep"></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Reward est.</span><span class="t-body">120 SEN + cache</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Heat after</span><span class="t-body">27%</span></div>
+        <button class="k-pill k-pill--sm k-pill--ghost" style="margin-top:12px;width:100%;color:var(--clr-fb-fail);border-color:var(--clr-fb-fail)">ABORT</button>
+      </div></div></div>
+    </div>
+
+    <!-- STATE: READY TO CLAIM — shimmer border -->
+    <div class="k-card is-ready-card" data-expand data-card-type="action" data-state="ready_to_claim">
+      <span class="k-xhint" style="opacity:.7;color:var(--clr-state-ready)">✦</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700">JADENET CACHE</div>
+          <div class="t-micro t-dim" style="margin-top:2px">Cache · Drop · Ready</div>
+        </div>
+        <span class="state-chip is-ready"><span class="dot"></span>READY</span>
+      </div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <button class="k-pill k-pill--sm act-primary" style="width:100%"
+                onclick="openSheet('sheet-claim-result')">CLAIM</button>
+        <div class="k-xd-sep"></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Contents</span><span class="t-body">1× rig part (unknown)</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--rare">RARE</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Source</span><span class="t-body">Quick Hack · Old Hospital</span></div>
+      </div></div></div>
+    </div>
+
+    <!-- STATE: BLOCKED — cannot proceed -->
+    <div class="k-card" data-expand data-card-type="risk" data-state="blocked">
+      <span class="k-xhint" style="color:var(--clr-danger)">⊘</span>
+      <div class="sc-row" style="justify-content:space-between">
+        <div>
+          <div class="t-body" style="font-weight:700"><span class="k-risk-pip"></span>BLACK ICE WALL</div>
+          <div class="t-micro t-dim" style="margin-top:2px">Install blocked · ICE slot</div>
+        </div>
+        <span class="state-chip is-blocked"><span class="dot"></span>BLOCKED</span>
+      </div>
+      <div class="k-xd"><div><div class="k-xd__in" style="padding-top:12px">
+        <div class="k-xd-result k-xd-result--fail">
+          <span class="t-label" style="color:var(--clr-fb-fail)">BLOCKED</span>
+          <span class="t-micro">Heat at 43% — must be below 40% to install MIL items</span>
+        </div>
+        <div class="k-xd-sep"></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--mil">MIL</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Heat on equip</span><span class="t-body" style="color:var(--clr-danger)">+22</span></div>
+        <div class="k-xd-stat"><span class="t-micro t-dim">Current heat</span><span class="t-body" style="color:var(--clr-danger)">43%</span></div>
+        <button class="k-pill k-pill--sm act-blocked" style="margin-top:12px;width:100%">INSTALL (BLOCKED)</button>
+        <p class="t-micro t-dim" style="margin-top:8px;text-align:center">Cool down to install</p>
+      </div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 4: ITEM REWARD REVEAL — 3D STAGE
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Item Reward Reveal</h2>
+  <p class="note">After claim, result modal shows the 3D object stage with reveal glow, item details, location, and next actions. (doc 04)</p>
+
+  <div class="k-card k-card--dark" style="padding:24px">
+    <div class="sc-row" style="justify-content:space-between;margin-bottom:14px">
+      <div><div class="t-title" style="color:var(--clr-fb-ok)">Item Received</div>
+        <span class="t-micro" style="color:rgba(255,255,255,.5)">Quick Hack · Old Hospital</span></div>
+    </div>
+
+    <!-- 3D stage with reveal glow -->
+    <div class="k-xd-stage is-reveal" style="height:160px;margin-bottom:16px">
+      <div class="stage-icon">◆</div>
+      <span class="t-micro">GHOST LENS · 3D model</span>
+    </div>
+
+    <div class="sc-row" style="justify-content:space-between;margin-bottom:8px">
+      <div class="t-body" style="color:#fff;font-weight:700">GHOST LENS</div>
+      <span class="k-rar k-rar--rare">RARE</span>
+    </div>
+    <div class="sc-row" style="gap:8px;margin-bottom:14px">
+      <span class="t-micro" style="color:rgba(255,255,255,.5)">LENS · UOPT · Scan +16</span>
+    </div>
+
+    <div class="k-xd-sep"></div>
+
+    <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Location</span>
+      <span class="t-body" style="color:var(--clr-fb-ok)">Added to Inventory</span></div>
+    <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">SEN earned</span>
+      <span class="t-body" style="color:#fff">+120</span></div>
+    <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Heat</span>
+      <span class="t-body" style="color:var(--clr-danger)">+6 → 27%</span></div>
+
+    <div class="sc-row" style="margin-top:16px;gap:6px">
+      <button class="k-pill k-pill--sm" style="flex:1;border-color:#fff;color:#fff"
+              onclick="openSheet('sheet-inspector')">INSPECT</button>
+      <button class="k-pill k-pill--sm" style="flex:1;border-color:#fff;color:#fff">INSTALL</button>
+      <button class="k-pill k-pill--sm" style="flex:1;border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.6)">DONE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 5: ACTION BUTTON STATES
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Action Button States</h2>
+  <p class="note">Every CTA has a clear state. Pending disables tap. Failed shakes. Blocked explains why. (doc 02)</p>
+
+  <div class="sc-row" style="flex-wrap:wrap;gap:8px">
+    <button class="k-pill k-pill--sm act-primary">PRIMARY</button>
+    <button class="k-pill k-pill--sm act-pending">PENDING…</button>
+    <button class="k-pill k-pill--sm act-success">✓ SUCCESS</button>
+    <button class="k-pill k-pill--sm act-failed" onclick="this.style.animation='shake .4s ease-in-out'">FAILED</button>
+    <button class="k-pill k-pill--sm act-blocked">BLOCKED</button>
+    <button class="k-pill k-pill--sm k-pill--ghost">SECONDARY</button>
+    <button class="k-pill k-pill--sm act-destructive">DESTRUCTIVE</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 6: ICON PLACEHOLDERS
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Icon Glyphs</h2>
+  <p class="note">Pixel-geometric placeholder glyphs. Same stroke weight, same corner language, consistent at 16/24/32px. (doc 05)</p>
+
+  <div class="sc-row" style="flex-wrap:wrap;gap:12px;margin-bottom:12px">
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">▮</div><span class="t-micro t-dim">NOW</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">⊞</div><span class="t-micro t-dim">MAP</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">▶</div><span class="t-micro t-dim">RUNS</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">◇</div><span class="t-micro t-dim">SOUL</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">⇄</div><span class="t-micro t-dim">MARKET</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">⊡</div><span class="t-micro t-dim">NET</span></div>
+  </div>
+  <div class="sc-row" style="flex-wrap:wrap;gap:12px;margin-bottom:12px">
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">—</div><span class="t-micro t-dim">Idle</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1;color:var(--clr-state-active)">●</div><span class="t-micro t-dim">Active</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1;color:var(--clr-state-ready)">✦</div><span class="t-micro t-dim">Ready</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1;color:var(--clr-state-blocked)">⊘</div><span class="t-micro t-dim">Blocked</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1;color:var(--clr-fb-fail)">✕</div><span class="t-micro t-dim">Failed</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1;color:var(--clr-state-syncing)">↻</div><span class="t-micro t-dim">Syncing</span></div>
+  </div>
+  <div class="sc-row" style="flex-wrap:wrap;gap:12px">
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">▷</div><span class="t-micro t-dim">Run</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">↓</div><span class="t-micro t-dim">Claim</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">⤓</div><span class="t-micro t-dim">Install</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">◎</div><span class="t-micro t-dim">Inspect</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">⊟</div><span class="t-micro t-dim">Compare</span></div>
+    <div style="text-align:center"><div style="font-size:24px;line-height:1">□</div><span class="t-micro t-dim">Abort</span></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 7: MOTION BUDGET
+     ============================================================ -->
+<div class="demo-section">
+  <h2>Motion Budget</h2>
+  <p class="note">Max 1 shimmer + 3 quiet dots + 2 progress bars per screen. This section shows the limit. (doc 06)</p>
+
+  <div class="card-stack">
+    <div class="k-card is-ready-card" style="padding:12px 16px">
+      <div class="sc-row" style="justify-content:space-between">
+        <span class="t-body" style="font-weight:700">Ready Cache</span>
+        <span class="state-chip is-ready"><span class="dot"></span>READY</span>
+      </div>
+      <p class="t-micro t-dim" style="margin-top:4px">1× shimmer (this is the only one)</p>
+    </div>
+    <div class="k-card" style="padding:12px 16px">
+      <div class="sc-row" style="justify-content:space-between">
+        <span class="t-body" style="font-weight:700">Quick Hack</span>
+        <span class="state-chip is-running"><span class="dot"></span>RUNNING</span>
+      </div>
+      <div class="k-progress" style="margin-top:8px"><i style="width:64%"></i></div>
+      <p class="t-micro t-dim" style="margin-top:4px">Quiet dot #1 + progress #1</p>
+    </div>
+    <div class="k-card" style="padding:12px 16px">
+      <div class="sc-row" style="justify-content:space-between">
+        <span class="t-body" style="font-weight:700">Gate Relay</span>
+        <span class="state-chip is-prepping"><span class="dot"></span>PREPPING</span>
+      </div>
+      <div class="k-progress is-scan" style="margin-top:8px"><i></i></div>
+      <p class="t-micro t-dim" style="margin-top:4px">Quiet dot #2 + progress #2 (scan)</p>
+    </div>
+    <div class="k-card" style="padding:12px 16px">
+      <div class="sc-row" style="justify-content:space-between">
+        <span class="t-body" style="font-weight:700">Cooling Bus</span>
+        <span class="state-chip is-cooling-down"><span class="dot"></span>COOLING</span>
+      </div>
+      <p class="t-micro t-dim" style="margin-top:4px">Quiet dot #3 (no progress — countdown is text)</p>
+    </div>
+    <div class="k-card" style="padding:12px 16px;opacity:.6">
+      <div class="sc-row" style="justify-content:space-between">
+        <span class="t-body" style="font-weight:700">Idle Relay</span>
+        <span class="state-chip is-idle"><span class="dot"></span>IDLE</span>
+      </div>
+      <p class="t-micro t-dim" style="margin-top:4px">No motion — idle cards are static</p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /demo-wrap -->
+
+<!-- ============================================================
+     MODAL: CLAIM RESULT
+     ============================================================ -->
+<div class="k-sheet-overlay" id="sheet-claim-result" onclick="closeSheet(this)">
+  <div class="k-sheet k-sheet--dark" onclick="event.stopPropagation()">
+    <div class="k-sheet__handle"></div>
+    <div class="k-sheet__head">
+      <div><div class="t-title" style="color:var(--clr-fb-ok)">Cache Opened</div>
+        <span class="t-micro" style="color:rgba(255,255,255,.5)">JADENET CACHE · drop</span></div>
+      <button class="k-sheet__close" onclick="closeSheet(this.closest('.k-sheet-overlay'))">✕</button>
+    </div>
+    <div class="k-xd-sep"></div>
+    <div class="k-xd-stage is-reveal" style="height:140px;margin-bottom:14px">
+      <div class="stage-icon">◆</div>
+      <span class="t-micro">GHOST LENS · 3D reveal</span>
+    </div>
+    <div class="k-xd-result k-xd-result--ok">
+      <span class="t-label" style="color:var(--clr-fb-ok)">OPENED</span>
+      <span class="t-micro" style="color:#fff">1× GHOST LENS (RARE)</span>
+    </div>
+    <div style="margin-top:14px">
+      <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Item</span><span class="t-body" style="color:#fff">GHOST LENS</span></div>
+      <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Rarity</span><span class="k-rar k-rar--rare">RARE</span></div>
+      <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Stat</span><span class="t-body" style="color:#fff">Scan +16</span></div>
+      <div class="k-xd-stat"><span class="t-micro" style="color:rgba(255,255,255,.5)">Location</span><span class="t-body" style="color:var(--clr-fb-ok)">Added to Inventory</span></div>
+    </div>
+    <div class="sc-row" style="margin-top:20px;gap:6px">
+      <button class="k-pill k-pill--sm" style="flex:1;border-color:#fff;color:#fff" onclick="openSheet('sheet-inspector');closeSheet(this.closest('.k-sheet-overlay'))">INSPECT</button>
+      <button class="k-pill k-pill--sm" style="flex:1;border-color:#fff;color:#fff" onclick="closeSheet(this.closest('.k-sheet-overlay'))">INSTALL</button>
+      <button class="k-pill k-pill--sm" style="flex:1;border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.6)" onclick="closeSheet(this.closest('.k-sheet-overlay'))">DONE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: ITEM INSPECTOR
+     ============================================================ -->
+<div class="k-sheet-overlay" id="sheet-inspector" onclick="closeSheet(this)">
+  <div class="k-sheet" onclick="event.stopPropagation()">
+    <div class="k-sheet__handle"></div>
+    <div class="k-sheet__head">
+      <div><div class="t-title">GHOST LENS</div>
+        <span class="t-micro t-dim">Item Inspector</span></div>
+      <button class="k-sheet__close" onclick="closeSheet(this.closest('.k-sheet-overlay'))">✕</button>
+    </div>
+    <div class="k-xd-sep"></div>
+    <!-- 3D stage — full size, interactive in production -->
+    <div class="k-xd-stage" style="height:160px;margin-bottom:14px">
+      <div class="stage-icon">◆</div>
+      <span class="t-micro">3D · drag to rotate</span>
+    </div>
+    <div class="sc-row" style="justify-content:space-between;margin-bottom:4px">
+      <div class="t-body" style="font-weight:700">GHOST LENS</div>
+      <span class="k-rar k-rar--rare">RARE</span>
+    </div>
+    <div class="sc-row" style="gap:8px;margin-bottom:14px">
+      <span class="t-micro" style="padding:3px 8px;border-radius:var(--r-pill);background:var(--clr-cat-lens);font-size:8px">LENS</span>
+      <span class="t-micro t-dim">UOPT</span>
+    </div>
+    <div class="k-xd-sep" style="margin:0 0 10px"></div>
+    <div class="k-xd-stat"><span class="t-micro t-dim">Category</span><span class="t-body">LENS</span></div>
+    <div class="k-xd-stat"><span class="t-micro t-dim">Slot</span><span class="t-body">LENS</span></div>
+    <div class="k-xd-stat"><span class="t-micro t-dim">Rarity</span><span class="k-rar k-rar--rare">RARE</span></div>
+    <div class="k-xd-stat"><span class="t-micro t-dim">Brand</span><span class="t-body">UOPT</span></div>
+    <div class="k-xd-stat"><span class="t-micro t-dim">Stat</span><span class="t-body">Scan +16</span></div>
+    <div class="k-xd-stat"><span class="t-micro t-dim">Location</span><span class="t-body" style="color:var(--clr-fb-ok)">Inventory</span></div>
+    <div class="k-xd-sep" style="margin:10px 0"></div>
+    <p class="t-micro t-dim" style="line-height:1.7;text-transform:none;letter-spacing:0;font-weight:400">
+      Spectral scanner from the Jadenet surplus. Sees through standard firewalls.
+      Jadenet corp techs swear it can detect thermal signatures through three walls of ICE.
+    </p>
+    <div class="sc-row" style="margin-top:16px;gap:6px">
+      <button class="k-pill k-pill--sm act-primary" style="flex:1" onclick="closeSheet(this.closest('.k-sheet-overlay'))">INSTALL</button>
+      <button class="k-pill k-pill--sm k-pill--ghost" style="flex:1">SELL</button>
+      <button class="k-pill k-pill--sm k-pill--ghost" style="flex:1" onclick="closeSheet(this.closest('.k-sheet-overlay'))">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   INLINE EXPAND — one open at a time
+   ================================================================ */
+(function(){
+  'use strict';
+  var active=null;
+  function close(el){if(!el)return;el.classList.remove('is-open');if(el===active)active=null}
+  function open(el){
+    if(active&&active!==el)close(active);
+    el.classList.add('is-open');active=el;
+    requestAnimationFrame(function(){el.scrollIntoView({behavior:'smooth',block:'nearest'})});
+  }
+  function toggle(el){
+    if(el.classList.contains('is-open'))close(el);
+    else if(document.startViewTransition)document.startViewTransition(function(){open(el)});
+    else open(el);
+  }
+  document.querySelectorAll('[data-expand]').forEach(function(el){
+    el.addEventListener('click',function(e){
+      if(e.target.closest('button,a'))return;
+      e.stopPropagation();toggle(el);
+    });
+  });
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&active)close(active)});
+  var ty=0,tel=null;
+  document.addEventListener('touchstart',function(e){
+    var ex=e.target.closest('[data-expand].is-open');
+    if(ex){ty=e.touches[0].clientY;tel=ex}
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!tel)return;if(e.changedTouches[0].clientY-ty>50)close(tel);tel=null;
+  },{passive:true});
+})();
+
+/* ================================================================
+   MODAL SHEETS
+   ================================================================ */
+function openSheet(id){var el=document.getElementById(id);if(el)el.classList.add('is-vis')}
+function closeSheet(o){if(o)o.classList.remove('is-vis')}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape')document.querySelectorAll('.k-sheet-overlay.is-vis').forEach(function(o){o.classList.remove('is-vis')});
+});
+
+/* ================================================================
+   DEMO: PREP FLOW SIMULATION
+   ================================================================ */
+function demoPrep(btn){
+  var card=btn.closest('.k-card');
+  var chip=card.querySelector('.state-chip');
+  // → prepping
+  btn.className='k-pill k-pill--sm act-pending';
+  btn.textContent='PREPPING…';
+  chip.className='state-chip is-prepping';
+  chip.innerHTML='<span class="dot"></span>PREPPING';
+  // add scan progress
+  var prog=document.createElement('div');
+  prog.className='k-progress is-scan';
+  prog.style.marginTop='10px';
+  prog.innerHTML='<i></i>';
+  card.querySelector('.k-xd').before(prog);
+
+  setTimeout(function(){
+    // → ready
+    btn.className='k-pill k-pill--sm act-primary';
+    btn.textContent='CLAIM';
+    btn.onclick=function(){openSheet('sheet-claim-result')};
+    chip.className='state-chip is-ready';
+    chip.innerHTML='<span class="dot"></span>READY';
+    card.classList.add('is-ready-card');
+    prog.remove();
+    card.querySelector('.k-xhint').textContent='✦';
+    card.querySelector('.k-xhint').style.color='var(--clr-state-ready)';
+  },2500);
+}
+</script>
+</body>
+</html>
