@@ -1,3 +1,35 @@
+# Userland UI Archive
+
+This repo is now archive/reference only.
+
+Active game UI work has moved to:
+
+**Beach-Bum/userland**
+
+Current game design docs, UI direction, task briefs, frontend archive notes, and
+Stoat prototypes now live in:
+
+- `Beach-Bum/userland/docs/`
+
+Specifically:
+
+- `docs/ui/current-userland-courier-canon.md` — current courier-guild canon
+- `docs/design/` — compact GDD, card-bible stub, game loop, content vocabulary
+- `docs/ui/prototypes/` — Stoat chat + social prototypes (self-contained HTML)
+- `docs/ui/stoat-system-inventory.md` — component / token / interaction inventory
+- `docs/ui/tasks/` — Stoat system-extraction + content-pass briefs
+- `docs/ui/archive/current-frontend/` — current `.dk` frontend archive notes
+
+Do not continue active product implementation here unless explicitly asked.
+Use this repo only as a prototype/archive reference.
+
+> The existing experiment files under `experiments/` (and `screens/`,
+> `components/`, `docs/`) remain in place, untouched, as reference.
+
+---
+
+## Prior README — Deck UI workshop (archived, preserved verbatim)
+
 # userland-ui — Deck UI
 
 Design-system workshop for the **userland Deck** — a mobile-first, cyberpunk
