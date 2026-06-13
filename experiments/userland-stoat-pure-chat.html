@@ -112,7 +112,7 @@ button{font-family:inherit;border:0;cursor:pointer}
   font-size:11px;font-weight:600}
 .divider::before,.divider::after{content:"";flex:1;border-top:1px solid var(--bg-3)}
 
-/* ============ Embeds (market / run / stock) ============ */
+/* ============ Embeds (market / contract / auction) ============ */
 .embed{width:fit-content;max-width:min(100%,420px);margin-top:6px;background:var(--bg-3);
   border-left:4px solid var(--accent);border-radius:6px;padding:12px 14px}
 .embed--ok{border-left-color:var(--ok)}
@@ -252,7 +252,7 @@ button{font-family:inherit;border:0;cursor:pointer}
     <div class="typing" id="typing"></div>
     <div class="composer">
       <button class="plus" title="attach">+</button>
-      <input id="composer-in" placeholder="Message #global" autocomplete="off">
+      <input id="composer-in" placeholder="Message #relay" autocomplete="off">
       <button class="send" id="send" title="send">➤</button>
     </div>
   </main>
@@ -265,91 +265,104 @@ button{font-family:inherit;border:0;cursor:pointer}
 <script>
 /* ============ data ============ */
 const USERS={
-  ned:   {name:'ned',  handle:'@ned#0001',  color:'#7b68c9', status:'Online',
-          level:14, title:'Ghost Operator', rep:'+62 trusted', crew:'Null Saints',
-          worth:'12,450 cr', badges:['Early Access','Courier I','Clean Trader'],
-          listings:[['Signal Booster','450 cr'],['Spare Relay','120 cr']]},
-  peggy: {name:'Peggy',handle:'@peggywoo#7741',color:'#4e9a8f', status:'Online',
-          level:31, title:'Index Watcher', rep:'+118 trusted', crew:'—',
-          worth:'88,300 cr', badges:['Analyst','Veteran','Mentor'],
-          listings:[['Market Feed Key','1,200 cr']]},
-  marco: {name:'Marco',handle:'@marco_v#2210', color:'#b3703f', status:'Idle',
-          level:22, title:'Crew Lead', rep:'+74 trusted', crew:'Null Saints',
-          worth:'31,900 cr', badges:['Crew Founder','Runner II'],
-          listings:[]},
-  vera:  {name:'Vera', handle:'@vera#0930',  color:'#5f7fc2', status:'Do Not Disturb',
-          level:18, title:'Broker', rep:'+41 neutral', crew:'JadeNet',
-          worth:'54,000 cr', badges:['Broker','Verified Seller'],
-          listings:[['Encrypted Drive','2,400 cr'],['Bulk Credits','—'],['Access Pass','900 cr']]}
+  ned:    {name:'ned',      handle:'@ned#0001',     color:'#7b68c9', status:'Online',
+           level:14, title:'Night Hauler', rep:'+62 trusted', guild:'JADENET Dispatch',
+           worth:'12,450 SEN', badges:['Founding Courier','Route I','Clean Manifest'],
+           listings:[['Aura Cell','450 SEN'],['Route Stamp — Gate 17','120 SEN']]},
+  orla:   {name:'Orla Vex', handle:'@orlavex#7741', color:'#4e9a8f', status:'Online',
+           level:31, title:'Manifest Reader', rep:'+118 trusted', guild:'Sable Customs',
+           worth:'88,300 SEN', badges:['Customs Broker','Veteran','Mentor'],
+           listings:[['Sable Customs Bridge Permit','1,200 SEN']]},
+  meilan: {name:'Mei-Lan',  handle:'@meilan#2210',  color:'#b3703f', status:'Idle',
+           level:22, title:'Convoy Lead', rep:'+74 trusted', guild:'Blackline Convoy',
+           worth:'31,900 SEN', badges:['Convoy Founder','Hauler II'],
+           listings:[]},
+  reye:   {name:'Dolan Reye',handle:'@reye#0930',   color:'#5f7fc2', status:'Do Not Disturb',
+           level:18, title:'Auction Broker', rep:'+41 neutral', guild:'Paradise Gate',
+           worth:'54,000 SEN', badges:['Broker','Verified Seller'],
+           listings:[['Foil Card — Night Hauler','2,400 SEN'],['Aura Cell (bulk)','—'],['Permit — Paradise Gate','900 SEN']]}
 };
 
 const CHANNELS=[
-  {id:'global', label:'global',  topic:'general chatter', group:'Channels'},
-  {id:'crew',   label:'crew',    topic:'Null Saints private', group:'Channels'},
-  {id:'dm',     label:'direct messages', topic:'Peggy', group:'Channels'},
-  {id:'market', label:'market',  topic:'listings and trades', group:'Game'},
-  {id:'runs',   label:'runs',    topic:'jobs and invites', group:'Game'},
-  {id:'system', label:'system',  topic:'service notices', group:'Game'}
+  {id:'global', label:'relay',    topic:'guild relay — open channel', group:'Relay'},
+  {id:'crew',   label:'guild',    topic:'Blackline Convoy — private', group:'Relay'},
+  {id:'dm',     label:'mail',     topic:'Orla Vex', group:'Relay'},
+  {id:'market', label:'market',   topic:'cargo, cards & permits', group:'Guild Floor'},
+  {id:'runs',   label:'contracts',topic:'contract leads & convoy calls', group:'Guild Floor'},
+  {id:'system', label:'customs',  topic:'customs & service notices', group:'Guild Floor'}
 ];
 
 /* messages: {who,t,text} | {sys:true,text} | {who,t,embed:{...}} */
 const T=h=>h; // times as plain strings for the skeleton
 const MSGS={
   global:[
-    {sys:true,text:'Welcome to #global. Be decent.'},
-    {who:'peggy',t:'09:12',text:'Morning. Index is choppy today, watch your margins.'},
-    {who:'peggy',t:'09:12',text:'If you bought relays last week you are fine.'},
-    {who:'marco',t:'09:15',text:'Anyone running the east sector job later?'},
-    {who:'ned',  t:'09:16',text:'Maybe after lunch. Need one more crew member.'},
-    {who:'marco',t:'09:16',text:'Count me in then.'},
-    {who:'vera', t:'09:31',text:'Posting new listings in #market in a bit.'},
-    {who:'vera', t:'09:31',embed:{kind:'stock',kicker:'Stock alert',title:'RELAY ▲ 4.2%',
-      desc:'Relay components are up after the supply notice.',cls:'embed--warn',
-      fields:[['Price','38.10 cr'],['Change','+4.2%'],['Volume','High']],
-      acts:[['View','view'],['Inspect','inspect']]}},
-    {who:'peggy',t:'09:33',text:'Called it.'}
+    {sys:true,text:'Welcome to #relay. Keep manifests clean and routes quiet.'},
+    {who:'orla',  t:'09:12',text:'Morning haulers. Red Stamp is inspecting at Gate 17 — pad your customs window.'},
+    {who:'orla',  t:'09:12',text:'If you stamped your permits last cycle you are fine.'},
+    {who:'meilan',t:'09:15',text:'Blackline convoy forms for the Deep Pit salvage route after lunch. One seat open.'},
+    {who:'ned',   t:'09:16',text:'I can take it. Need to craft a permit first.'},
+    {who:'meilan',t:'09:16',text:'Bring an Aura Cell, the route runs hot.'},
+    {who:'reye',  t:'09:31',text:'New auction lots dropping in #market shortly.'},
+    {who:'reye',  t:'09:31',embed:{kind:'auction',kicker:'Auction update',title:'AURA CELL ▲ 4.2%',
+      desc:'Aura Cell cargo is up after the Gate 17 customs squeeze.',cls:'embed--warn',
+      fields:[['Top bid','38.10 SEN'],['Change','+4.2%'],['Lots','High']],
+      acts:[['View','view'],['Bid','bid']]}},
+    {who:'orla',  t:'09:33',text:'Called it.'}
   ],
   crew:[
-    {sys:true,text:'You joined #crew.'},
-    {who:'marco',t:'08:40',text:'Crew meeting tonight. Bring your loadouts.'},
-    {who:'marco',t:'08:41',embed:{kind:'run',kicker:'Run invite',title:'East Sector Sweep',
-      desc:'3 of 4 slots filled · medium risk · even split.',cls:'embed--ok',
-      fields:[['Reward','600 cr'],['Risk','Medium'],['Crew','3/4']],
+    {sys:true,text:'You joined #guild — Blackline Convoy.'},
+    {who:'meilan',t:'08:40',text:'Convoy muster tonight. Bring your couriers and a stamped permit.'},
+    {who:'meilan',t:'08:41',embed:{kind:'contract',kicker:'Contract lead',title:'Deep Pit Salvage Haul',
+      desc:'3 of 4 couriers committed · medium risk · even split of SEN.',cls:'embed--ok',
+      fields:[['Reward','600 SEN'],['Risk','Medium'],['Convoy','3/4']],
       acts:[['Join','join'],['View','view']]}},
-    {who:'ned',t:'08:55',text:'Looking at it now.'}
+    {who:'ned',   t:'08:55',text:'Looking at the manifest now.'},
+    {who:'meilan',t:'09:02',embed:{kind:'card',kicker:'Card pull',title:'FOIL — Night Hauler',
+      desc:'Mei-Lan pulled a foil prestige card from a guild-favor parcel.',cls:'',
+      fields:[['Rarity','Foil'],['Album','Couriers'],['Dupes','0']],
+      acts:[['Open','open'],['Flex','view']]}}
   ],
   dm:[
-    {sys:true,text:'This is the beginning of your direct message history with Peggy.'},
-    {who:'peggy',t:'Yesterday',text:'You still owe me for the feed key.'},
-    {who:'ned',t:'Yesterday',text:'I know, I know. After the next run.'},
-    {who:'peggy',t:'09:35',text:'Today, ideally.'}
+    {sys:true,text:'This is the beginning of your mail with Orla Vex.'},
+    {who:'orla',t:'Yesterday',text:'You still owe me for the Sable Customs Bridge permit.'},
+    {who:'ned', t:'Yesterday',text:'I know, I know. After the next contract clears.'},
+    {who:'orla',t:'09:35',text:'Today, ideally. Customs won’t wait.'}
   ],
   market:[
-    {sys:true,text:'Listings posted here are escrow-protected.'},
-    {who:'vera',t:'09:40',embed:{kind:'listing',kicker:'Market listing',title:'Encrypted Drive',
-      desc:'Sealed, origin unknown. Sold as-is.',cls:'',
-      fields:[['Price','2,400 cr'],['Seller','Vera'],['Escrow','Yes']],
+    {sys:true,text:'Listings posted here are escrow-protected. SEN is held until delivery.'},
+    {who:'reye',t:'09:40',embed:{kind:'listing',kicker:'Market listing',title:'Aura Cell — sealed',
+      desc:'Class-2 power cell. Runs hot routes. Sold as-is.',cls:'',
+      fields:[['Price','2,400 SEN'],['Seller','Dolan Reye'],['Escrow','Yes']],
       acts:[['Buy','buy'],['Inspect','inspect']]}},
-    {who:'vera',t:'09:41',embed:{kind:'listing',kicker:'Market listing',title:'Access Pass — Dock 9',
-      desc:'Single use. Transfers on purchase.',cls:'',
-      fields:[['Price','900 cr'],['Seller','Vera'],['Escrow','Yes']],
+    {who:'reye',t:'09:41',embed:{kind:'listing',kicker:'Market listing',title:'Permit — Paradise Gate',
+      desc:'Single passage. Transfers on purchase. No refunds past customs.',cls:'',
+      fields:[['Price','900 SEN'],['Seller','Dolan Reye'],['Escrow','Yes']],
       acts:[['Buy','buy'],['Inspect','inspect']]}},
-    {who:'ned',t:'09:44',text:'Is the drive clean?'},
-    {who:'vera',t:'09:45',text:'Sold as-is means sold as-is.'}
+    {who:'ned',t:'09:44',text:'Is the cell stamped for the Natural World Leak Route?'},
+    {who:'reye',t:'09:45',text:'Sold as-is means sold as-is.'}
   ],
   runs:[
-    {sys:true,text:'Open jobs and invites appear here.'},
-    {who:'marco',t:'09:02',embed:{kind:'run',kicker:'Run invite',title:'Warehouse Recount',
-      desc:'Low risk inventory job. Two people, one hour.',cls:'embed--ok',
-      fields:[['Reward','250 cr'],['Risk','Low'],['Crew','1/2']],
-      acts:[['Join','join'],['View','view']]}}
+    {sys:true,text:'Open contract leads and convoy calls appear here.'},
+    {who:'meilan',t:'09:02',embed:{kind:'contract',kicker:'Contract lead',title:'Alpine Lifeline Run',
+      desc:'Low-risk medical cargo. Two couriers, one route, one hour.',cls:'embed--ok',
+      fields:[['Reward','250 SEN'],['Risk','Low'],['Convoy','1/2']],
+      acts:[['Join','join'],['View','view']]}},
+    {who:'orla',t:'09:20',embed:{kind:'warn',kicker:'Manifest risk',title:'Red Stamp inspection — Gate 17',
+      desc:'Routes through Gate 17 face Red Stamp inspection. Mismatched manifests get seized.',cls:'embed--warn',
+      fields:[['Zone','Gate 17'],['Risk','High'],['Hold','Likely']],
+      acts:[['View','view'],['Reroute','inspect']]}},
+    {who:'ned',t:'09:48',embed:{kind:'result',kicker:'Contract result',title:'Sable Customs Bridge — delivered',
+      desc:'Parcel cleared customs. SEN, reputation and a route stamp returned.',cls:'embed--ok',
+      fields:[['SEN','+420'],['Rep','+6'],['Stamp','Sable Bridge']],
+      acts:[['View','view'],['Claim','open']]}}
   ],
   system:[
-    {sys:true,text:'Service notices only. Nobody can post here.'},
-    {who:'peggy',t:'07:00',embed:{kind:'stock',kicker:'System notice',title:'Maintenance window',
-      desc:'Trading pauses tonight 02:00–02:20 UTC.',cls:'embed--warn',
-      fields:[['Impact','Market'],['Duration','20 min']],
-      acts:[['View','view']]}}
+    {sys:true,text:'Customs and service notices only. Nobody can post here.'},
+    {who:'orla',t:'07:00',embed:{kind:'warn',kicker:'Customs notice',title:'Sable Customs Bridge — closure',
+      desc:'Crossings pause tonight 02:00–02:20 UTC for a Red Stamp sweep.',cls:'embed--warn',
+      fields:[['Impact','Routes'],['Duration','20 min']],
+      acts:[['View','view']]}},
+    {sys:true,text:'A parcel is waiting in your hold. Open it on the Parcels board.'}
   ]
 };
 
@@ -448,8 +461,8 @@ const MODALS={
         <div class="pf__chips">${u.badges.map(b=>`<span class="chip">${b}</span>`).join('')}</div>
         <div class="pf__sect"><h4>Standing</h4>
           <div class="pf__row"><span>Reputation</span><span>${u.rep}</span></div>
-          <div class="pf__row"><span>Crew</span><span>${u.crew}</span></div>
-          <div class="pf__row"><span>Net worth</span><span>${u.worth}</span></div>
+          <div class="pf__row"><span>Guild</span><span>${u.guild}</span></div>
+          <div class="pf__row"><span>SEN balance</span><span>${u.worth}</span></div>
         </div>
         <div class="pf__sect"><h4>Public listings (${u.listings.length})</h4>
           ${u.listings.length?u.listings.map(([n,pr])=>
@@ -459,9 +472,9 @@ const MODALS={
         <div class="pf__acts">
           <button class="btn btn--primary">Message</button>
           <button class="btn">Trade</button>
-          <button class="btn btn--danger">Hack</button>
           <button class="btn">View listings</button>
-          <button class="btn">View crew</button>
+          <button class="btn">View guild</button>
+          <button class="btn">View album</button>
         </div>
       </div>
     </div>`;
@@ -476,7 +489,7 @@ const MODALS={
     const CONTENT={
       profile:`<h2>Profile</h2>
         <div class="set__card"><h4>Display name</h4><p>ned</p></div>
-        <div class="set__card"><h4>Title</h4><p>Ghost Operator (placeholder)</p></div>
+        <div class="set__card"><h4>Title</h4><p>Night Hauler (placeholder)</p></div>
         <div class="set__card"><h4>Banner & avatar</h4><p>Upload placeholders go here.</p></div>`,
       account:`<h2>Account</h2>
         <div class="set__card"><h4>Handle</h4><p>@ned#0001</p></div>
@@ -487,12 +500,12 @@ const MODALS={
         <div class="set__card"><h4>Density</h4><p>Comfortable</p></div>`,
       notifications:`<h2>Notifications</h2>
         <div class="set__card"><h4>Mentions</h4><p>On</p></div>
-        <div class="set__card"><h4>Market alerts</h4><p>On</p></div>`,
+        <div class="set__card"><h4>Auction alerts</h4><p>On</p></div>`,
       privacy:`<h2>Privacy</h2>
         <div class="set__card"><h4>Who can message you</h4><p>Everyone</p></div>
-        <div class="set__card"><h4>Show net worth on profile</h4><p>On (placeholder)</p></div>`,
+        <div class="set__card"><h4>Show SEN balance on profile</h4><p>On (placeholder)</p></div>`,
       'donor & cosmetics':`<h2>Donor & cosmetics</h2>
-        <div class="set__card"><h4>Supporter tier</h4><p>None — placeholder surface for cosmetics.</p></div>`,
+        <div class="set__card"><h4>Supporter tier</h4><p>None — placeholder surface for rig cosmetics.</p></div>`,
       'log out':`<h2>Log out</h2>
         <div class="set__card"><p>Placeholder. No session to end in the skeleton.</p>
         <p style="margin-top:8px"><button class="btn btn--danger">Log out</button></p></div>`
@@ -508,22 +521,22 @@ const MODALS={
     </div>`;
   },
 
-  /* --- generic detail modal: proves one shell holds item / run /
-         listing / stock / trade / hack confirm --- */
+  /* --- generic detail modal: proves one shell holds parcel / contract /
+         listing / auction / trade / notice --- */
   detail(p){
-    const KIND={listing:'Market listing',run:'Run details',stock:'Stock detail',
-      item:'Inventory item',trade:'Trade offer',hack:'Confirm hack'}[p.kind]||'Detail';
-    const danger=p.kind==='hack';
+    const KIND={listing:'Market listing',contract:'Contract lead',auction:'Auction lot',
+      result:'Contract result',card:'Card pull',warn:'Notice',parcel:'Parcel',
+      trade:'Trade offer'}[p.kind]||'Detail';
     return `<div class="modal" data-stop>
       <div class="dm__body">
         <div class="dm__kicker">${KIND}</div>
         <div class="dm__title">${esc(p.title||'Untitled')}</div>
         <div class="set__card"><p>Placeholder body. The same modal shell renders
-          profile, settings, items, runs, listings, stocks, trades and confirmations —
+          profiles, settings, parcels, contracts, listings, auctions, cards and notices —
           only the inner renderer changes.</p></div>
         <div class="dm__acts">
           <button class="btn btn--ghost" data-close>Cancel</button>
-          <button class="btn ${danger?'btn--danger':'btn--primary'}">${danger?'Confirm hack':'Confirm'}</button>
+          <button class="btn btn--primary">Confirm</button>
         </div>
       </div>
     </div>`;
@@ -555,7 +568,7 @@ document.addEventListener('click',e=>{
   const ea=t.closest('[data-embed-act]');
   if(ea){
     const act=ea.dataset.embedAct;
-    const kind=act==='buy'?'listing':act==='join'?'run':ea.dataset.embedKind;
+    const kind=act==='buy'?'listing':act==='join'?'contract':ea.dataset.embedKind;
     openModal('detail',{kind,title:ea.dataset.embedTitle});return;
   }
 
@@ -578,10 +591,10 @@ function send(){
   // canned reply with typing indicator in #dm and #global
   if(['dm','global'].includes(state.chan)){
     const ty=$('typing');
-    setTimeout(()=>{ty.textContent='Peggy is typing…';ty.classList.add('is-vis')},500);
+    setTimeout(()=>{ty.textContent='Orla Vex is typing…';ty.classList.add('is-vis')},500);
     setTimeout(()=>{
       ty.classList.remove('is-vis');
-      MSGS[state.chan].push({who:'peggy',t:'now',text:'Noted.'});
+      MSGS[state.chan].push({who:'orla',t:'now',text:'Noted.'});
       renderFeed();
     },1700);
   }

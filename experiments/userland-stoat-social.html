@@ -334,12 +334,12 @@ button{font-family:inherit;border:0;cursor:pointer}
   <nav class="rail" id="rail">
     <div class="rail__srv is-on" title="Home" data-rail="home">U</div>
     <div class="rail__sep"></div>
-    <div class="rail__srv" title="Null Saints (your crew)" data-crew-open="ns" style="background:#2c4a48">NS</div>
-    <div class="rail__srv" title="JadeNet" data-crew-open="jn" style="background:#33415e">JN</div>
-    <div class="rail__srv" title="Dock Zone 9" data-crew-open="dz" style="background:#4d3a5e">DZ</div>
-    <div class="rail__srv" title="Create a crew" data-modal="createCrew">+</div>
+    <div class="rail__srv" title="Blackline Convoy (your guild)" data-crew-open="ns" style="background:#2c4a48">BL</div>
+    <div class="rail__srv" title="JADENET Dispatch" data-crew-open="jn" style="background:#33415e">JD</div>
+    <div class="rail__srv" title="Paradise Gate" data-crew-open="dz" style="background:#4d3a5e">PG</div>
+    <div class="rail__srv" title="Found a guild" data-modal="createCrew">+</div>
     <div class="rail__sep"></div>
-    <div class="rail__srv" title="Discover crews & zones">⌕</div>
+    <div class="rail__srv" title="Discover guilds & gates">⌕</div>
   </nav>
 
   <!-- left nav -->
@@ -350,7 +350,7 @@ button{font-family:inherit;border:0;cursor:pointer}
       <span class="ava" data-myprofile style="background:#7b68c9;width:32px;height:32px;font-size:13px">N</span>
       <div class="me__txt" data-myprofile>
         <div class="me__name">ned <span class="donor" title="Supporter">✦</span></div>
-        <div class="me__status">Online · Ghost Build</div>
+        <div class="me__status">Online · Nightrunner Rig</div>
       </div>
       <button class="me__gear" data-modal="settings" title="settings">⚙</button>
     </div>
@@ -396,111 +396,111 @@ button{font-family:inherit;border:0;cursor:pointer}
 <script>
 /* ================= data ================= */
 const CREWS={
-  ns:{tag:'NSX',name:'Null Saints',color:'#2c4a48',banner:'linear-gradient(120deg,#2c4a48,#3a6b62)',
+  ns:{tag:'BLK',name:'Blackline Convoy',color:'#2c4a48',banner:'linear-gradient(120deg,#2c4a48,#3a6b62)',
       members:14,rep:'+208 respected',worth:'412,000 SEN',
-      runs:[['East Sector Sweep','Medium risk · 3/4'],['Vault Recon','High risk · forming']],
-      listings:[['Crew Relay Bundle','3,800 SEN'],['Sector Maps','650 SEN']],
-      roster:[['marco','Leader'],['ned','Officer'],['rosa','Runner'],['kit','Runner']]},
-  jn:{tag:'JDN',name:'JadeNet',color:'#33415e',banner:'linear-gradient(120deg,#33415e,#3c5a78)',
+      runs:[['Deep Pit Salvage Haul','Medium risk · 3/4'],['Gate 17 Night Run','High risk · forming']],
+      listings:[['Convoy Cargo Bundle','3,800 SEN'],['Route Maps','650 SEN']],
+      roster:[['marco','Convoy Lead'],['ned','Hauler'],['rosa','Courier'],['kit','Courier']]},
+  jn:{tag:'JDN',name:'JADENET Dispatch',color:'#33415e',banner:'linear-gradient(120deg,#33415e,#3c5a78)',
       members:31,rep:'+96 neutral',worth:'1,204,000 SEN',
-      runs:[['Index Audit','Low risk · open']],
-      listings:[['Feed Keys (bulk)','9,900 SEN']],
-      roster:[['vera','Broker'],['peggy','Associate']]},
-  dz:{tag:'DZ9',name:'Dock Zone 9',color:'#4d3a5e',banner:'linear-gradient(120deg,#4d3a5e,#6a4a86)',
-      members:120,rep:'open zone',worth:'—',
-      runs:[['Cargo Recount','Low risk · rolling']],
+      runs:[['Sable Customs Audit','Low risk · open']],
+      listings:[['Permit Bundle (bulk)','9,900 SEN']],
+      roster:[['vera','Broker'],['peggy','Dispatcher']]},
+  dz:{tag:'PGT',name:'Paradise Gate',color:'#4d3a5e',banner:'linear-gradient(120deg,#4d3a5e,#6a4a86)',
+      members:120,rep:'open gate',worth:'—',
+      runs:[['Parcel Recount','Low risk · rolling']],
       listings:[],
-      roster:[['marina','Moderator']]}
+      roster:[['marina','Gatekeeper']]}
 };
 const USERS={
   ned:   {name:'ned',handle:'@ned#0001',color:'#7b68c9',status:'Online',st:'',level:14,
-          title:'Ghost Operator',rep:'+62 trusted',crew:'ns',worth:'12,450 SEN',donor:true,
-          plate:'patron',badges:['Early Access','Courier I','Clean Trader'],
-          listings:[['Signal Booster','450 SEN'],['Spare Relay','120 SEN']],
-          activity:['Completed run: Warehouse Recount','Sold: Spare Cabling — 80 SEN','Joined crew: Null Saints']},
-  peggy: {name:'Peggy Woo',handle:'@peggywoo#7741',color:'#4e9a8f',status:'Online',st:'',level:31,
-          title:'Index Watcher',rep:'+118 trusted',crew:null,worth:'88,300 SEN',donor:true,
-          plate:'founder',badges:['Analyst','Veteran','Mentor','Founder'],
-          listings:[['Market Feed Key','1,200 SEN']],
-          activity:['Called RELAY move +4.2%','Mentored 2 new players']},
+          title:'Night Hauler',rep:'+62 trusted',crew:'ns',worth:'12,450 SEN',donor:true,
+          plate:'patron',badges:['Founding Courier','Route I','Clean Manifest'],
+          listings:[['Aura Cell','450 SEN'],['Route Stamp — Gate 17','120 SEN']],
+          activity:['Delivered contract: Alpine Lifeline','Sold: Route Stamp — 80 SEN','Joined guild: Blackline Convoy']},
+  peggy: {name:'Orla Vex',handle:'@orlavex#7741',color:'#4e9a8f',status:'Online',st:'',level:31,
+          title:'Manifest Reader',rep:'+118 trusted',crew:null,worth:'88,300 SEN',donor:true,
+          plate:'founder',badges:['Customs Broker','Veteran','Mentor','Founder'],
+          listings:[['Sable Customs Bridge Permit','1,200 SEN']],
+          activity:['Pulled a foil prestige card','Mentored 2 new couriers']},
   marina:{name:'Marina',handle:'@marina#3318',color:'#a8568f',status:'Online',st:'',level:9,
-          title:'Dock Hand',rep:'+12 new',crew:'dz',worth:'2,100 SEN',donor:false,
+          title:'New Courier',rep:'+12 new',crew:'dz',worth:'2,100 SEN',donor:false,
           plate:'default',badges:['Newcomer'],listings:[],
-          activity:['Joined Dock Zone 9','First run completed']},
-  marco: {name:'Marco',handle:'@marco_v#2210',color:'#b3703f',status:'Idle',st:'idle',level:22,
-          title:'Crew Lead',rep:'+74 trusted',crew:'ns',worth:'31,900 SEN',donor:false,
-          plate:'crew',badges:['Crew Founder','Runner II'],listings:[],
-          activity:['Founded Null Saints','Posted run: East Sector Sweep']},
-  vera:  {name:'Vera',handle:'@vera#0930',color:'#5f7fc2',status:'Do Not Disturb',st:'dnd',level:18,
-          title:'Broker',rep:'+41 neutral',crew:'jn',worth:'54,000 SEN',donor:false,
+          activity:['Joined Paradise Gate','First parcel delivered']},
+  marco: {name:'Mei-Lan',handle:'@meilan#2210',color:'#b3703f',status:'Idle',st:'idle',level:22,
+          title:'Convoy Lead',rep:'+74 trusted',crew:'ns',worth:'31,900 SEN',donor:false,
+          plate:'crew',badges:['Convoy Founder','Hauler II'],listings:[],
+          activity:['Founded Blackline Convoy','Posted contract: Deep Pit Salvage']},
+  vera:  {name:'Dolan Reye',handle:'@reye#0930',color:'#5f7fc2',status:'Do Not Disturb',st:'dnd',level:18,
+          title:'Auction Broker',rep:'+41 neutral',crew:'jn',worth:'54,000 SEN',donor:false,
           plate:'level',badges:['Broker','Verified Seller'],
-          listings:[['Encrypted Drive','2,400 SEN'],['Access Pass','900 SEN']],
-          activity:['Listed: Encrypted Drive','Escrow cleared ×3']}
+          listings:[['Foil Card — Night Hauler','2,400 SEN'],['Permit — Paradise Gate','900 SEN']],
+          activity:['Listed: Foil Card — Night Hauler','Escrow cleared ×3']}
 };
-const PLATES=[['default','Default'],['level','Level 25'],['achv','Achievement'],['crew','Crew'],
+const PLATES=[['default','Default'],['level','Level 25'],['achv','Achievement'],['crew','Guild'],
   ['event','Event'],['patron','Patron'],['founder','Founder']];
 
 const LISTINGS=[
-  {id:'drive',name:'Encrypted Drive',rarity:'Rare',seller:'vera',price:'2,400 SEN',escrow:'Active',
+  {id:'drive',name:'Aura Cell',rarity:'Rare',seller:'vera',price:'2,400 SEN',escrow:'Active',
    type:'item',sales:[['2 days ago','2,250 SEN'],['5 days ago','2,600 SEN']]},
-  {id:'pass',name:'Access Pass — Dock 9',rarity:'Uncommon',seller:'vera',price:'900 SEN',escrow:'Active',
+  {id:'pass',name:'Permit — Paradise Gate',rarity:'Uncommon',seller:'vera',price:'900 SEN',escrow:'Active',
    type:'item',sales:[['1 day ago','880 SEN']]},
-  {id:'booster',name:'Signal Booster',rarity:'Common',seller:'ned',price:'450 SEN',escrow:'Active',
+  {id:'booster',name:'Route Stamp — Gate 17',rarity:'Common',seller:'ned',price:'450 SEN',escrow:'Active',
    type:'player',sales:[['3 days ago','430 SEN']]},
-  {id:'feedkey',name:'Market Feed Key',rarity:'Epic',seller:'peggy',price:'1,200 SEN',escrow:'Active',
+  {id:'feedkey',name:'Foil Card — Night Hauler',rarity:'Epic',seller:'peggy',price:'1,200 SEN',escrow:'Active',
    type:'player',sales:[['1 week ago','1,150 SEN'],['2 weeks ago','1,300 SEN']]},
-  {id:'maps',name:'Sector Maps (Crew)',rarity:'Uncommon',seller:'marco',price:'650 SEN',escrow:'Pending',
+  {id:'maps',name:'Route Maps (Guild)',rarity:'Uncommon',seller:'marco',price:'650 SEN',escrow:'Pending',
    type:'item',sales:[]}
 ];
-const STOCKS=[
-  {tk:'RELAY',co:'Relay Logistics',price:'38.10',chg:'+4.2%',up:true,vol:'High',owned:120,
-   event:'Supply notice lifted prices',trend:['+4.2%','-0.8%','+1.1%','+0.4%','-2.0%']},
-  {tk:'JADE',co:'JadeNet Holdings',price:'112.40',chg:'-1.3%',up:false,vol:'Medium',owned:0,
-   event:'Audit announced',trend:['-1.3%','+0.2%','+3.1%','-0.5%','+0.9%']},
-  {tk:'HAVN',co:'Haven Storage',price:'9.85',chg:'+0.6%',up:true,vol:'Low',owned:400,
-   event:'New dock contracts',trend:['+0.6%','+0.1%','-0.2%','+1.4%','+0.3%']}
+const AUCTIONS=[
+  {tk:'AURA',co:'Aura Cell lot',price:'38.10',chg:'+4.2%',up:true,vol:'High',owned:120,
+   event:'Gate 17 customs squeeze lifted bids',trend:['+4.2%','-0.8%','+1.1%','+0.4%','-2.0%']},
+  {tk:'PERMIT',co:'Sable Bridge permits',price:'112.40',chg:'-1.3%',up:false,vol:'Medium',owned:0,
+   event:'Sable Customs audit announced',trend:['-1.3%','+0.2%','+3.1%','-0.5%','+0.9%']},
+  {tk:'SALVAGE',co:'Deep Pit salvage',price:'9.85',chg:'+0.6%',up:true,vol:'Low',owned:400,
+   event:'New convoy contracts posted',trend:['+0.6%','+0.1%','-0.2%','+1.4%','+0.3%']}
 ];
 const RUNS=[
-  {id:'east',title:'East Sector Sweep',node:'Sector E-4',risk:'Medium',reward:'600 SEN',heat:'+2',
-   req:'Level 8+',part:'3/4',crewStatus:'Crew run — Null Saints',state:'available',
+  {id:'east',title:'Deep Pit Salvage Haul',node:'Deep Pit',risk:'Medium',reward:'600 SEN',heat:'+2',
+   req:'Level 8+',part:'3/4',crewStatus:'Convoy run — Blackline Convoy',state:'available',
    banner:'linear-gradient(120deg,#39406b,#2c4a48)'},
-  {id:'ware',title:'Warehouse Recount',node:'Dock 9',risk:'Low',reward:'250 SEN',heat:'+0',
+  {id:'ware',title:'Parcel Recount',node:'Paradise Gate',risk:'Low',reward:'250 SEN',heat:'+0',
    req:'None',part:'1/2',crewStatus:'Open to anyone',state:'available',
    banner:'linear-gradient(120deg,#3c5a78,#33415e)'},
-  {id:'vault',title:'Vault Recon',node:'Sublevel B',risk:'High',reward:'2,000 SEN',heat:'+5',
-   req:'Level 15+ · ICE module',part:'2/5',crewStatus:'Crew run — Null Saints',state:'crew',
+  {id:'vault',title:'Gate 17 Night Run',node:'Gate 17',risk:'High',reward:'2,000 SEN',heat:'+5',
+   req:'Level 15+ · SEAL module',part:'2/5',crewStatus:'Convoy run — Blackline Convoy',state:'crew',
    banner:'linear-gradient(120deg,#5e3a3a,#4d3a5e)'},
-  {id:'courier',title:'Courier Chain',node:'Citywide',risk:'Low',reward:'180 SEN',heat:'+0',
+  {id:'courier',title:'Alpine Lifeline Run',node:'Alpine Lifeline',risk:'Low',reward:'180 SEN',heat:'+0',
    req:'None',part:'In progress 2/3 stops',crewStatus:'Solo',state:'active',
    banner:'linear-gradient(120deg,#2c4a48,#3c5a78)'},
-  {id:'audit',title:'Index Audit',node:'JadeNet HQ',risk:'Low',reward:'320 SEN — UNCLAIMED',heat:'+0',
+  {id:'audit',title:'Sable Customs Audit',node:'Sable Customs Bridge',risk:'Low',reward:'320 SEN — UNCLAIMED',heat:'+0',
    req:'Done',part:'Complete',crewStatus:'Finished yesterday',state:'claim',
    banner:'linear-gradient(120deg,#5e4a33,#33415e)'}
 ];
 
 /* rig + inventory (pass 3) */
-const RIG={name:'Ghost Build',owner:'ned',
-  stats:[['Scan',7],['Break',4],['Stealth',9],['Heat resist',3]],
-  slots:[['CORE','Pulse Core v2','Rare'],['LENS','Ghost Lens','Epic'],
-         ['PORT','Signal Booster','Common'],['BUS',null,null],['ICE',null,null],
+const RIG={name:'Nightrunner Rig',owner:'ned',
+  stats:[['Haul',7],['Stealth',9],['Range',4],['Customs',3]],
+  slots:[['CORE','Haul Core','Rare'],['LENS','Nightglass Lens','Epic'],
+         ['PORT','Route Beacon','Common'],['BUS',null,null],['SEAL',null,null],
          ['SKIN','Matte Shell','Uncommon']]};
 const INV=[
-  {name:'Ghost Lens',type:'part',rarity:'Epic',note:'LENS · equipped'},
-  {name:'Pulse Core v2',type:'part',rarity:'Rare',note:'CORE · equipped'},
-  {name:'Signal Booster',type:'part',rarity:'Common',note:'PORT · equipped'},
-  {name:'ICE Shard',type:'part',rarity:'Rare',note:'ICE · not installed'},
-  {name:'Med Stim',type:'consumable',rarity:'Common',note:'×3'},
-  {name:'Spare Relay',type:'marketable',rarity:'Common',note:'listed · 120 SEN'},
-  {name:'Sector Map Fragment',type:'marketable',rarity:'Uncommon',note:'tradeable'}];
+  {name:'Nightglass Lens',type:'part',rarity:'Epic',note:'LENS · equipped'},
+  {name:'Haul Core',type:'part',rarity:'Rare',note:'CORE · equipped'},
+  {name:'Route Beacon',type:'part',rarity:'Common',note:'PORT · equipped'},
+  {name:'Customs Seal',type:'part',rarity:'Rare',note:'SEAL · not installed'},
+  {name:'Field Ration',type:'consumable',rarity:'Common',note:'×3'},
+  {name:'Aura Cell',type:'marketable',rarity:'Common',note:'listed · 120 SEN'},
+  {name:'Route Stamp Fragment',type:'marketable',rarity:'Uncommon',note:'tradeable'}];
 
 /* nav: PRIMARY / ROOMS / DIRECT MESSAGES */
 const PRIMARY=[
   ['home','Home','⌂'],['contacts','Contacts','☻'],['requests','Requests','✉'],
-  ['patron','Patron','✦'],['blackmarket','Blackmarket','◬'],['runs','Runs','➜']];
+  ['patron','Patron','✦'],['blackmarket','Market','◬'],['runs','Contracts','➜']];
 const ROOMS=[
-  ['global','global','general chatter'],['crew','crew','Null Saints private'],
-  ['market','market','listings and trades'],['runrooms','run-rooms','active run coordination'],
-  ['system','system','service notices']];
+  ['global','relay','guild relay — open channel'],['crew','guild','Blackline Convoy — private'],
+  ['market','market','cargo, cards & permits'],['runrooms','convoy','live convoy coordination'],
+  ['system','customs','customs & service notices']];
 const DMS=['peggy','marina','marco','vera'];
 
 /* embed factory: ref opens the matching modal */
@@ -508,103 +508,107 @@ const E={
   listing:id=>{const l=LISTINGS.find(x=>x.id===id);return{kind:'listing',ref:id,kicker:'Market listing',
     title:l.name,desc:`Sold by ${USERS[l.seller].name}. Escrow ${l.escrow.toLowerCase()}.`,cls:'',
     fields:[['Price',l.price],['Rarity',l.rarity],['Escrow',l.escrow]],acts:[['Buy','buy'],['Inspect','inspect']]}},
-  run:id=>{const r=RUNS.find(x=>x.id===id);return{kind:'run',ref:id,kicker:'Run invite',
+  run:id=>{const r=RUNS.find(x=>x.id===id);return{kind:'run',ref:id,kicker:'Contract lead',
     title:r.title,desc:`${r.node} · ${r.crewStatus}.`,cls:'embed--ok',
-    fields:[['Reward',r.reward],['Risk',r.risk],['Crew',r.part]],acts:[['Join','join'],['View','view']]}},
-  stock:tk=>{const s=STOCKS.find(x=>x.tk===tk);return{kind:'stock',ref:tk,kicker:'Stock alert',
+    fields:[['Reward',r.reward],['Risk',r.risk],['Convoy',r.part]],acts:[['Join','join'],['View','view']]}},
+  auction:tk=>{const s=AUCTIONS.find(x=>x.tk===tk);return{kind:'auction',ref:tk,kicker:'Auction update',
     title:`${s.tk} ${s.up?'▲':'▼'} ${s.chg}`,desc:s.event+'.',cls:'embed--warn',
-    fields:[['Price',s.price+' SEN'],['Change',s.chg],['Volume',s.vol]],acts:[['View','view']]}},
+    fields:[['Top bid',s.price+' SEN'],['Change',s.chg],['Lots',s.vol]],acts:[['View','view']]}},
   trade:who=>({kind:'trade',ref:who,kicker:'Trade offer',title:`Trade with ${USERS[who].name}`,
     desc:'Pending offer. Open to review items on both sides.',cls:'',
     fields:[['Status','Pending'],['Escrow','Auto']],acts:[['Review','review']]}),
-  hack:who=>({kind:'hack',ref:who,kicker:'Hack warning',title:`Intrusion attempt on ${USERS[who].name}`,
-    desc:'A breach attempt was detected. Counter-measures available.',cls:'embed--danger',
+  redstamp:who=>({kind:'redstamp',ref:who,kicker:'Customs flag',title:`Red Stamp called on ${USERS[who].name}`,
+    desc:'A customs inspection was flagged. Manifests under review.',cls:'embed--danger',
     fields:[['Severity','Medium'],['Trace','Partial']],acts:[['Details','view']]}),
-  crewinv:id=>({kind:'crewinv',ref:id,kicker:'Crew invite',title:`Join ${CREWS[id].name} [${CREWS[id].tag}]`,
-    desc:'Open invitation. Reviewed by crew officers.',cls:'embed--ok',
-    fields:[['Members',CREWS[id].members],['Rep',CREWS[id].rep]],acts:[['View crew','crew']]}),
+  crewinv:id=>({kind:'crewinv',ref:id,kicker:'Guild invite',title:`Join ${CREWS[id].name} [${CREWS[id].tag}]`,
+    desc:'Open invitation. Reviewed by guild officers.',cls:'embed--ok',
+    fields:[['Members',CREWS[id].members],['Rep',CREWS[id].rep]],acts:[['View guild','crew']]}),
   profilecard:id=>{const u=USERS[id];return{kind:'profile',ref:id,kicker:'Profile share',
     title:`${u.name} — Level ${u.level} ${u.title}`,desc:`${u.rep} · ${u.worth}`,cls:'',
-    fields:[['Crew',u.crew?CREWS[u.crew].tag:'—'],['Listings',u.listings.length]],
+    fields:[['Guild',u.crew?CREWS[u.crew].tag:'—'],['Listings',u.listings.length]],
     acts:[['View profile','view']]}},
   rigcard:()=>({kind:'rig',ref:'ned',kicker:'Rig share',title:`${RIG.name} — ned`,
-    desc:'4/6 slots installed. Stealth-leaning build.',cls:'embed--ok',
+    desc:'4/6 slots installed. Stealth-leaning courier rig.',cls:'embed--ok',
     fields:RIG.stats.map(([k,v])=>[k,String(v)]),acts:[['View rig','view']]}),
   reward:()=>({kind:'reward',ref:'',kicker:'Daily reward',title:'Daily reward claimed',
-    desc:'Cosmetic drop + streak credit. No gameplay power.',cls:'embed--ok',
-    fields:[['Drop','Plate shard (cosmetic)'],['Streak','4 days']],acts:[['View drops','view']]})
+    desc:'Rig cosmetic drop + streak credit. No gameplay power.',cls:'embed--ok',
+    fields:[['Drop','Route stamp (cosmetic)'],['Streak','4 days']],acts:[['View drops','view']]})
 };
 
 const MSGS={
   global:[
-    {sys:true,text:'Welcome to #global. Be decent.'},
-    {who:'peggy',t:'09:12',text:'Morning. Index is choppy today, watch your margins.'},
-    {who:'peggy',t:'09:12',text:'If you bought relays last week you are fine.'},
-    {who:'marco',t:'09:15',text:'Anyone running the east sector job later?'},
-    {who:'ned',t:'09:16',text:'Maybe after lunch. Need one more crew member.'},
-    {who:'vera',t:'09:31',embed:E.stock('RELAY')},
+    {sys:true,text:'Welcome to #relay. Keep manifests clean and routes quiet.'},
+    {who:'peggy',t:'09:12',text:'Morning haulers. Red Stamp is inspecting Gate 17 — pad your customs window.'},
+    {who:'peggy',t:'09:12',text:'If you stamped your permits last cycle you are fine.'},
+    {who:'marco',t:'09:15',text:'Anyone hauling the Deep Pit salvage route later?'},
+    {who:'ned',t:'09:16',text:'After lunch. Need one more courier for the convoy.'},
+    {who:'vera',t:'09:31',embed:E.auction('AURA')},
     {who:'peggy',t:'09:33',text:'Called it.'},
     {who:'marco',t:'09:40',embed:E.crewinv('ns')},
     {who:'marina',t:'09:42',text:'New here — is escrow automatic on every trade?'},
     {who:'vera',t:'09:43',text:'On listed trades, yes. Private trades are on you.'}
   ],
   crew:[
-    {sys:true,text:'You joined #crew.'},
-    {who:'marco',t:'08:40',text:'Crew meeting tonight. Bring your loadouts.'},
+    {sys:true,text:'You joined #guild — Blackline Convoy.'},
+    {who:'marco',t:'08:40',text:'Convoy muster tonight. Bring couriers and a stamped permit.'},
     {who:'marco',t:'08:41',embed:E.run('east')},
-    {who:'ned',t:'08:55',text:'Looking at it now.'}
+    {who:'peggy',t:'08:52',embed:E.listing('feedkey')},
+    {who:'peggy',t:'08:52',text:'Pulled this foil on a guild-favor parcel. Not for sale… yet.'},
+    {who:'ned',t:'08:55',text:'Looking at the manifest now.'}
   ],
   market:[
-    {sys:true,text:'Listings posted here are escrow-protected.'},
+    {sys:true,text:'Listings posted here are escrow-protected. SEN held until delivery.'},
     {who:'vera',t:'09:40',embed:E.listing('drive')},
     {who:'vera',t:'09:41',embed:E.listing('pass')},
-    {who:'ned',t:'09:44',text:'Is the drive clean?'},
+    {who:'ned',t:'09:44',text:'Is the cell stamped for the Natural World Leak Route?'},
     {who:'vera',t:'09:45',text:'Sold as-is means sold as-is.'}
   ],
   runrooms:[
-    {sys:true,text:'Live run coordination. Keep it short.'},
+    {sys:true,text:'Live convoy coordination. Keep it short.'},
     {who:'marco',t:'09:02',embed:E.run('ware')},
-    {who:'marco',t:'09:05',text:'Vault recon needs one more with ICE. Ping me.'}
+    {who:'ned',t:'09:48',embed:E.run('audit')},
+    {who:'marco',t:'09:05',text:'Gate 17 night run needs one more with a SEAL module. Ping me.'}
   ],
   system:[
-    {sys:true,text:'Service notices only. Nobody can post here.'},
-    {who:'peggy',t:'07:00',embed:E.hack('ned')},
-    {who:'peggy',t:'07:30',embed:E.stock('JADE')}
+    {sys:true,text:'Customs and service notices only. Nobody can post here.'},
+    {sys:true,text:'A parcel is waiting in your hold. Open it on the Parcels board.'},
+    {who:'peggy',t:'07:00',embed:E.redstamp('ned')},
+    {who:'peggy',t:'07:30',embed:E.auction('PERMIT')}
   ],
   'dm-peggy':[
-    {sys:true,text:'This is the beginning of your direct message history with Peggy Woo.'},
-    {who:'peggy',t:'Yesterday',text:'You still owe me for the feed key.'},
-    {who:'ned',t:'Yesterday',text:'I know, I know. After the next run.'},
-    {who:'peggy',t:'09:35',text:'Today, ideally.'}
+    {sys:true,text:'This is the beginning of your mail with Orla Vex.'},
+    {who:'peggy',t:'Yesterday',text:'You still owe me for the Sable Customs Bridge permit.'},
+    {who:'ned',t:'Yesterday',text:'I know. After the next contract clears.'},
+    {who:'peggy',t:'09:35',text:'Today, ideally. Customs won’t wait.'}
   ],
   'dm-marina':[
-    {sys:true,text:'This is the beginning of your direct message history with Marina.'},
-    {who:'marina',t:'09:50',text:'Thanks for the help in #global!'}
+    {sys:true,text:'This is the beginning of your mail with Marina.'},
+    {who:'marina',t:'09:50',text:'Thanks for the help in #relay!'}
   ],
   'dm-marco':[
-    {sys:true,text:'This is the beginning of your direct message history with Marco.'},
+    {sys:true,text:'This is the beginning of your mail with Mei-Lan.'},
     {who:'marco',t:'08:20',embed:E.trade('marco')},
-    {who:'marco',t:'08:20',text:'Sent you an offer for the booster.'}
+    {who:'marco',t:'08:20',text:'Sent you an offer for the route stamp.'}
   ],
   'dm-vera':[
-    {sys:true,text:'This is the beginning of your direct message history with Vera.'},
-    {who:'vera',t:'Monday',text:'Restock on Thursday. Drives and passes.'}
+    {sys:true,text:'This is the beginning of your mail with Dolan Reye.'},
+    {who:'vera',t:'Monday',text:'Fresh cells and permits land Thursday.'}
   ]
 };
 
 const COMMANDS=[
-  ['/sell','item price','List an item on the Blackmarket'],
-  ['/run','[name]','Open run details / create a run'],
-  ['/hack','@player','Attempt a hack (confirmation required)'],
+  ['/sell','cargo price','List cargo on the Market'],
+  ['/run','[name]','Open contract details / post a contract'],
+  ['/flag','@player','Call a Red Stamp inspection (confirmation required)'],
   ['/trade','@player','Open a trade offer'],
-  ['/stock','TICKER','Open a stock detail'],
-  ['/crew','create','Create or manage a crew'],
+  ['/auction','LOT','Open an auction lot'],
+  ['/guild','create','Found or manage a guild'],
   ['/rig','[share]','Open your rig — "share" inserts a rig card'],
   ['/inventory','','Open your inventory'],
-  ['/profile','@player','View a player profile'],
-  ['/item','[name]','Inspect an inventory item'],
-  ['/market','','Open the Blackmarket'],
-  ['/invite','[run]','Insert a run invite into chat']
+  ['/profile','@player','View a courier profile'],
+  ['/item','[name]','Inspect cargo / a part'],
+  ['/market','','Open the Market'],
+  ['/invite','[contract]','Insert a contract lead into chat']
 ];
 
 const state={view:'chat',chan:'global',unread:{crew:true,market:true,'dm-marco':true},modal:null};
@@ -715,13 +719,13 @@ const PAGES={
       <p class="sub">Your activity, contacts and open threads.</p>
       <h3>Jump back in</h3>
       <div class="grid">
-        <div class="card" data-room="dm-peggy"><div class="card__name">Peggy Woo</div>
+        <div class="card" data-room="dm-peggy"><div class="card__name">Orla Vex</div>
           <div class="card__meta">"Today, ideally."</div></div>
-        <div class="card" data-room="crew"><div class="card__name"># crew</div>
-          <div class="card__meta">Crew meeting tonight</div></div>
-        <div class="card" data-open-kind="run" data-open-ref="courier"><div class="card__name">Courier Chain</div>
-          <div class="card__meta">Active run · 2/3 stops</div></div>
-        <div class="card" data-open-kind="run" data-open-ref="audit"><div class="card__name">Index Audit</div>
+        <div class="card" data-room="crew"><div class="card__name"># guild</div>
+          <div class="card__meta">Convoy muster tonight</div></div>
+        <div class="card" data-open-kind="run" data-open-ref="courier"><div class="card__name">Alpine Lifeline Run</div>
+          <div class="card__meta">Active contract · 2/3 stops</div></div>
+        <div class="card" data-open-kind="run" data-open-ref="audit"><div class="card__name">Sable Customs Audit</div>
           <div class="card__meta">Reward unclaimed — 320 SEN</div></div>
       </div>
       <h3>Recent activity</h3>
@@ -729,60 +733,60 @@ const PAGES={
   },
   contacts(){
     $('page-contacts').innerHTML=`<h1>Contacts</h1>
-      <p class="sub">People you trade, run and talk with.</p>
+      <p class="sub">Couriers you haul, trade and talk with.</p>
       <div class="filters"><button class="fchip is-on">All</button><button class="fchip">Online</button>
-        <button class="fchip">Crew</button><button class="btn btn--primary btn--sm" style="margin-left:auto">Add Contact</button></div>
+        <button class="fchip">Guild</button><button class="btn btn--primary btn--sm" style="margin-left:auto">Add Contact</button></div>
       ${DMS.map(id=>{const u=USERS[id];return `<div class="contact" data-profile="${id}">
         ${avaHtml(id,34)}<div><div class="nm">${u.name}${u.crew?` <span class="crewtag" data-crew="${u.crew}">${CREWS[u.crew].tag}</span>`:''}</div>
         <div class="meta">${u.status} · Level ${u.level} · ${u.title}</div></div>
         <div class="acts"><button class="btn btn--sm" data-room="dm-${id}">Message</button>
         <button class="btn btn--sm btn--ghost" data-profile="${id}">Profile</button></div></div>`}).join('')}
-      <h3>Recent players</h3>
+      <h3>Recent couriers</h3>
       <div class="contact" data-profile="marina">${avaHtml('marina',34)}
-        <div><div class="nm">Marina</div><div class="meta">Met in #global · 10 min ago</div></div>
+        <div><div class="nm">Marina</div><div class="meta">Met in #relay · 10 min ago</div></div>
         <div class="acts"><button class="btn btn--sm">Add Contact</button></div></div>`;
   },
   requests(){
     $('page-requests').innerHTML=`<h1>Requests</h1>
-      <p class="sub">Message and contact requests from players you haven't added.</p>
+      <p class="sub">Message and contact requests from couriers you haven't added.</p>
       <div class="contact">${avaHtml('marina',34)}
         <div><div class="nm">Marina</div><div class="meta">Wants to send you messages</div></div>
         <div class="acts"><button class="btn btn--primary btn--sm">Accept</button>
         <button class="btn btn--sm btn--ghost">Ignore</button></div></div>
       <div class="contact">${avaHtml('vera',34)}
-        <div><div class="nm">Vera</div><div class="meta">Trade request: Encrypted Drive</div></div>
+        <div><div class="nm">Dolan Reye</div><div class="meta">Trade request: Aura Cell</div></div>
         <div class="acts"><button class="btn btn--primary btn--sm" data-open-kind="trade" data-open-ref="vera">Review</button>
         <button class="btn btn--sm btn--ghost">Decline</button></div></div>`;
   },
   blackmarket(){
-    $('page-blackmarket').innerHTML=`<h1>Blackmarket</h1>
-      <p class="sub">Items, player listings and stocks. Escrow on everything listed.</p>
+    $('page-blackmarket').innerHTML=`<h1>Market</h1>
+      <p class="sub">Cargo, courier listings and auctions. Escrow on everything listed.</p>
       <div class="filters">
-        <button class="fchip is-on">All</button><button class="fchip">Items</button>
-        <button class="fchip">Player listings</button><button class="fchip">Stocks</button>
+        <button class="fchip is-on">All</button><button class="fchip">Cargo</button>
+        <button class="fchip">Courier listings</button><button class="fchip">Auctions</button>
         <button class="fchip">Rare+</button>
         <select class="fsort"><option>Sort: Newest</option><option>Price ↑</option><option>Price ↓</option><option>Rarity</option></select>
       </div>
-      <h3>Item listings</h3>
+      <h3>Cargo listings</h3>
       <div class="grid">${LISTINGS.filter(l=>l.type==='item').map(cardListing).join('')}</div>
-      <h3>Player listings</h3>
+      <h3>Courier listings</h3>
       <div class="grid">${LISTINGS.filter(l=>l.type==='player').map(cardListing).join('')}</div>
-      <h3>Stocks</h3>
-      ${STOCKS.map(s=>`<div class="stockrow" data-open-kind="stock" data-open-ref="${s.tk}">
+      <h3>Auctions</h3>
+      ${AUCTIONS.map(s=>`<div class="stockrow" data-open-kind="auction" data-open-ref="${s.tk}">
         <span class="tk">${s.tk}</span><span class="co">${s.co}</span>
         <span>${s.price} SEN</span><span class="${s.up?'up':'down'}">${s.up?'▲':'▼'} ${s.chg}</span>
-        <span style="color:var(--txt-3);font-size:12px">Vol ${s.vol}</span></div>`).join('')}`;
+        <span style="color:var(--txt-3);font-size:12px">Lots ${s.vol}</span></div>`).join('')}`;
   },
   runs(){
     const card=r=>`<div class="runcard" data-open-kind="run" data-open-ref="${r.id}">
       <div class="runcard__banner" style="background:${r.banner}">${r.node}</div>
       <div class="runcard__body"><div class="card__name">${r.title}</div>
-      <div class="card__meta">${r.risk} risk · ${r.reward} · crew ${r.part}</div>
+      <div class="card__meta">${r.risk} risk · ${r.reward} · convoy ${r.part}</div>
       <div class="card__meta">${r.crewStatus}</div></div></div>`;
-    $('page-runs').innerHTML=`<h1>Runs</h1>
-      <p class="sub">Jobs, crew operations and reward claims.</p>
-      <h3>Available runs</h3><div class="grid">${RUNS.filter(r=>r.state==='available').map(card).join('')}</div>
-      <h3>Crew runs</h3><div class="grid">${RUNS.filter(r=>r.state==='crew').map(card).join('')}</div>
+    $('page-runs').innerHTML=`<h1>Contracts</h1>
+      <p class="sub">Contract leads, convoy operations and reward claims.</p>
+      <h3>Available contracts</h3><div class="grid">${RUNS.filter(r=>r.state==='available').map(card).join('')}</div>
+      <h3>Convoy runs</h3><div class="grid">${RUNS.filter(r=>r.state==='crew').map(card).join('')}</div>
       <h3>Active</h3><div class="grid">${RUNS.filter(r=>r.state==='active').map(card).join('')}</div>
       <h3>Completed — claim rewards</h3><div class="grid">${RUNS.filter(r=>r.state==='claim').map(card).join('')}</div>`;
   }
@@ -827,15 +831,15 @@ const MODALS={
         ${sect('Player plate <span style="float:right;font-weight:400;text-transform:none">cosmetic only</span>',
           `<div class="platewrap">${PLATES.map(([id,lbl])=>
             `<div class="plate plate--${id} ${u.plate===id?'is-cur':''}">${u.name}<small>${lbl}</small></div>`).join('')}</div>`)}
-        ${sect('Standing',row('Reputation',u.rep)+row('Crew',crew?`<span class="crewtag" data-crew="${u.crew}">${crew.tag} ${crew.name}</span>`:'—')+row('Net worth',u.worth))}
+        ${sect('Standing',row('Reputation',u.rep)+row('Guild',crew?`<span class="crewtag" data-crew="${u.crew}">${crew.tag} ${crew.name}</span>`:'—')+row('SEN balance',u.worth))}
         ${sect(`Public listings (${u.listings.length})`,u.listings.length?u.listings.map(([n,pr])=>row(n,pr)).join(''):row('Nothing listed','—'))}
         ${sect('Recent activity',u.activity.map(a=>row(a,'')).join(''))}
         <div class="pf__acts">
           <button class="btn btn--primary" data-room="dm-${p.id}" data-close>Message</button>
           <button class="btn" data-open-kind="trade" data-open-ref="${p.id}">Trade</button>
-          <button class="btn btn--danger" data-open-kind="hack" data-open-ref="${p.id}">Hack</button>
+          <button class="btn btn--danger" data-open-kind="redstamp" data-open-ref="${p.id}">Red Stamp</button>
           <button class="btn">View Listings</button>
-          ${crew?`<button class="btn" data-crew="${u.crew}">View Crew</button>`:''}
+          ${crew?`<button class="btn" data-crew="${u.crew}">View Guild</button>`:''}
           <button class="btn">Add Contact</button>
         </div>
       </div></div>`;
@@ -848,7 +852,7 @@ const MODALS={
                ['App',['notifications','privacy','patron & cosmetics']],['',['log out']]];
     const C={
       profile:`<h2>Profile</h2><div class="set__card"><h4>Display name</h4><p>ned</p></div>
-        <div class="set__card"><h4>Title</h4><p>Ghost Operator</p></div>
+        <div class="set__card"><h4>Title</h4><p>Night Hauler</p></div>
         <div class="set__card"><h4>Banner & avatar</h4><p>Upload placeholders.</p></div>
         <div class="set__card"><h4>Player plate</h4><p>Patron plate equipped — change in Patron & cosmetics.</p></div>`,
       account:`<h2>Account</h2><div class="set__card"><h4>Handle</h4><p>@ned#0001</p></div>
@@ -858,10 +862,10 @@ const MODALS={
         <div class="set__card"><h4>Density</h4><p>Comfortable</p></div>`,
       notifications:`<h2>Notifications</h2><div class="set__card"><h4>Mentions</h4><p>On</p></div>
         <div class="set__card"><h4>Market alerts</h4><p>On</p></div>
-        <div class="set__card"><h4>Run invites</h4><p>On</p></div>`,
+        <div class="set__card"><h4>Contract invites</h4><p>On</p></div>`,
       privacy:`<h2>Privacy</h2><div class="set__card"><h4>Who can message you</h4><p>Everyone</p></div>
-        <div class="set__card"><h4>Show net worth on profile</h4><p>On</p></div>
-        <div class="set__card"><h4>Hack visibility</h4><p>Show attempts publicly</p></div>`,
+        <div class="set__card"><h4>Show SEN balance on profile</h4><p>On</p></div>
+        <div class="set__card"><h4>Customs flag visibility</h4><p>Show flags publicly</p></div>`,
       'patron & cosmetics':`<h2>Patron & cosmetics</h2>
         <div class="set__card"><h4>Supporter tier</h4><p>Patron — cosmetics only, no gameplay power.</p></div>
         <div class="set__card"><h4>Manage</h4><p><button class="btn btn--primary btn--sm" data-modal="patron">Open Patron</button></p></div>`,
@@ -891,7 +895,7 @@ const MODALS={
         ${s('PFP frames','Avatar rings and frames. Placeholder shelf.')}
         ${s('Name effects','Subtle color/gradient name styling in chat. Placeholder.')}
         ${s('Badge showcase','Pin up to 3 achievement badges on your profile. Placeholder.')}
-        ${s('Cosmetic shop','Rotating cosmetic stock — plates, frames, banners. Placeholder.')}
+        ${s('Cosmetic shop','Rotating cosmetic shelf — plates, frames, banners. Placeholder.')}
         ${s('Gift supporter pass','Gift a month of Patron to another player. Placeholder.')}
         <div class="dm__acts"><button class="btn btn--ghost" data-close>Close</button>
           <button class="btn btn--primary">Manage subscription</button></div>
@@ -908,8 +912,8 @@ const MODALS={
       <div class="pf__body">
         <div class="pf__name">${c.name} <span class="crewtag">${c.tag}</span></div>
         <div class="pf__handle">${c.members} members · ${c.rep}</div>
-        ${sect('Standing',row('Reputation',c.rep)+row('Crew net worth',c.worth)+row('Members',c.members))}
-        ${sect('Public runs',c.runs.length?c.runs.map(([n,m])=>row(n,m)).join(''):row('None','—'))}
+        ${sect('Standing',row('Reputation',c.rep)+row('Guild SEN',c.worth)+row('Members',c.members))}
+        ${sect('Public contracts',c.runs.length?c.runs.map(([n,m])=>row(n,m)).join(''):row('None','—'))}
         ${sect('Market listings',c.listings.length?c.listings.map(([n,pr])=>row(n,pr)).join(''):row('None','—'))}
         ${sect('Members & roles',c.roster.map(([id,role])=>{
           const u=USERS[id];return u?`<div class="memrow">${avaHtml(id,22)}<span data-profile="${id}"
@@ -927,19 +931,19 @@ const MODALS={
   createCrew(){
     return `<div class="modal">
       <div class="dm__body">
-        <div class="dm__kicker">New crew</div>
-        <div class="dm__title">Create a crew</div>
-        <div class="field"><label>Crew name</label><input placeholder="e.g. Night Couriers"></div>
-        <div class="field"><label>Crew tag</label><input placeholder="3–4 letters, e.g. NCR" maxlength="4"></div>
-        <div class="field"><label>Crew emblem</label><div class="dm__img" style="height:64px">emblem upload placeholder</div></div>
-        <div class="field"><label>Crew banner</label><div class="dm__img" style="height:48px">banner upload placeholder</div></div>
+        <div class="dm__kicker">New guild</div>
+        <div class="dm__title">Found a guild</div>
+        <div class="field"><label>Guild name</label><input placeholder="e.g. Night Couriers"></div>
+        <div class="field"><label>Guild tag</label><input placeholder="3–4 letters, e.g. NCR" maxlength="4"></div>
+        <div class="field"><label>Guild emblem</label><div class="dm__img" style="height:64px">emblem upload placeholder</div></div>
+        <div class="field"><label>Guild banner</label><div class="dm__img" style="height:48px">banner upload placeholder</div></div>
         <div class="field"><label>Visibility</label><select><option>Public</option><option>Private</option><option>Invite-only</option></select></div>
-        <div class="field"><label>Charter</label><textarea rows="3" placeholder="What this crew is about, rules, vibe…"></textarea></div>
+        <div class="field"><label>Charter</label><textarea rows="3" placeholder="What this guild is about, rules, vibe…"></textarea></div>
         <div class="set__card"><h4>Requirements</h4>
           <p>Founding cost: <b>10,000 SEN</b> · Required level: <b>10</b> — you are level 14 ✓</p></div>
         <div class="dm__acts">
           <button class="btn btn--ghost" data-close>Cancel</button>
-          <button class="btn btn--primary">Create Crew — 10,000 SEN</button>
+          <button class="btn btn--primary">Found Guild — 10,000 SEN</button>
         </div></div></div>`;
   },
 
@@ -950,7 +954,7 @@ const MODALS={
     const u=USERS[l.seller];
     return `<div class="modal">
       <div class="dm__body">
-        <div class="dm__kicker">Market listing · Blackmarket</div>
+        <div class="dm__kicker">Market listing</div>
         <div class="dm__title">${esc(l.name)} <span class="rarity">${l.rarity}</span></div>
         <div class="dm__img">item image placeholder</div>
         <div class="seller" data-profile="${l.seller}">${avaHtml(l.seller,30)}
@@ -968,35 +972,35 @@ const MODALS={
         </div></div></div>`;
   },
 
-  /* 7. StockModal */
-  stock(p){
-    const s=STOCKS.find(x=>x.tk===p.id)||STOCKS[0];
+  /* 7. AuctionModal */
+  auction(p){
+    const s=AUCTIONS.find(x=>x.tk===p.id)||AUCTIONS[0];
     return `<div class="modal">
       <div class="dm__body">
-        <div class="dm__kicker">Stock · Blackmarket exchange</div>
+        <div class="dm__kicker">Auction lot · Market</div>
         <div class="dm__title">${s.tk} <span style="font-weight:400;font-size:14px;color:var(--txt-2)">${s.co}</span></div>
-        ${sect('Price',row('Current',s.price+' SEN')+row('Change',`<span class="${s.up?'up':'down'}">${s.up?'▲':'▼'} ${s.chg}</span>`)+row('Volume',s.vol)+row('You own',s.owned+' shares'))}
-        ${sect('Trend (5 sessions)',s.trend.map((t,i)=>row('Session −'+(i+1),
+        ${sect('Bidding',row('Top bid',s.price+' SEN')+row('Change',`<span class="${s.up?'up':'down'}">${s.up?'▲':'▼'} ${s.chg}</span>`)+row('Lots active',s.vol)+row('You watch',s.owned+' lots'))}
+        ${sect('Bid history (5 rounds)',s.trend.map((t,i)=>row('Round −'+(i+1),
           `<span class="${t.startsWith('+')?'up':'down'}">${t}</span>`)).join(''))}
         ${sect('Latest event',row(s.event,''))}
         <div class="dm__acts">
           <button class="btn btn--ghost" data-close>Close</button>
           <button class="btn">Watch</button>
-          <button class="btn btn--danger">Sell</button>
-          <button class="btn btn--primary">Buy</button>
+          <button class="btn btn--danger">Withdraw</button>
+          <button class="btn btn--primary">Place bid</button>
         </div></div></div>`;
   },
 
-  /* 8. RunModal */
+  /* 8. ContractModal */
   run(p){
     const r=RUNS.find(x=>x.id===p.id)||RUNS[0];
     return `<div class="modal">
       <div class="pf__banner" style="background:${r.banner};height:80px"></div>
       <div class="dm__body">
-        <div class="dm__kicker">Run</div>
+        <div class="dm__kicker">Contract</div>
         <div class="dm__title">${r.title}</div>
-        ${sect('Briefing',row('Node / location',r.node)+row('Risk',r.risk)+row('Reward',r.reward)+row('Heat',r.heat)+row('Requirements',r.req))}
-        ${sect('Crew',row('Participants',r.part)+row('Status',r.crewStatus))}
+        ${sect('Briefing',row('Route / location',r.node)+row('Risk',r.risk)+row('Reward',r.reward)+row('Customs heat',r.heat)+row('Requirements',r.req))}
+        ${sect('Convoy',row('Participants',r.part)+row('Status',r.crewStatus))}
         <div class="dm__acts">
           <button class="btn btn--ghost" data-close>Close</button>
           <button class="btn">Invite</button>
@@ -1015,7 +1019,7 @@ const MODALS={
         <div class="dm__title">Trade with ${u.name}</div>
         <div class="tradecols">
           <div><h4>You give</h4>
-            <div class="pf__row"><span>Signal Booster</span><span>×1</span></div>
+            <div class="pf__row"><span>Route Stamp — Gate 17</span><span>×1</span></div>
             <div class="pf__row"><span>SEN</span><span>0</span></div></div>
           <div><h4>${u.name} gives</h4>
             <div class="pf__row"><span>SEN</span><span>430</span></div></div>
@@ -1028,19 +1032,19 @@ const MODALS={
         </div></div></div>`;
   },
 
-  /* 10. HackConfirmModal */
-  hack(p){
+  /* 10. RedStampConfirmModal */
+  redstamp(p){
     const u=USERS[p.id]||USERS.vera;
     return `<div class="modal">
       <div class="dm__body">
-        <div class="dm__kicker" style="color:var(--danger)">Hack — confirmation required</div>
-        <div class="dm__title">Hack ${u.name}?</div>
+        <div class="dm__kicker" style="color:var(--danger)">Red Stamp — confirmation required</div>
+        <div class="dm__title">Flag ${u.name} for inspection?</div>
         <div class="set__card" style="border:1px solid var(--danger)">
-          <p>Hostile action. Failure raises your heat and may be publicly visible.</p></div>
-        ${sect('Assessment',row('Target defense','Moderate ICE')+row('Estimated heat','+3')+row('Trace risk','Medium')+row('Reputation risk','Visible if traced'))}
+          <p>Hostile action. A false flag raises your own customs heat and may be public.</p></div>
+        ${sect('Assessment',row('Target manifest','Clean')+row('Estimated heat','+3')+row('Trace risk','Medium')+row('Reputation risk','Visible if traced'))}
         <div class="dm__acts">
           <button class="btn btn--ghost" data-close>Cancel</button>
-          <button class="btn btn--danger">Confirm hack</button>
+          <button class="btn btn--danger">Confirm flag</button>
         </div></div></div>`;
   },
 
@@ -1049,9 +1053,9 @@ const MODALS={
     return `<div class="modal">
       <div class="dm__body">
         <div class="dm__kicker">Inventory item</div>
-        <div class="dm__title">${esc(p.title||'Signal Booster')} <span class="rarity">Common</span></div>
+        <div class="dm__title">${esc(p.title||'Route Beacon')} <span class="rarity">Common</span></div>
         <div class="dm__img">item render placeholder</div>
-        ${sect('Stats',row('Slot','PORT')+row('Condition','94%')+row('Effect','+1 signal range'))}
+        ${sect('Stats',row('Slot','PORT')+row('Condition','94%')+row('Effect','+1 relay range'))}
         <div class="dm__acts">
           <button class="btn btn--ghost" data-close>Close</button>
           <button class="btn">Sell</button>
@@ -1096,7 +1100,7 @@ const MODALS={
     if(tab==='profile'){
       body=`<div class="pf__status"><span class="st-dot"></span>${u.status}</div>
         <div class="pf__chips">${u.badges.map(b=>`<span class="chip">${b}</span>`).join('')}</div>`
-        +sect('Standing',row('Reputation',u.rep)+row('Crew','<span class="crewtag" data-crew="ns">NSX Null Saints</span>')+row('Net worth',u.worth))
+        +sect('Standing',row('Reputation',u.rep)+row('Guild','<span class="crewtag" data-crew="ns">BLK Blackline Convoy</span>')+row('SEN balance',u.worth))
         +sect('Player plate <span style="float:right;font-weight:400;text-transform:none">cosmetic only</span>',
           `<div class="platewrap">${PLATES.map(([id,lbl])=>
             `<div class="plate plate--${id} ${u.plate===id?'is-cur':''}">${u.name}<small>${lbl}</small></div>`).join('')}</div>`);
@@ -1122,8 +1126,8 @@ const MODALS={
       </div>
       <div style="padding:34px 18px 0">
         <div class="pf__name">ned <span class="donor" title="Supporter — cosmetic only">✦</span>
-          <span class="crewtag" data-crew="ns">NSX</span></div>
-        <div class="pf__handle">@ned#0001 · Level 14 · Ghost Operator</div>
+          <span class="crewtag" data-crew="ns">BLK</span></div>
+        <div class="pf__handle">@ned#0001 · Level 14 · Night Hauler</div>
       </div>
       <div class="tabs">${TABS.map(tb=>
         `<button class="tab ${tb===tab?'is-on':''}" data-mytab="${tb}">${tb[0].toUpperCase()+tb.slice(1)}</button>`).join('')}</div>
@@ -1191,7 +1195,7 @@ function invBody(f){
 
 /* kind → modal mapping for embeds/cards */
 function openByKind(kind,ref){
-  const map={listing:'listing',run:'run',stock:'stock',trade:'trade',hack:'hack',
+  const map={listing:'listing',run:'run',auction:'auction',trade:'trade',redstamp:'redstamp',
     item:'item',crewinv:'crew',crew:'crew',profile:'profile',rig:'rig',reward:'patron'};
   openModal(map[kind]||'item',{id:ref,title:ref});
 }
@@ -1213,9 +1217,9 @@ const panelRows=rows=>rows.map(([lbl,desc,attr])=>
 const PANELS={
   quick:()=>'<div class="popmenu__h">Quick Create</div>'+panelRows([
     ['Create Trade Offer','open a trade','data-pact="trade"'],
-    ['List Item','sell on the Blackmarket','data-pact="sell"'],
-    ['Create Run Invite','start or share a run','data-pact="runmodal"'],
-    ['Attach Item','pick from inventory','data-pact="inventory"'],
+    ['List Cargo','sell on the Market','data-pact="sell"'],
+    ['Create Contract Lead','start or share a contract','data-pact="runmodal"'],
+    ['Attach Cargo','pick from inventory','data-pact="inventory"'],
     ['Share Profile','insert your profile card','data-pact="shareprofile"'],
     ['Share Rig','insert your rig card','data-pact="sharerig"']]),
   gift:()=>'<div class="popmenu__h">Patron · Gifts · Rewards — cosmetics only</div>'+panelRows([
@@ -1226,34 +1230,34 @@ const PANELS={
     ['Redeem Code','enter a code','data-pact="redeem"']]),
   gif:()=>'<div class="popmenu__h">Media (placeholder)</div>'+panelRows([
     ['Recent media','nothing here yet',''],
-    ['Signal effects','animated effects — placeholder',''],
-    ['Run clips','your run replays — placeholder',''],
+    ['Route effects','animated effects — placeholder',''],
+    ['Convoy clips','your delivery replays — placeholder',''],
     ['Upload','attach a file — placeholder','']]),
   emotes:()=>{
     const g=(h,em)=>`<div class="popmenu__h">${h}</div><div class="emogrid">${em.map(x=>
       `<button class="emo" data-emo="${x}">${x}</button>`).join('')}</div>`;
     return g('Frequently used',['👍','😂','🔥','👀','💀','🫡'])
-      +g('Crew emoji',['🟢','🛰️','🗝️','📡'])
+      +g('Guild emoji',['🟢','🛰️','🗝️','📡'])
       +g('Stickers',['🐙','🤖','🌆'])
       +g('Reactions',['❤️','✅','❌','❓']);
   },
   apps:()=>'<div class="popmenu__h">Quick Actions</div>'+panelRows([
-      ['/sell','list an item on the Blackmarket','data-cmd="/sell"'],
-      ['/run','start or create a run','data-cmd="/run"'],
-      ['/hack','target a player','data-cmd="/hack"'],
+      ['/sell','list cargo on the Market','data-cmd="/sell"'],
+      ['/run','open or post a contract','data-cmd="/run"'],
+      ['/flag','flag a rival','data-cmd="/flag"'],
       ['/trade','offer a trade','data-cmd="/trade"']])
     +'<div class="popmenu__h">Activities</div>'+panelRows([
-      ['Crew Run','open the crew run','data-pact="runmodal"'],
+      ['Convoy Run','open the convoy contract','data-pact="runmodal"'],
       ['Market Listing','create or browse','data-pact="sell"'],
-      ['Stock Watch','open a ticker','data-pact="stock"'],
+      ['Auction Watch','open a lot','data-pact="auction"'],
       ['Rig Share','insert your rig card','data-pact="sharerig"']])
     +'<div class="popmenu__h">Economy</div>'+panelRows([
-      ['Blackmarket','items, players, stocks','data-pact="market"'],
-      ['Stocks','exchange view','data-pact="market"'],
+      ['Market','cargo, couriers, auctions','data-pact="market"'],
+      ['Auctions','auction floor','data-pact="market"'],
       ['Escrow Trades','open trades','data-pact="trade"']])
     +'<div class="popmenu__h">Social</div>'+panelRows([
-      ['Create Crew','found a new crew','data-pact="createcrew"'],
-      ['Invite Player','insert crew invite','data-pact="crewinvite"'],
+      ['Found Guild','start a new guild','data-pact="createcrew"'],
+      ['Invite Courier','insert guild invite','data-pact="crewinvite"'],
       ['Message Contact','open contacts','data-pact="contacts"'],
       ['View Profile','open a profile','data-pact="profile"']])
 };
@@ -1266,7 +1270,7 @@ function doPact(a){
   hideMenu();
   const acts={
     trade:()=>openModal('trade',{id:'marco'}),
-    sell:()=>openModal('listing',{title:'New listing — sell an item'}),
+    sell:()=>openModal('listing',{title:'New listing — sell cargo'}),
     runmodal:()=>openModal('run',{id:'east'}),
     inventory:()=>openModal('inventory',{}),
     shareprofile:()=>insertPacket(E.profilecard('ned')),
@@ -1275,7 +1279,7 @@ function doPact(a){
     giftpatron:()=>openModal('patronGift',{}),
     patron:()=>openModal('patron',{}),
     redeem:()=>openModal('redeem',{}),
-    stock:()=>openModal('stock',{id:'RELAY'}),
+    auction:()=>openModal('auction',{id:'AURA'}),
     market:()=>show('blackmarket'),
     createcrew:()=>openModal('createCrew',{}),
     crewinvite:()=>insertPacket(E.crewinv('ns')),
@@ -1290,12 +1294,12 @@ function runCommand(raw){
   const parts=raw.trim().split(/\s+/);
   const cmd=parts[0],arg=parts[1];
   switch(cmd){
-    case '/sell':   openModal('listing',{title:'New listing — sell an item'});break;
+    case '/sell':   openModal('listing',{title:'New listing — sell cargo'});break;
     case '/run':    openModal('run',{id:'east'});break;
-    case '/hack':   openModal('hack',{id:'vera'});break;
+    case '/flag':   openModal('redstamp',{id:'vera'});break;
     case '/trade':  openModal('trade',{id:'marco'});break;
-    case '/stock':  openModal('stock',{id:arg||'RELAY'});break;
-    case '/crew':   openModal('createCrew',{});break;
+    case '/auction':openModal('auction',{id:arg||'AURA'});break;
+    case '/guild':  openModal('createCrew',{});break;
     case '/rig':    arg==='share'?insertPacket(E.rigcard()):openModal('rig',{});break;
     case '/inventory':openModal('inventory',{});break;
     case '/profile':openModal('profile',{id:'peggy'});break;
@@ -1319,7 +1323,7 @@ function send(){
   renderFeed();
   if(['dm-peggy','global'].includes(state.chan)){
     const ty=$('typing');
-    setTimeout(()=>{ty.textContent='Peggy Woo is typing…';ty.classList.add('is-vis')},500);
+    setTimeout(()=>{ty.textContent='Orla Vex is typing…';ty.classList.add('is-vis')},500);
     setTimeout(()=>{ty.classList.remove('is-vis');
       MSGS[state.chan].push({who:'peggy',t:'now',text:'Noted.'});renderFeed()},1700);
   }
@@ -1340,7 +1344,7 @@ document.addEventListener('click',e=>{
     div.innerHTML=`<button data-profile="${who}">View Profile</button>
       <button data-room="dm-${who}">Message</button>
       <button data-open-kind="trade" data-open-ref="${who}">Trade</button>
-      <button class="danger" data-open-kind="hack" data-open-ref="${who}">Hack</button>
+      <button class="danger" data-open-kind="redstamp" data-open-ref="${who}">Red Stamp</button>
       <button>Reply — soon</button>
       <button>Copy link — soon</button>`;
     moreBtn.parentElement.appendChild(div);
